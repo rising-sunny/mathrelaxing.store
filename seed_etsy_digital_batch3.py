@@ -70,7 +70,9 @@ def seed_digital_etsy_batch3():
             "thumbnail_url": "/static/img/islamic-geometry-ipad-bundle_cover.jpg",
             "file_url": "/static/downloads/islamic-geometry-ipad-bundle.zip",
             "file_size": "22.5 MB",
-            "active": True,
+            # Pulled from the site 2026-07-12 — flip to True + re-run this script
+            # when ready to republish.
+            "active": False,
         },
         {
             "slug": "voronoi-gardens-ipad-interactive",
