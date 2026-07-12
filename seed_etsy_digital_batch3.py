@@ -3,10 +3,11 @@ seed_etsy_digital_batch3.py — the iPad Coloring Bundle family (GoodNotes /
 Procreate / interactive Safari SVG apps / the 3D CBN app). Same idempotent
 upsert-by-slug pattern as batch 1 & 2.
 
-These use product_type="ipad_bundle" + collection="digital-downloads" so
-they populate the "iPad Coloring Bundles" section on /collection/digital-
-downloads (see main.py's DIGITAL_GROUPS) — that section existed in the code
-but had zero products until now.
+These use product_type="ipad_bundle" + collection="digital-downloads". On
+/collection/digital-downloads (see main.py's _digital_group) they split by
+slug into two sections: static GoodNotes/Procreate PDF bundles land in
+"iPad Coloring Bundles · GoodNotes & Procreate", while slugs containing
+"interactive"/"svg" land in "Interactive iPad Color-by-Number Apps".
 
 Their detail page is bundle_download.html (gated on collection ==
 "digital-downloads"), which builds its image gallery by listing files in

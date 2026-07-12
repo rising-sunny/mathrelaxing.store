@@ -868,21 +868,55 @@ async def collection_page(slug: str, request: Request, db: Session = Depends(get
         "digital_planner": "STEM Notebooks & Planners",
         "digital_notebook": "STEM Notebooks & Planners",
         "printable_pdf": "Printable Coloring PDFs",
-        "ipad_bundle": "iPad Coloring Bundles",
         "animation_pack": "4K Loop Animations",
         "image_pack": "Image Bundles",
-        "creator_assets": "Creator Assets"
+        "creator_assets": "Creator Assets",
     }
+
+    def _digital_group(p):
+        """Finer-grained section for the digital-downloads page. Several distinct
+        products share the same product_type (esp. 'thematic_bundle' and
+        'ipad_bundle'), so keying sections off product_type alone dumped unrelated
+        items — a physics print set next to Procreate palettes, GoodNotes PDF
+        bundles next to interactive Safari apps — into vague buckets. Split them
+        by slug so related products cluster and nothing lands in a generic
+        'Digital Downloads' catch-all."""
+        s = (p.slug or "").lower()
+        if p.product_type == "ipad_bundle":
+            if "interactive" in s or "svg" in s:
+                return "Interactive iPad Color-by-Number Apps"
+            return "iPad Coloring Bundles · GoodNotes & Procreate"
+        if p.product_type == "thematic_bundle":
+            if "procreate" in s or "palette" in s:
+                return "Procreate Color Palettes"
+            if any(k in s for k in ("print-set", "prints", "poster", "equation")):
+                return "Equation & Art Print Sets"
+            return "Digital Downloads"
+        return DIGITAL_GROUPS.get(p.product_type, "Digital Downloads")
+
+    def _type_label(p):
+        """Card sub-label that reads like a product, not a code enum
+        ('Thematic Bundle')."""
+        s = (p.slug or "").lower()
+        if p.product_type == "ipad_bundle":
+            return "Interactive iPad App" if ("interactive" in s or "svg" in s) else "iPad Bundle"
+        if p.product_type == "thematic_bundle":
+            if "procreate" in s or "palette" in s:
+                return "Procreate Palette"
+            if any(k in s for k in ("print-set", "prints", "poster", "equation")):
+                return "Print Set"
+            return "Digital Bundle"
+        return p.product_type.replace("_", " ").title()
 
     items = [
         {
             "slug": p.slug, "name": p.name, "price_usd": p.price_usd,
-            "type_label": p.product_type.replace("_", " ").title(),
+            "type_label": _type_label(p) if slug == "digital-downloads" else p.product_type.replace("_", " ").title(),
             "price_prefix": "Bundle",
             "url": f"/bundle/{p.slug}",
             "kind": "digital",
             "delivery": "Instant download",
-            "group": DIGITAL_GROUPS.get(p.product_type, "Digital Downloads") if slug == "digital-downloads" else "Digital Downloads",
+            "group": _digital_group(p) if slug == "digital-downloads" else "Digital Downloads",
             "card_format": None,
         }
         for p in digital
@@ -913,11 +947,19 @@ async def collection_page(slug: str, request: Request, db: Session = Depends(get
     # Group products by kind so visitors can tell digital downloads from physical
     # prints at a glance, in a stable display order.
     section_order = [
-        "STEM Notebooks & Planners",
+        # Digital-downloads page: lead with the core coloring products, then
+        # iPad, then tools/extras — most-wanted first, coherent clusters.
         "Printable Coloring PDFs",
-        "iPad Coloring Bundles",
+        "iPad Coloring Bundles · GoodNotes & Procreate",
+        "Interactive iPad Color-by-Number Apps",
+        "STEM Notebooks & Planners",
+        "Equation & Art Print Sets",
+        "Procreate Color Palettes",
         "4K Loop Animations",
-        "Digital Downloads", 
+        "Image Bundles",
+        "Creator Assets",
+        "Digital Downloads",
+        # Physical collections keep their existing order.
         "Art Prints", "Apparel", "Desk Mats", "Notebooks"
     ]
     groups = [
