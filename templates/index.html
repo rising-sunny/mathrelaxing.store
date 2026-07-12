@@ -90,6 +90,7 @@
       <h2 style="color:#fff;">Printed Coloring Books</h2>
     </div>
 
+    {% if 'fractal-flora-coloring-book' in book_slugs %}
     <!-- Fractal Flora -->
     <div class="book-promo-grid" style="margin-bottom: 4rem;">
       <div class="book-promo-text">
@@ -111,7 +112,9 @@
              loading="lazy" width="460" height="595">
       </a>
     </div>
+    {% endif %}
 
+    {% if 'harmonograph-dreams-coloring-book' in book_slugs %}
     <!-- Harmonograph Dreams -->
     <div class="book-promo-grid" style="margin-bottom: 4rem;">
       <a href="/book/harmonograph-dreams-coloring-book" class="book-promo-cover" aria-label="View the Harmonograph Dreams coloring book">
@@ -133,7 +136,9 @@
         <a href="/book/harmonograph-dreams-coloring-book" class="btn btn-primary btn-lg">Get the Book &rarr;</a>
       </div>
     </div>
+    {% endif %}
 
+    {% if 'sacred-harmonics-coloring-book' in book_slugs %}
     <!-- Sacred Harmonics -->
     <div class="book-promo-grid" style="margin-bottom: 4rem;">
       <a href="/book/sacred-harmonics-coloring-book" class="book-promo-cover" aria-label="View the Sacred Harmonics coloring book">
@@ -154,7 +159,9 @@
         <a href="/book/sacred-harmonics-coloring-book" class="btn btn-primary btn-lg">Get the Book &rarr;</a>
       </div>
     </div>
+    {% endif %}
 
+    {% if 'mathematical-tangle-art-coloring-book' in book_slugs %}
     <!-- Tangle Art -->
     <div class="book-promo-grid" style="margin-bottom: 4rem;">
       <div class="book-promo-text">
@@ -175,7 +182,9 @@
              loading="lazy" width="460" height="595">
       </a>
     </div>
+    {% endif %}
 
+    {% if 'sacred-geometry-coloring-book' in book_slugs %}
     <!-- Sacred Geometry & Topology -->
     <div class="book-promo-grid">
       <a href="/book/sacred-geometry-coloring-book" class="book-promo-cover" aria-label="View the Sacred Geometry & Topology coloring book">
@@ -197,6 +206,7 @@
         <a href="/book/sacred-geometry-coloring-book" class="btn btn-primary btn-lg">Get the Book &rarr;</a>
       </div>
     </div>
+    {% endif %}
   </div>
 </section>
 

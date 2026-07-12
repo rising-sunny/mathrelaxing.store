@@ -920,12 +920,20 @@ async def home(request: Request, db: Session = Depends(get_db)):
         for p in digital_featured
     ]
 
+    # Only surface printed-book promos for books that actually resolve — a
+    # registered /book/ route AND an active product. This stops the homepage
+    # linking to books that aren't published yet (dead /book/ 404s).
+    book_slugs = {
+        s for s in BOOK_TEMPLATES
+        if db.query(Product).filter(Product.slug == s, Product.active == True).first()
+    }
+
     collections_simple = {k: dict(v) if isinstance(v, dict) else v for k, v in COLLECTIONS.items()}
     return templates.TemplateResponse(
         "index.html",
         {"request": request, "collections": collections_simple,
          "featured": apparel, "notebooks": notebooks,
-         "digital_featured": digital_featured},
+         "digital_featured": digital_featured, "book_slugs": book_slugs},
     )
 
 
@@ -1182,6 +1190,7 @@ BOOK_TEMPLATES = {
     "sacred-harmonics-coloring-book": "book_sacred_harmonics.html",
     "hyperbolic-gardens-coloring-book": "book_hyperbolic.html",
     "harmonograph-dreams-coloring-book": "book_harmonographs.html",
+    "fractal-flora-coloring-book": "book_fractal.html",
 }
 
 
