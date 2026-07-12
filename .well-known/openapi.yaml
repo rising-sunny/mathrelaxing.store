@@ -1,0 +1,191 @@
+openapi: 3.0.1
+info:
+  title: MathRelaxing GPT API
+  description: API for browsing and previewing mathematical art bundles from MathRelaxing.store
+  version: "1.0.0"
+servers:
+  - url: https://mathrelaxing.store/api
+    description: Production server
+paths:
+  /gpt/products:
+    get:
+      operationId: browseProducts
+      summary: Browse digital math art bundles
+      description: List all available digital product bundles with metadata. Filter by collection or product type.
+      parameters:
+        - name: collection
+          in: query
+          description: Filter by collection slug (e.g. strange-attractors, fractal-series)
+          schema:
+            type: string
+        - name: product_type
+          in: query
+          description: Filter by product type (image_pack, animation_pack, creator_assets, thematic_bundle)
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of products with metadata and store URLs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        slug:
+                          type: string
+                          description: Product slug identifier
+                        name:
+                          type: string
+                          description: Product display name
+                        type:
+                          type: string
+                          description: Human-readable product type
+                        collection:
+                          type: string
+                          description: Collection slug
+                        equation_type:
+                          type: string
+                          description: Mathematical equation type
+                        description:
+                          type: string
+                        price_usd:
+                          type: number
+                        store_url:
+                          type: string
+                          description: Direct link to purchase the full bundle
+                        preview_url:
+                          type: string
+                          description: URL to preview image
+                  total:
+                    type: integer
+  /gpt/collections:
+    get:
+      operationId: listCollections
+      summary: List math art collections
+      description: Browse all available collections of mathematical art with descriptions and sample previews.
+      responses:
+        "200":
+          description: List of collections
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  collections:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        slug:
+                          type: string
+                        name:
+                          type: string
+                        description:
+                          type: string
+                        equation:
+                          type: string
+                        product_count:
+                          type: integer
+                        sample_preview:
+                          type: string
+                        store_url:
+                          type: string
+                  total:
+                    type: integer
+  /gpt/preview:
+    get:
+      operationId: generatePreview
+      summary: Generate a preview for a specific product
+      description: Get a preview image URL and store link for a specific digital product bundle. Returns watermarked/low-res preview; full resolution only in purchased bundle.
+      parameters:
+        - name: product
+          in: query
+          required: true
+          description: Product slug to generate preview for
+          schema:
+            type: string
+        - name: ref
+          in: query
+          description: Referral source (default: gpt)
+          schema:
+            type: string
+            default: gpt
+      responses:
+        "200":
+          description: Preview URL and store link
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  product_slug:
+                    type: string
+                  product_name:
+                    type: string
+                  product_type:
+                    type: string
+                  description:
+                    type: string
+                  price_usd:
+                    type: number
+                  preview_url:
+                    type: string
+                  store_url:
+                    type: string
+                  message:
+                    type: string
+                    description: Human-readable message about the preview
+        "404":
+          description: Product not found
+  /gpt/generate:
+    post:
+      operationId: generateCustomPreview
+      summary: Generate a custom preview from equation parameters
+      description: Create a custom preview by specifying an equation type and optional parameters. Returns a preview URL and a link to the most relevant bundle on the store.
+      parameters:
+        - name: equation_type
+          in: query
+          required: true
+          description: "Equation type (e.g. lorenz, julia, clifford, lissajous, superformula, gray-scott, mobius-grid, turing, voronoi, chladni)"
+          schema:
+            type: string
+        - name: ref
+          in: query
+          description: Referral source
+          schema:
+            type: string
+            default: gpt
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Optional equation parameters for custom rendering
+              additionalProperties: true
+      responses:
+        "200":
+          description: Custom preview URL and relevant bundle link
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  preview_url:
+                    type: string
+                  product_slug:
+                    type: string
+                  product_name:
+                    type: string
+                  product_type:
+                    type: string
+                  price_usd:
+                    type: number
+                  store_url:
+                    type: string
+                  message:
+                    type: string

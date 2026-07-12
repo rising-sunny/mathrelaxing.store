@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /cart
+Disallow: /checkout
+Disallow: /download/
+Disallow: /certificate/
+Disallow: /static/purchases/
+
+Sitemap: https://mathrelaxing.store/sitemap.xml

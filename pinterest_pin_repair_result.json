@@ -1,0 +1,48 @@
+{
+  "created": [
+    {
+      "slug": "chladni-figures-loop-pack",
+      "pin_id": "927037904566991345",
+      "title": "Chladni Figures: Cymatic Geometry Loop"
+    },
+    {
+      "slug": "voronoi-organics-loop-pack",
+      "pin_id": "927037904566991348",
+      "title": "Voronoi Organic Cells: Mathematical Loop"
+    },
+    {
+      "slug": "harmonic-geometry-loop-pack",
+      "pin_id": "927037904566991372",
+      "title": "Harmonic Geometry: Lissajous Motion Loop"
+    },
+    {
+      "slug": "strange-attractors-loop-pack",
+      "pin_id": "927037904566991378",
+      "title": "Lorenz Flow: Strange Attractor Animation"
+    },
+    {
+      "slug": "complex-plane-loop-pack",
+      "pin_id": "927037904566991384",
+      "title": "Mobius Spin: Complex Plane Animation"
+    },
+    {
+      "slug": "radial-symmetry-loop-pack",
+      "pin_id": "927037904566991391",
+      "title": "Rose Curve Spin: Radial Symmetry Loop"
+    }
+  ],
+  "deleted": [
+    "927037904566871234",
+    "927037904566871142",
+    "927037904566870772",
+    "927037904566870644",
+    "927037904566389266",
+    "927037904566786226",
+    "927037904566786223",
+    "927037904566988894",
+    "927037904566871066",
+    "927037904566354524"
+  ],
+  "created_count": 6,
+  "deleted_count": 10
+}

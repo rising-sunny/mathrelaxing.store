@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mathematical Art · 4K Digital Downloads from ${{ "%.2f"|format(hero.price_usd) }} | MathRelaxing</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="High-resolution 4K mathematical art rendered from real equations. Instant digital download from ${{ "%.2f"|format(hero.price_usd) }}. Strange attractors, fractals, flow fields and more.">
+<link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<!-- ── Live tracking (same as base.html) ── -->
+<script>
+(function () {
+  try {
+    var SID_KEY='mr_sid', ATTR_KEY='mr_attr';
+    var sid=localStorage.getItem(SID_KEY);
+    if(!sid){sid=(Date.now().toString(36)+Math.random().toString(36).slice(2,10)).slice(0,32);localStorage.setItem(SID_KEY,sid);}
+    window.mrSession=sid;
+    var qs=new URLSearchParams(location.search);
+    var paid=['utm_source','utm_medium','utm_campaign','fbclid','gclid','ttclid','msclkid'];
+    var hasPaid=paid.some(function(k){return qs.has(k);});
+    var attr=null; try{attr=JSON.parse(localStorage.getItem(ATTR_KEY)||'null');}catch(_){}
+    if(attr&&attr.ts&&(Date.now()-attr.ts>30*24*3600*1000)){attr=null;} // first-touch expires after 30d
+    if(!attr||hasPaid){
+      var a={source:qs.get('utm_source')||null,medium:qs.get('utm_medium')||null,campaign:qs.get('utm_campaign')||null,ts:Date.now()};
+      if(qs.get('ttclid')){a.source=a.source||'tiktok';a.medium=a.medium||'paid_social';}
+      if(qs.get('fbclid')){a.source=a.source||'facebook';a.medium=a.medium||'paid_social';}
+      if(qs.get('gclid')){a.source=a.source||'google';a.medium=a.medium||'cpc';}
+      if(!a.source&&document.referrer){try{var rh=new URL(document.referrer).hostname;if(rh&&rh.indexOf('mathrelaxing.store')===-1){a.source=rh;a.medium=a.medium||'referral';}}catch(_){}}
+      attr=a; localStorage.setItem(ATTR_KEY,JSON.stringify(attr));
+    }
+    window.mrAttr=attr;
+    window.mrTrack=function(type,data){
+      var body={type:type,session_id:sid,path:location.pathname+location.search,referrer:document.referrer||null};
+      if(attr){if(attr.source)body.source=attr.source;if(attr.medium)body.medium=attr.medium;if(attr.campaign)body.campaign=attr.campaign;}
+      if(data){if(data.product_slug)body.product_slug=data.product_slug;if(data.value!=null)body.value=data.value;}
+      var json=JSON.stringify(body);
+      try{fetch('/api/track',{method:'POST',headers:{'Content-Type':'application/json'},body:json,keepalive:true}).catch(function(){});return;}catch(_){}
+      try{if(navigator.sendBeacon)navigator.sendBeacon('/api/track',new Blob([json],{type:'application/json'}));}catch(__){}
+    };
+    window.mrTrack('pageview');
+  } catch(e){}
+})();
+</script>
+{% if meta_pixel_id %}
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init','{{ meta_pixel_id|e }}');fbq('track','PageView');
+</script>
+{% endif %}
+
+<style>
+  :root{
+    --bg:#0d0d0f; --panel:#16161a; --panel2:#1d1d22; --border:#2a2a30;
+    --ink:#f0ede8; --muted:#9a978f; --accent:#c8a96e; --accent-d:#b2935a;
+    --good:#5fbf7a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--ink);font-family:'Space Mono',ui-monospace,monospace;line-height:1.5;-webkit-font-smoothing:antialiased;}
+  .serif{font-family:'Cormorant Garamond',Georgia,serif;}
+  a{color:inherit;text-decoration:none;}
+  img{display:block;max-width:100%;}
+
+  /* Minimal header — just logo + cart, no distracting nav */
+  header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(13,13,15,.92);backdrop-filter:blur(8px);z-index:20;}
+  header .logo{font-family:'Cormorant Garamond',serif;font-size:1.45rem;font-weight:600;letter-spacing:.02em;}
+  header .logo b{color:var(--accent);}
+  header .cart{font-size:.8rem;color:var(--muted);border:1px solid var(--border);padding:6px 12px;border-radius:6px;}
+
+  /* Hero */
+  .hero{padding:26px 18px 10px;max-width:560px;margin:0 auto;text-align:center;}
+  .hero .kicker{color:var(--accent);font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;margin-bottom:14px;}
+  .hero h1{font-family:'Cormorant Garamond',serif;font-size:2.5rem;line-height:1.05;font-weight:600;margin-bottom:10px;}
+  .hero .sub{color:var(--muted);font-size:.92rem;margin-bottom:20px;}
+
+  .hero-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.45);}
+  .hero-card .imgwrap{position:relative;aspect-ratio:1/1;background:#000;overflow:hidden;}
+  .hero-card .imgwrap img{width:100%;height:100%;object-fit:cover;}
+  .hero-card .badge{position:absolute;top:12px;left:12px;background:var(--accent);color:#14110d;font-weight:700;font-size:.72rem;padding:4px 10px;border-radius:20px;letter-spacing:.04em;}
+  .hero-card .body{padding:18px 18px 22px;}
+  .hero-card .pname{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:600;margin-bottom:4px;}
+  .hero-card .pmeta{color:var(--muted);font-size:.8rem;margin-bottom:16px;}
+  .hero-card .price{font-size:2rem;font-weight:700;color:var(--accent);margin-bottom:2px;}
+  .hero-card .price small{font-size:.85rem;color:var(--muted);font-weight:400;}
+
+  .btn-buy{display:block;width:100%;background:var(--accent);color:#14110d;border:none;font-family:'Space Mono',monospace;font-weight:700;font-size:1.05rem;padding:16px;border-radius:10px;cursor:pointer;letter-spacing:.02em;margin-top:14px;transition:background .15s;}
+  .btn-buy:hover{background:var(--accent-d);}
+  .btn-buy:disabled{opacity:.6;cursor:default;}
+  .reassure{font-size:.74rem;color:var(--muted);margin-top:10px;}
+
+  .trust{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;max-width:560px;margin:18px auto;padding:0 18px;}
+  .trust span{font-size:.74rem;color:var(--muted);display:flex;align-items:center;gap:5px;}
+  .trust b{color:var(--good);}
+
+  .more{max-width:760px;margin:30px auto 50px;padding:0 18px;}
+  .more h2{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:600;text-align:center;margin-bottom:4px;}
+  .more .h2sub{text-align:center;color:var(--muted);font-size:.8rem;margin-bottom:20px;}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color .15s,transform .15s;}
+  .card:hover{border-color:var(--accent);transform:translateY(-2px);}
+  .card .ci{aspect-ratio:1/1;background:#000;}
+  .card .ci img{width:100%;height:100%;object-fit:cover;}
+  .card .cb{padding:10px 12px 12px;}
+  .card .cn{font-size:.82rem;line-height:1.25;margin-bottom:6px;height:2.4em;overflow:hidden;}
+  .card .cp{color:var(--accent);font-weight:700;font-size:.95rem;}
+  .card .cp small{color:var(--muted);font-weight:400;font-size:.72rem;}
+
+  footer{border-top:1px solid var(--border);padding:24px 18px;text-align:center;color:var(--muted);font-size:.72rem;}
+  footer a{color:var(--muted);text-decoration:underline;}
+
+  @media(min-width:600px){
+    .hero h1{font-size:3rem;}
+    .grid{grid-template-columns:repeat(3,1fr);}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="/" class="logo">Math<b>Relaxing</b></a>
+  <a href="/cart" class="cart">Cart</a>
+</header>
+
+<section class="hero">
+  <p class="kicker">Generative Mathematical Art</p>
+  <h1 class="serif">Art Born from Equations</h1>
+  <p class="sub">High-resolution 4K art rendered from real mathematics — instant digital download, yours forever.</p>
+
+  <div class="hero-card">
+    <div class="imgwrap">
+      <span class="badge">From ${{ "%.2f"|format(hero.price_usd) }}</span>
+      <img src="/api/render/preview?product={{ hero.slug }}" alt="{{ hero.name }}" loading="eager" width="600" height="600">
+    </div>
+    <div class="body">
+      <div class="pname serif">{{ hero.name }}</div>
+      <div class="pmeta">{{ hero.collection|replace('-',' ')|title }} · 4K · 300 DPI · Instant download</div>
+      <div class="price">${{ "%.2f"|format(hero.price_usd) }} <small>one-time · lifetime access</small></div>
+      <button class="btn-buy" id="btn-buy" onclick="buyNow('{{ hero.slug }}', {{ hero.price_usd }}, this)">Buy Now — ${{ "%.2f"|format(hero.price_usd) }}</button>
+      <a href="/bundle/{{ hero.slug }}" style="display:block;margin-top:10px;font-size:.8rem;color:var(--muted);">See what's inside →</a>
+      <div class="reassure">🔒 Secure checkout via PayPal · ⚡ Instant download · No account needed</div>
+    </div>
+  </div>
+</section>
+
+<div class="trust">
+  <span><b>✓</b> 4K resolution</span>
+  <span><b>✓</b> Instant download</span>
+  <span><b>✓</b> Lifetime access</span>
+  <span><b>✓</b> Real math, no AI</span>
+</div>
+
+<section class="more">
+  <h2 class="serif">More art packs from ${{ "%.2f"|format(cheapest) }}</h2>
+  <p class="h2sub">Tap any pack to preview &amp; buy</p>
+  <div class="grid">
+    {% for p in hooks %}
+    <a class="card" href="/bundle/{{ p.slug }}?utm_source={{ src }}&utm_medium={{ medium }}&utm_campaign={{ campaign }}">
+      <div class="ci"><img src="/api/render/preview?product={{ p.slug }}" alt="{{ p.name }}" loading="lazy" width="300" height="300"></div>
+      <div class="cb">
+        <div class="cn">{{ p.name }}</div>
+        <div class="cp">${{ "%.2f"|format(p.price_usd) }} <small>{{ p.product_type|replace('_',' ') }}</small></div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<footer>
+  <a href="/">Full catalog</a> · <a href="/about">Our process</a> · <a href="/cart">Cart</a><br>
+  © MathRelaxing · Generative mathematical art
+</footer>
+
+<script>
+  async function buyNow(slug, price, btn){
+    if(window.mrTrack) window.mrTrack('checkout_start',{product_slug:slug,value:price});
+    var orig = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Redirecting to PayPal…';
+    try{
+      var resp = await fetch('/api/purchases/create',{
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({product_slug:slug, ref_source:'direct'})
+      });
+      var data = await resp.json();
+      if(!resp.ok || !data.checkout_url) throw new Error(data.detail||'Could not start checkout');
+      if(window.mrTrack) window.mrTrack('payment_redirect',{product_slug:slug,value:price});
+      window.location.href = data.checkout_url;
+    }catch(err){
+      btn.disabled=false; btn.textContent=orig;
+      alert('Something went wrong: '+(err.message||'Please try again.'));
+    }
+  }
+</script>
+</body>
+</html>

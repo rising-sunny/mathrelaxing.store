@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Cart - MathRelaxing{% endblock %}
+{% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <p class="section-label">Your selection</p>
+    <h1>Cart</h1>
+  </div>
+</div>
+
+<section class="section-sm">
+  <div class="container">
+    <div id="cart-empty" class="cart-empty" style="display:none;">
+      <h3 style="font-family:var(--font-display); font-weight:300; margin-bottom:1rem;">Your cart is empty</h3>
+      <p>Explore the collections and find your bundle.</p>
+      <a href="/" class="btn btn-outline" style="margin-top:1.5rem;">Browse Bundles</a>
+    </div>
+
+    <div id="cart-content" style="display:none;">
+      <div class="cart-items" id="cart-items"></div>
+      <div style="display:grid; grid-template-columns:1fr 380px; gap:3rem; align-items:start;">
+        <div>
+          <a href="/" class="btn btn-outline">&larr; Continue browsing</a>
+        </div>
+        <div class="cart-summary">
+          <div class="cart-total-row">
+            <span>Subtotal</span>
+            <span id="cart-subtotal">$0</span>
+          </div>
+          <p style="font-size:11px; color:var(--muted); margin-bottom:1.5rem;">Instant download after payment</p>
+          <a href="/checkout" class="btn btn-primary" id="checkout-btn" style="width:100%; justify-content:center;">
+            Proceed to Checkout &rarr;
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const cart = JSON.parse(localStorage.getItem('mr_cart') || '[]');
+  const total = cart.reduce((s, i) => s + (Number(i.price_usd) || 0), 0);
+  if (window.mrTrack) window.mrTrack('cart_view', { value: total });
+
+  const checkoutBtn = document.getElementById('checkout-btn');
+  if (checkoutBtn) {
+    checkoutBtn.addEventListener('click', () => {
+      const c = JSON.parse(localStorage.getItem('mr_cart') || '[]');
+      const t = c.reduce((s, i) => s + (Number(i.price_usd) || 0), 0);
+      if (window.mrTrack) window.mrTrack('checkout_start', { value: t });
+    });
+  }
+
+  renderCart();
+});
+
+function renderCart() {
+  const cart = JSON.parse(localStorage.getItem('mr_cart') || '[]');
+  const emptyEl = document.getElementById('cart-empty');
+  const contentEl = document.getElementById('cart-content');
+  const itemsEl = document.getElementById('cart-items');
+
+  if (cart.length === 0) {
+    emptyEl.style.display = 'block';
+    contentEl.style.display = 'none';
+    return;
+  }
+
+  emptyEl.style.display = 'none';
+  contentEl.style.display = 'block';
+
+  let total = 0;
+  itemsEl.innerHTML = '';
+
+  cart.forEach((item, idx) => {
+    total += item.price_usd;
+    const div = document.createElement('div');
+    div.className = 'cart-item';
+    const isPhysical = Boolean(item.format_id && item.product_type === 'physical');
+    const typeLabel = isPhysical ? (item.format_label || 'Physical product') : (item.product_type || 'bundle').replace(/_/g, ' ');
+    const deliveryLabel = isPhysical ? 'Printed on demand' : 'Digital download';
+    div.innerHTML = `
+      <div class="cart-item-thumb">
+        <img
+          src="/api/render/preview?product=${encodeURIComponent(item.slug)}"
+          alt="${item.name}"
+          width="80"
+          height="80"
+          style="width:80px; height:80px; object-fit:cover; border-radius:4px; display:block;"
+        >
+      </div>
+      <div>
+        <div class="cart-item-name">${item.name}</div>
+        <div class="cart-item-format">${typeLabel}</div>
+        <div class="cart-item-params">${deliveryLabel}</div>
+        <button class="cart-remove" data-idx="${idx}">Remove</button>
+      </div>
+      <div class="cart-item-price">$${item.price_usd.toFixed(0)}</div>
+    `;
+    itemsEl.appendChild(div);
+  });
+
+  document.getElementById('cart-subtotal').textContent = `$${total.toFixed(0)}`;
+
+  itemsEl.querySelectorAll('.cart-remove').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const index = parseInt(btn.dataset.idx, 10);
+      cart.splice(index, 1);
+      localStorage.setItem('mr_cart', JSON.stringify(cart));
+      window.dispatchEvent(new Event('storage'));
+      renderCart();
+    });
+  });
+}
+</script>
+{% endblock %}

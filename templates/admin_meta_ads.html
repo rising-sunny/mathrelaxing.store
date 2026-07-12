@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>MathRelaxing Meta Ads Console</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #171918;
+      --muted: #69706b;
+      --paper: #eef0ea;
+      --panel: #fffdf7;
+      --line: #d8dacd;
+      --accent: #0f6b57;
+      --accent-dark: #0a4d3f;
+      --blue: #244a7a;
+      --red: #a3263a;
+      --gold: #9b6b19;
+      --shadow: 0 22px 70px rgba(23, 25, 24, 0.14);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(120deg, rgba(15, 107, 87, 0.1), transparent 40%),
+        radial-gradient(circle at top right, rgba(36, 74, 122, 0.16), transparent 34%),
+        var(--paper);
+      color: var(--ink);
+      font-family: Georgia, "Times New Roman", serif;
+    }
+
+    button, input, select, textarea { font: inherit; }
+
+    .shell {
+      width: min(1240px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 52px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.2rem, 6vw, 4.8rem);
+      line-height: 0.92;
+      max-width: 740px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.1;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font: 700 12px/1.2 ui-monospace, "SFMono-Regular", Consolas, monospace;
+      text-transform: uppercase;
+    }
+
+    .status {
+      display: grid;
+      gap: 8px;
+      min-width: 270px;
+      text-align: right;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 7px 11px;
+      border: 1px solid var(--line);
+      background: rgba(255, 253, 247, 0.78);
+      border-radius: 999px;
+      color: var(--ink);
+      font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .pill.good { border-color: rgba(15, 107, 87, 0.36); color: var(--accent); }
+    .pill.warn { border-color: rgba(163, 38, 58, 0.35); color: var(--red); }
+    .pill.mode { border-color: rgba(36, 74, 122, 0.35); color: var(--blue); }
+    .pill.soft { border-color: rgba(155, 107, 25, 0.34); color: var(--gold); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
+      gap: 22px;
+      align-items: start;
+      margin-top: 26px;
+    }
+
+    .panel {
+      background: rgba(255, 253, 247, 0.9);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-body { padding: 20px; }
+
+    .connect-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      appearance: none;
+      border: 1px solid transparent;
+      background: var(--ink);
+      color: white;
+      min-height: 42px;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 150ms ease, background 150ms ease, border-color 150ms ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn.primary { background: var(--accent); }
+    .btn.primary:hover { background: var(--accent-dark); }
+    .btn.danger { background: var(--red); }
+    .btn.danger:hover { background: #7e1c2c; }
+    .btn.secondary {
+      background: transparent;
+      color: var(--ink);
+      border-color: var(--line);
+    }
+    .btn:disabled {
+      opacity: 0.56;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #fffefa;
+      color: var(--ink);
+      border-radius: 8px;
+      padding: 11px 12px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 126px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: rgba(36, 74, 122, 0.62);
+      box-shadow: 0 0 0 3px rgba(36, 74, 122, 0.12);
+    }
+
+    .two {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      margin: 0;
+    }
+
+    .preview {
+      display: grid;
+      gap: 14px;
+    }
+
+    .preview-frame {
+      background: #101211;
+      border: 1px solid #262b28;
+      border-radius: 9px;
+      overflow: hidden;
+      aspect-ratio: 1.91 / 1;
+      display: grid;
+      place-items: center;
+    }
+
+    .preview-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .ad-card {
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.46);
+      padding: 14px;
+      display: grid;
+      gap: 9px;
+    }
+
+    .ad-card strong {
+      font-size: 18px;
+      color: var(--ink);
+    }
+
+    .result, .diagnostics {
+      display: none;
+      margin-top: 16px;
+      border: 1px solid rgba(15, 107, 87, 0.28);
+      background: rgba(15, 107, 87, 0.08);
+      color: var(--accent-dark);
+      border-radius: 9px;
+      padding: 13px;
+      font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      max-height: 520px;
+      overflow: auto;
+    }
+
+    .result.error {
+      border-color: rgba(163, 38, 58, 0.32);
+      background: rgba(163, 38, 58, 0.08);
+      color: var(--red);
+    }
+
+    .diagnostics {
+      display: block;
+      margin-top: 0;
+      background: rgba(36, 74, 122, 0.07);
+      border-color: rgba(36, 74, 122, 0.24);
+      color: #263a52;
+    }
+
+    @media (max-width: 900px) {
+      .topbar { display: grid; align-items: start; }
+      .status { text-align: left; }
+      .grid { grid-template-columns: 1fr; }
+      .two { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="topbar">
+      <div>
+        <p class="eyebrow">MathRelaxing internal tool</p>
+        <h1>Meta Ads Console</h1>
+      </div>
+      <div class="status">
+        <span id="configured-pill" class="pill warn">Checking app config</span>
+        <span id="connected-pill" class="pill warn">Meta not connected</span>
+        <span id="page-pill" class="pill mode">Page pending</span>
+        <span id="pixel-pill" class="pill soft">Pixel pending</span>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Safe Ad Draft</h2>
+          <button id="refresh-btn" class="btn secondary" type="button">Refresh</button>
+        </div>
+        <div class="panel-body">
+          <div class="connect-row">
+            <a id="connect-link" class="btn primary" href="/api/meta/oauth/start">Connect Meta</a>
+            <p id="account-line" class="small">Connect Meta before creating campaigns.</p>
+          </div>
+
+          <div class="form-grid">
+            <label>
+              Product
+              <select id="product-select"></select>
+            </label>
+
+            <label>
+              Ad headline
+              <input id="ad-title" maxlength="80" placeholder="Math art product title">
+            </label>
+
+            <label>
+              Primary text
+              <textarea id="primary-text" maxlength="500"></textarea>
+            </label>
+
+            <label>
+              Destination URL
+              <input id="destination-url" placeholder="https://mathrelaxing.store/bundle/...">
+            </label>
+
+            <label>
+              Image URL
+              <input id="image-url" placeholder="https://mathrelaxing.store/api/render/preview?...">
+            </label>
+
+            <div class="two">
+              <label>
+                <span id="budget-label">Daily budget</span>
+                <input id="daily-budget" type="number" min="1" max="1000000" step="1" value="5000">
+              </label>
+              <label>
+                Countries
+                <input id="countries" value="US" placeholder="US, CL, ES">
+              </label>
+            </div>
+
+            <button id="draft-btn" class="btn primary" type="button">Build Draft Payload</button>
+            <button id="create-paused-btn" class="btn danger" type="button" disabled>Create PAUSED Campaign in Meta</button>
+            <p class="small">
+              Draft mode is read-only. The PAUSED creation button writes to Meta, but requests campaign, ad set and ad in PAUSED status only.
+            </p>
+            <div id="result" class="result"></div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="panel">
+        <div class="panel-head">
+          <h2>Preview & Diagnostics</h2>
+          <span class="pill">Paused-first</span>
+        </div>
+        <div class="panel-body preview">
+          <div class="preview-frame">
+            <img id="preview-img" alt="Selected MathRelaxing ad preview">
+          </div>
+          <div class="ad-card">
+            <strong id="preview-title">Select a product</strong>
+            <span id="preview-copy" class="small">Ad copy preview will appear here.</span>
+            <span id="preview-link" class="small"></span>
+          </div>
+          <pre id="diagnostics" class="diagnostics">Loading diagnostics...</pre>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const state = {
+      products: [],
+      status: null,
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function setResult(message, isError = false) {
+      const box = $('result');
+      box.textContent = typeof message === 'string' ? message : JSON.stringify(message, null, 2);
+      box.classList.toggle('error', isError);
+      box.style.display = 'block';
+    }
+
+    async function api(path, options = {}) {
+      const resp = await fetch(path, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(options.headers || {}),
+        },
+      });
+      const text = await resp.text();
+      let data = {};
+      try { data = text ? JSON.parse(text) : {}; }
+      catch (_) { data = { raw: text }; }
+      if (!resp.ok) throw new Error(data.detail || text || `Request failed: ${resp.status}`);
+      return data;
+    }
+
+    function summarizeStatus(status) {
+      const diag = status.diagnostics || {};
+      const page = diag.page && diag.page.ok ? diag.page.data : null;
+      const account = diag.ad_account && diag.ad_account.ok ? diag.ad_account.data : null;
+      const pixels = diag.pixels && diag.pixels.ok ? (diag.pixels.data.data || []) : [];
+      const campaigns = diag.campaigns && diag.campaigns.ok ? (diag.campaigns.data.data || []) : [];
+      return {
+        graph_version: status.graph_version,
+        redirect_uri: status.redirect_uri,
+        scopes: status.scopes,
+        page_id: status.page_id,
+        page_name: page ? page.name : null,
+        page_access_ok: Boolean(page),
+        ad_account_id: status.ad_account_id,
+        ad_account_name: account ? account.name : null,
+        ad_account_currency: account ? account.currency : null,
+        ad_account_status: account ? account.account_status : null,
+        pixel_id: status.pixel_id,
+        pixels_found: pixels.map((pixel) => ({ id: pixel.id, name: pixel.name, last_fired_time: pixel.last_fired_time || null })),
+        recent_campaigns: campaigns.map((campaign) => ({
+          id: campaign.id,
+          name: campaign.name,
+          status: campaign.status,
+          effective_status: campaign.effective_status,
+        })),
+        errors: Object.fromEntries(
+          Object.entries(diag)
+            .filter(([, value]) => value && value.ok === false)
+            .map(([key, value]) => [key, value.error])
+        ),
+      };
+    }
+
+    function renderStatus(status) {
+      state.status = status;
+      $('configured-pill').textContent = status.configured ? 'Meta app configured' : 'Meta app missing config';
+      $('configured-pill').className = `pill ${status.configured ? 'good' : 'warn'}`;
+      $('connected-pill').textContent = status.connected ? 'Meta connected' : 'Meta not connected';
+      $('connected-pill').className = `pill ${status.connected ? 'good' : 'warn'}`;
+
+      const summary = summarizeStatus(status);
+      $('page-pill').textContent = summary.page_access_ok ? `Page: ${summary.page_name || status.page_id}` : `Page: ${status.page_id}`;
+      $('page-pill').className = `pill ${summary.page_access_ok ? 'good' : 'mode'}`;
+
+      const pixelOk = summary.pixels_found.some((pixel) => pixel.id === status.pixel_id);
+      $('pixel-pill').textContent = pixelOk ? `Pixel linked: ${status.pixel_id}` : `Pixel: ${status.pixel_id || 'missing'}`;
+      $('pixel-pill').className = `pill ${pixelOk ? 'good' : 'soft'}`;
+
+      const accountName = summary.ad_account_name || status.ad_account_id;
+      $('account-line').textContent = status.connected
+        ? `Connected. Ad account: ${accountName}${summary.ad_account_currency ? ` (${summary.ad_account_currency})` : ''}. Page target: ${status.page_id}.`
+        : `Redirect URI: ${status.redirect_uri}. Page target: ${status.page_id}.`;
+      $('diagnostics').textContent = JSON.stringify(summary, null, 2);
+      $('create-paused-btn').disabled = !status.connected;
+      $('budget-label').textContent = `Daily budget${summary.ad_account_currency ? ` (${summary.ad_account_currency})` : ''}`;
+      if (summary.ad_account_currency && !$('daily-budget').dataset.currencyDefaulted) {
+        $('daily-budget').value = summary.ad_account_currency === 'CLP' ? '5000' : '10';
+        $('daily-budget').dataset.currencyDefaulted = '1';
+      }
+    }
+
+    function renderProducts() {
+      const select = $('product-select');
+      select.innerHTML = '';
+      state.products.forEach((product) => {
+        const option = document.createElement('option');
+        option.value = product.slug;
+        option.textContent = `${product.name} (${product.product_type.replaceAll('_', ' ')})`;
+        select.appendChild(option);
+      });
+      if (state.products.length) select.value = state.products[0].slug;
+      applyProduct();
+    }
+
+    function selectedProduct() {
+      return state.products.find((product) => product.slug === $('product-select').value);
+    }
+
+    function applyProduct() {
+      const product = selectedProduct();
+      if (!product) return;
+      $('ad-title').value = product.title;
+      $('primary-text').value = product.primary_text;
+      $('destination-url').value = product.destination_url;
+      $('image-url').value = product.image_url;
+      $('preview-img').src = product.image_url;
+      $('preview-title').textContent = product.title;
+      $('preview-copy').textContent = product.primary_text;
+      $('preview-link').textContent = product.destination_url;
+    }
+
+    function countries() {
+      return $('countries').value
+        .split(',')
+        .map((country) => country.trim().toUpperCase())
+        .filter(Boolean);
+    }
+
+    async function loadAll() {
+      $('result').style.display = 'none';
+      const status = await api('/api/meta/status');
+      renderStatus(status);
+      const products = await api('/api/meta/products');
+      state.products = products.items || [];
+      renderProducts();
+    }
+
+    function buildPayload() {
+      return {
+        product_slug: $('product-select').value,
+        title: $('ad-title').value.trim(),
+        primary_text: $('primary-text').value.trim(),
+        destination_url: $('destination-url').value.trim(),
+        image_url: $('image-url').value.trim(),
+        daily_budget_amount: Number($('daily-budget').value || 10),
+        countries: countries().length ? countries() : ['US'],
+      };
+    }
+
+    async function createPausedCampaign() {
+      const payload = buildPayload();
+      const ok = window.confirm(
+        'This will create a campaign, ad set, creative and ad inside Meta Ads Manager, all requested as PAUSED. No ads should deliver until you manually activate them. Continue?'
+      );
+      if (!ok) return;
+      payload.confirm_paused_creation = true;
+      try {
+        const result = await api('/api/meta/create-paused-campaign', {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        });
+        setResult(result);
+        await loadAll();
+      } catch (err) {
+        setResult(err.message, true);
+      }
+    }
+
+    async function buildDraft() {
+      try {
+        const draft = await api('/api/meta/ad-draft', {
+          method: 'POST',
+          body: JSON.stringify(buildPayload()),
+        });
+        setResult(draft);
+      } catch (err) {
+        setResult(err.message, true);
+      }
+    }
+
+    $('refresh-btn').addEventListener('click', () => loadAll().catch((err) => setResult(err.message, true)));
+    $('product-select').addEventListener('change', applyProduct);
+    $('draft-btn').addEventListener('click', buildDraft);
+    $('create-paused-btn').addEventListener('click', createPausedCampaign);
+
+    loadAll().catch((err) => setResult(err.message, true));
+  </script>
+</body>
+</html>

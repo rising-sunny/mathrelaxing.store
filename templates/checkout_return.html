@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Confirming Payment - MathRelaxing{% endblock %}
+{% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+
+{% block content %}
+<section class="section" style="min-height:60vh; display:flex; align-items:center; justify-content:center;">
+  <div style="text-align:center; max-width:480px; padding:0 1.5rem;">
+    <div id="state-processing">
+      <div class="spinner" style="margin:0 auto 2rem;"></div>
+      <h2 style="font-family:var(--font-display); font-weight:300; margin-bottom:0.75rem;">Confirming your payment…</h2>
+      <p style="color:var(--muted); font-size:13px;">Please wait while we confirm your payment with PayPal.</p>
+    </div>
+    <div id="state-error" style="display:none;">
+      <p style="font-size:2rem; margin-bottom:1rem;">⚠</p>
+      <h2 style="font-family:var(--font-display); font-weight:300; margin-bottom:0.75rem;">Something went wrong</h2>
+      <p id="error-msg" style="color:var(--muted); font-size:13px; margin-bottom:2rem;">We could not confirm your payment. Please try again or contact support.</p>
+      <a href="/checkout" class="btn btn-primary">Back to Checkout</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--border, #2a2a2a);
+    border-top-color: var(--accent, #c8a96e);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(async () => {
+  const params     = new URLSearchParams(window.location.search);
+  const orderId    = params.get('order_id');
+  const purchaseId = params.get('purchase_id');
+  const token      = params.get('token');  // PayPal order ID
+
+  if (!token || (!orderId && !purchaseId)) {
+    showError('Missing payment parameters.');
+    return;
+  }
+
+  try {
+    if (purchaseId) {
+      // Digital product capture
+      const resp = await fetch('/api/purchases/capture', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paypal_order_id: token, purchase_id: parseInt(purchaseId, 10) }),
+      });
+      const data = await resp.json();
+      if (resp.ok && data.success) {
+        localStorage.removeItem('mr_cart');
+        window.location.href = `/download/${data.download_token}`;
+      } else {
+        showError(data.detail || 'Payment could not be confirmed.');
+      }
+    } else {
+      // Physical order capture
+      const resp = await fetch('/api/orders/capture', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paypal_order_id: token, order_id: parseInt(orderId, 10) }),
+      });
+      const data = await resp.json();
+      if (resp.ok && data.success) {
+        localStorage.removeItem('mr_cart');
+        window.location.href = `/checkout/success?order_id=${orderId}`;
+      } else {
+        showError(data.detail || 'Payment could not be confirmed.');
+      }
+    }
+  } catch (e) {
+    showError('Network error. Please contact support.');
+  }
+})();
+
+function showError(msg) {
+  document.getElementById('state-processing').style.display = 'none';
+  document.getElementById('error-msg').textContent = msg;
+  document.getElementById('state-error').style.display = 'block';
+}
+</script>
+{% endblock %}

@@ -1,0 +1,493 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Color-by-Number Generator",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://mathrelaxing.store"
+    }
+  ],
+  "paths": {
+    "/api/gpt/lowpoly/guide": {
+      "get": {
+        "summary": "Image Guide",
+        "description": "Returns guidelines on what kind of image works best for the color-by-number generator,\nand explains the available options (density, colors, orientation).\nCall this at the start of the conversation, before the user uploads anything.",
+        "operationId": "image_guide_api_gpt_lowpoly_guide_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/gpt/lowpoly/preview": {
+      "post": {
+        "summary": "Preview Lowpoly",
+        "description": "Quick preview to confirm colors, density, and style before checkout. Returns the numbered coloring page and the colored reference at web size (~700px). Call this before checkout.",
+        "operationId": "preview_lowpoly_api_gpt_lowpoly_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LowPolyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/gpt/lowpoly/preview-upload": {
+      "post": {
+        "summary": "Preview Lowpoly Upload",
+        "description": "Same as /gpt/lowpoly/preview but accepts a file upload instead of a URL.\nUse this when the user uploads their photo directly in the chat.",
+        "operationId": "preview_lowpoly_upload_api_gpt_lowpoly_preview_upload_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_preview_lowpoly_upload_api_gpt_lowpoly_preview_upload_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/gpt/lowpoly/checkout-upload": {
+      "post": {
+        "summary": "Checkout Lowpoly Upload",
+        "description": "Same as /gpt/lowpoly/checkout but accepts a file upload instead of a URL.\nUse this when the user uploaded their photo directly in the chat.",
+        "operationId": "checkout_lowpoly_upload_api_gpt_lowpoly_checkout_upload_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_checkout_lowpoly_upload_api_gpt_lowpoly_checkout_upload_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/gpt/lowpoly/checkout": {
+      "post": {
+        "summary": "Checkout Lowpoly",
+        "description": "Generate the full-quality coloring page and create a $2.99 PayPal checkout.\nReturns a payment URL. After payment, the customer receives both files by email.\nCall /gpt/lowpoly/preview first so the user approves the result before paying.",
+        "operationId": "checkout_lowpoly_api_gpt_lowpoly_checkout_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LowPolyCheckoutRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Body_checkout_lowpoly_upload_api_gpt_lowpoly_checkout_upload_post": {
+        "properties": {
+          "image": {
+            "type": "string",
+            "format": "binary",
+            "description": "Photo to convert. JPEG or PNG, max 20 MB."
+          },
+          "customer_email": {
+            "type": "string",
+            "title": "Customer Email",
+            "description": "Email address where download links will be sent."
+          },
+          "customer_name": {
+            "type": "string",
+            "title": "Customer Name",
+            "default": ""
+          },
+          "num_colors": {
+            "type": "integer",
+            "maximum": 32.0,
+            "minimum": 2.0,
+            "title": "Num Colors",
+            "default": 12
+          },
+          "density": {
+            "type": "string",
+            "title": "Density",
+            "default": "media"
+          },
+          "orientation": {
+            "type": "string",
+            "title": "Orientation",
+            "default": "portrait"
+          },
+          "polygon_type": {
+            "type": "string",
+            "title": "Polygon Type",
+            "default": "cuadrado"
+          }
+        },
+        "type": "object",
+        "required": [
+          "image",
+          "customer_email"
+        ],
+        "title": "Body_checkout_lowpoly_upload_api_gpt_lowpoly_checkout_upload_post"
+      },
+      "Body_preview_lowpoly_upload_api_gpt_lowpoly_preview_upload_post": {
+        "properties": {
+          "image": {
+            "type": "string",
+            "format": "binary",
+            "description": "Photo to convert. JPEG or PNG, max 20 MB."
+          },
+          "num_colors": {
+            "type": "integer",
+            "maximum": 32.0,
+            "minimum": 2.0,
+            "title": "Num Colors",
+            "default": 12
+          },
+          "density": {
+            "type": "string",
+            "title": "Density",
+            "default": "media"
+          },
+          "orientation": {
+            "type": "string",
+            "title": "Orientation",
+            "default": "portrait"
+          },
+          "polygon_type": {
+            "type": "string",
+            "title": "Polygon Type",
+            "default": "cuadrado"
+          }
+        },
+        "type": "object",
+        "required": [
+          "image"
+        ],
+        "title": "Body_preview_lowpoly_upload_api_gpt_lowpoly_preview_upload_post"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "LowPolyCheckoutRequest": {
+        "properties": {
+          "image_url": {
+            "type": "string",
+            "maxLength": 2083,
+            "minLength": 1,
+            "format": "uri",
+            "title": "Image Url"
+          },
+          "num_colors": {
+            "type": "integer",
+            "maximum": 32.0,
+            "minimum": 2.0,
+            "title": "Num Colors",
+            "description": "Number of colors in the palette (2\u201332). 8\u201316 works best for most images.",
+            "default": 12
+          },
+          "density": {
+            "type": "string",
+            "enum": [
+              "muy_baja",
+              "baja",
+              "media",
+              "alta",
+              "muy_alta"
+            ],
+            "title": "Density",
+            "description": "Grid density \u2014 controls how many color regions the image is divided into. muy_baja=few bold regions, baja=simple, media=balanced (default), alta=detailed, muy_alta=maximum detail (slow, needs large image).",
+            "default": "media"
+          },
+          "orientation": {
+            "type": "string",
+            "enum": [
+              "portrait",
+              "landscape",
+              "a4-portrait",
+              "a4-landscape",
+              "auto"
+            ],
+            "title": "Orientation",
+            "description": "Page orientation and size. portrait=US Letter vertical (8.5x11in, 300 DPI, print-ready), landscape=US Letter horizontal, a4-portrait=A4 vertical (210x297mm), a4-landscape=A4 horizontal, auto=matches image shape (web preview, not print).",
+            "default": "auto"
+          },
+          "polygon_type": {
+            "type": "string",
+            "enum": [
+              "cuadrado",
+              "hexagonal"
+            ],
+            "title": "Polygon Type",
+            "description": "Shape of the grid cells: cuadrado (squares) or hexagonal.",
+            "default": "cuadrado"
+          },
+          "grid_opacity": {
+            "type": "integer",
+            "maximum": 255.0,
+            "minimum": 0.0,
+            "title": "Grid Opacity",
+            "default": 200
+          },
+          "number_opacity": {
+            "type": "integer",
+            "maximum": 255.0,
+            "minimum": 0.0,
+            "title": "Number Opacity",
+            "default": 80
+          },
+          "legend_font_size": {
+            "type": "integer",
+            "maximum": 36.0,
+            "minimum": 10.0,
+            "title": "Legend Font Size",
+            "default": 16
+          },
+          "customer_email": {
+            "type": "string",
+            "title": "Customer Email",
+            "description": "Customer's email address \u2014 the download links will be sent here."
+          },
+          "customer_name": {
+            "type": "string",
+            "title": "Customer Name",
+            "description": "Customer name (optional).",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "image_url",
+          "customer_email"
+        ],
+        "title": "LowPolyCheckoutRequest"
+      },
+      "LowPolyRequest": {
+        "properties": {
+          "image_url": {
+            "type": "string",
+            "maxLength": 2083,
+            "minLength": 1,
+            "format": "uri",
+            "title": "Image Url"
+          },
+          "num_colors": {
+            "type": "integer",
+            "maximum": 32.0,
+            "minimum": 2.0,
+            "title": "Num Colors",
+            "description": "Number of colors in the palette (2\u201332). 8\u201316 works best for most images.",
+            "default": 12
+          },
+          "density": {
+            "type": "string",
+            "enum": [
+              "muy_baja",
+              "baja",
+              "media",
+              "alta",
+              "muy_alta"
+            ],
+            "title": "Density",
+            "description": "Grid density \u2014 controls how many color regions the image is divided into. muy_baja=few bold regions, baja=simple, media=balanced (default), alta=detailed, muy_alta=maximum detail (slow, needs large image).",
+            "default": "media"
+          },
+          "orientation": {
+            "type": "string",
+            "enum": [
+              "portrait",
+              "landscape",
+              "a4-portrait",
+              "a4-landscape",
+              "auto"
+            ],
+            "title": "Orientation",
+            "description": "Page orientation and size. portrait=US Letter vertical (8.5x11in, 300 DPI, print-ready), landscape=US Letter horizontal, a4-portrait=A4 vertical (210x297mm), a4-landscape=A4 horizontal, auto=matches image shape (web preview, not print).",
+            "default": "auto"
+          },
+          "polygon_type": {
+            "type": "string",
+            "enum": [
+              "cuadrado",
+              "hexagonal"
+            ],
+            "title": "Polygon Type",
+            "description": "Shape of the grid cells: cuadrado (squares) or hexagonal.",
+            "default": "cuadrado"
+          },
+          "grid_opacity": {
+            "type": "integer",
+            "maximum": 255.0,
+            "minimum": 0.0,
+            "title": "Grid Opacity",
+            "default": 200
+          },
+          "number_opacity": {
+            "type": "integer",
+            "maximum": 255.0,
+            "minimum": 0.0,
+            "title": "Number Opacity",
+            "default": 80
+          },
+          "legend_font_size": {
+            "type": "integer",
+            "maximum": 36.0,
+            "minimum": 10.0,
+            "title": "Legend Font Size",
+            "default": 16
+          }
+        },
+        "type": "object",
+        "required": [
+          "image_url"
+        ],
+        "title": "LowPolyRequest"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

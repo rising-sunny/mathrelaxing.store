@@ -1,0 +1,6 @@
+laptop.jpg
+  Source : Unsplash — https://unsplash.com/photos/1663354027456-ce6a7e07d212
+  CDN    : https://images.unsplash.com/photo-1663354027456-ce6a7e07d212
+  License: Unsplash License (free for commercial use, no attribution required)
+  Use    : background plate for the "On laptop" sticker mockup scene
+           (services/sticker_scenes.py → _laptop_photo)

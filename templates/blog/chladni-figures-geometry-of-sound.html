@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Chladni Figures: The Patterns Sound Leaves Behind | MathRelaxing{% endblock %}
+{% block description %}Chladni figures are the geometric shapes sand forms on a vibrating plate. The physics behind them, the 1787 experiment that found them, and the wave equation that draws the same shapes.{% endblock %}
+{% block og_title %}Chladni Figures: The Patterns Sound Leaves Behind{% endblock %}
+{% block og_desc %}What Chladni figures are, the 1787 experiment that found them, and how the 2D wave equation draws them.{% endblock %}
+{% block og_image %}https://mathrelaxing.store/api/render/preview?product=chladni-mandala{% endblock %}
+{% block og_type %}article{% endblock %}
+
+{% block head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Chladni Figures: The Patterns Sound Leaves Behind",
+  "description": "What Chladni figures are, the experiment that discovered them, and how they emerge from the 2D wave equation.",
+  "author": { "@type": "Organization", "name": "MathRelaxing" },
+  "publisher": { "@type": "Organization", "name": "MathRelaxing", "logo": { "@type": "ImageObject", "url": "https://mathrelaxing.store/static/img/logo-sm.png" } },
+  "datePublished": "2026-06-12",
+  "mainEntityOfPage": "https://mathrelaxing.store/blog/chladni-figures-geometry-of-sound",
+  "image": "https://mathrelaxing.store/api/render/preview?product=chladni-mandala"
+}
+</script>
+<style>
+  .article{max-width:720px;margin:0 auto;padding:0 1.25rem;}
+  .article h1{font-size:clamp(2rem,5vw,2.9rem);line-height:1.08;margin:.4rem 0 .6rem;}
+  .article .meta{color:var(--muted,#9a978f);font-size:.82rem;letter-spacing:.04em;text-transform:uppercase;margin-bottom:1.8rem;}
+  .article h2{font-size:1.4rem;margin:2.4rem 0 .8rem;}
+  .article p{font-size:1.06rem;line-height:1.72;margin:0 0 1.15rem;}
+  .article figure{margin:2rem 0;}
+  .article figure img{width:100%;border-radius:6px;display:block;}
+  .article figcaption{color:var(--muted,#9a978f);font-size:.82rem;margin-top:.5rem;text-align:center;}
+  .article a{color:var(--accent,#c8a96e);}
+  .article .endcta{margin:2.6rem 0 1rem;padding:1.4rem 1.5rem;border:1px solid var(--border,#2a2a30);border-radius:8px;}
+  .article .endcta a.btn{margin-top:.8rem;}
+</style>
+{% endblock %}
+
+{% block content %}
+<article class="article" style="padding-top:3rem;padding-bottom:3rem;">
+  <p class="meta">Physics</p>
+  <h1>Chladni Figures: The Patterns Sound Leaves Behind</h1>
+
+  <p>Drag a bow along the edge of a metal plate scattered with sand, and the grains leap, then settle into a sharp, symmetric figure. Stars, grids, blossoms of fine line. The shape is not arbitrary. It is sound made visible, gathered in the one place on the plate that holds still.</p>
+
+  <figure>
+    <img src="/api/render/preview?product=chladni-mandala" alt="A Chladni figure pattern with symmetric nodal lines, rendered as mathematical art" loading="lazy" width="800" height="800">
+    <figcaption>The dark lines mark the nodes — the places where a vibrating plate sits perfectly still.</figcaption>
+  </figure>
+
+  <h2>An experiment from 1787</h2>
+
+  <p>Ernst Chladni, a German physicist and trained musician, began bowing sand-covered brass plates in 1787. Where the plate moved, the sand was thrown clear; where it stayed still, the sand gathered. What remained were precise figures that changed completely from one note to the next. He carried the demonstration across Europe as a kind of scientific theater.</p>
+
+  <p>Napoleon is said to have funded a prize for anyone who could explain the figures in mathematics — a problem that took decades to fully close. That gap says something quietly remarkable: these patterns are far easier to summon than to describe.</p>
+
+  <h2>Why the sand settles where it does</h2>
+
+  <p>A vibrating plate does not move all at once. Some regions rise as others fall, and between them run lines that do not move at all — the nodes. Sand knocked loose from the moving regions keeps travelling until the only rest left to it lies along those nodes. The figure, then, is a map of stillness: the quiet seams in a sheet of trembling metal.</p>
+
+  <p>Each note selects a different arrangement of seams. Low frequencies draw simple crosses and rings. Raise the pitch and the figures crowd inward, dividing into finer and finer cells.</p>
+
+  <h2>The equation that draws the same shapes</h2>
+
+  <p>The patterns are solutions to the wave equation on a two-dimensional plate. Each solution is fixed by two whole numbers, written <em>m</em> and <em>n</em>, counting how many times the wave folds across each direction. A pair of 4 and 4 gives a balanced, grid-like figure; a 7 and a 2 gives long sweeping bands. Rendering only the nodal lines — the still places — and letting the rest fall dark reproduces, exactly, the figures Chladni found with sand.</p>
+
+  <p>There is a quiet wonder in that agreement. The shapes were invented by no one. Sand discovers them; arithmetic discovers the same ones, two and a half centuries apart, and the two line up to the last curve. The pattern was resident in the equation the whole time, waiting for a frequency to call it out.</p>
+
+  <div class="endcta">
+    <strong>Wear the Math.</strong>
+    <p style="margin:.4rem 0 0;">Wearing these designs is a striking way to bring mathematical beauty into the physical world.</p>
+    <a href="/collection/apparel" class="btn btn-primary btn-sm">Browse our apparel collection →</a>
+  </div>
+
+  <p>On a screen the figure is a shape. Beside the plate it is a sound that can be felt arriving. The mathematics is identical; only one of them is easy to forget.</p>
+</article>
+{% endblock %}

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MathRelaxing — Volvemos pronto</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/main.css">
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <style>
+    body {
+      background-color: #0f1115;
+      color: #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      text-align: center;
+      padding: 2rem;
+      font-family: 'Cormorant Garamond', serif;
+    }
+    .logo {
+      width: 120px;
+      margin-bottom: 2rem;
+      opacity: 0.9;
+    }
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 400;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+      color: #fff;
+    }
+    p {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.9rem;
+      color: #9ca3af;
+      max-width: 500px;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+    /* Hidden admin login form */
+    .admin-access {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      opacity: 0.1;
+      transition: opacity 0.3s ease;
+    }
+    .admin-access:hover, .admin-access:focus-within {
+      opacity: 1;
+    }
+    .admin-access input {
+      background: transparent;
+      border: 1px solid #374151;
+      color: #fff;
+      padding: 0.5rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.8rem;
+      outline: none;
+      width: 150px;
+    }
+  </style>
+</head>
+<body>
+
+  <img src="/static/img/logo.png" alt="MathRelaxing Logo" class="logo">
+  
+  <h1>Volvemos pronto</h1>
+  <p>Estamos haciendo cambios importantes en la tienda para enfocarnos exclusivamente en nuestra línea física.<br><br>We are making important updates to the store to focus exclusively on our physical collection. We'll be back shortly.</p>
+
+  <div class="admin-access">
+    <form action="/preview" method="GET">
+      <input type="password" name="key" placeholder="Bypass key..." aria-label="Bypass">
+    </form>
+  </div>
+
+</body>
+</html>

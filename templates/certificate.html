@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+{% block title %}Certificate of Authenticity — {{ product.name if product else 'MathRelaxing' }}{% endblock %}
+{% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+
+{% block content %}
+<div class="cert-page">
+  <div class="cert-doc">
+
+    <!-- CORNER ORNAMENTS -->
+    <span class="corner tl"></span>
+    <span class="corner tr"></span>
+    <span class="corner bl"></span>
+    <span class="corner br"></span>
+
+    <!-- HEADER -->
+    <div class="cert-header">
+      <img src="/static/img/logo-sm.png" alt="MathRelaxing" class="cert-logo">
+      <p class="cert-brand-label">MathRelaxing</p>
+      <div class="cert-rule"></div>
+      <p class="cert-eyebrow">Certificate of Authenticity</p>
+    </div>
+
+    <!-- TITLE -->
+    <div class="cert-title-block">
+      <h1 class="cert-title">{{ product.name if product else 'Mathematical Print' }}</h1>
+      {% if collection.name %}
+      <p class="cert-collection">{{ collection.name }}</p>
+      {% endif %}
+      <div class="cert-edition-badge">Edition #{{ cert.edition_number }}</div>
+    </div>
+
+    <!-- EQUATION -->
+    {% if equation_lines %}
+    <div class="cert-equation-block">
+      <p class="cert-section-label">Governing Equation</p>
+      <div class="cert-equation">
+        {% for line in equation_lines %}
+        <span class="eq-line">{{ line }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- PARAMETERS + FORMAT -->
+    <div class="cert-body">
+      <div class="cert-col">
+        <p class="cert-section-label">Edition Parameters</p>
+        <div class="cert-params">
+          {% for key, val in params.items() %}
+          {% if key not in ('color_start','color_end','background_color') %}
+          <div class="cert-row">
+            <span class="cert-key">{{ val.label if val is mapping and val.label else key }}</span>
+            <span class="cert-val">{{ val.value if val is mapping else val }}</span>
+          </div>
+          {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="cert-col">
+        <p class="cert-section-label">Colors</p>
+        <div class="cert-params">
+          {% for key in ['color_start','color_end','background_color'] %}
+          {% if params[key] is defined %}
+          {% set v = params[key].value if params[key] is mapping else params[key] %}
+          <div class="cert-row">
+            <span class="cert-key">{{ key.replace('_',' ') }}</span>
+            <span class="cert-val">
+              <span class="color-dot" style="background:{{ v }};"></span>{{ v }}
+            </span>
+          </div>
+          {% endif %}
+          {% endfor %}
+        </div>
+
+        <p class="cert-section-label" style="margin-top:1.75rem;">Print Details</p>
+        <div class="cert-params">
+          {% if fmt %}
+          <div class="cert-row">
+            <span class="cert-key">Format</span>
+            <span class="cert-val">{{ fmt.label }}</span>
+          </div>
+          <div class="cert-row">
+            <span class="cert-key">Size</span>
+            <span class="cert-val">{{ fmt.size }}</span>
+          </div>
+          <div class="cert-row">
+            <span class="cert-key">Material</span>
+            <span class="cert-val">{{ fmt.material }}</span>
+          </div>
+          {% endif %}
+          <div class="cert-row">
+            <span class="cert-key">Order</span>
+            <span class="cert-val">#{{ order.id if order else '—' }}</span>
+          </div>
+          <div class="cert-row">
+            <span class="cert-key">Issued</span>
+            <span class="cert-val">{{ cert.generated_at.strftime('%B %d, %Y') if cert.generated_at else '—' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="cert-footer">
+      <div class="cert-rule" style="margin-bottom:1.5rem;"></div>
+      <div class="cert-footer-inner">
+        <p class="cert-footer-text">
+          This certificate verifies the unique mathematical parameters used to generate this edition.
+          Scan to verify authenticity at <span style="color:var(--accent);">mathrelaxing.store</span>
+        </p>
+        {% if cert.qr_url %}
+        <div class="cert-qr-wrap">
+          <img src="/api/certificate-qr/{{ cert.order_id }}" alt="Verify QR" width="88" height="88">
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  .cert-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1.5rem;
+    background: radial-gradient(ellipse at 50% 0%, #1a160e 0%, #080808 65%);
+  }
+
+  .cert-doc {
+    position: relative;
+    max-width: 780px;
+    width: 100%;
+    background: #0c0c0a;
+    border: 1px solid rgba(200, 169, 110, 0.25);
+    padding: 3rem 3.5rem;
+    box-shadow: 0 0 80px rgba(200,169,110,0.04), 0 32px 64px rgba(0,0,0,0.6);
+  }
+
+  /* Corner ornaments */
+  .corner {
+    position: absolute;
+    width: 18px; height: 18px;
+    border-color: rgba(200,169,110,0.5);
+    border-style: solid;
+  }
+  .corner.tl { top: 10px; left: 10px;  border-width: 1px 0 0 1px; }
+  .corner.tr { top: 10px; right: 10px; border-width: 1px 1px 0 0; }
+  .corner.bl { bottom: 10px; left: 10px;  border-width: 0 0 1px 1px; }
+  .corner.br { bottom: 10px; right: 10px; border-width: 0 1px 1px 0; }
+
+  /* Header */
+  .cert-header { text-align: center; margin-bottom: 2rem; }
+  .cert-logo { width: 64px; height: auto; display: block; margin: 0 auto 0.6rem; }
+  .cert-brand-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 1.25rem;
+  }
+  .cert-rule {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(200,169,110,0.35), transparent);
+    margin-bottom: 1.25rem;
+  }
+  .cert-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0;
+  }
+
+  /* Title */
+  .cert-title-block { text-align: center; margin-bottom: 2.25rem; }
+  .cert-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 300;
+    letter-spacing: 0.04em;
+    color: var(--fg);
+    margin: 0 0 0.35rem;
+    line-height: 1.2;
+  }
+  .cert-collection {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    margin: 0 0 1.1rem;
+  }
+  .cert-edition-badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid rgba(200,169,110,0.3);
+    padding: 5px 14px;
+    border-radius: 2px;
+  }
+
+  /* Equation block */
+  .cert-equation-block {
+    background: rgba(200,169,110,0.04);
+    border: 1px solid rgba(200,169,110,0.12);
+    border-left: 2px solid rgba(200,169,110,0.45);
+    padding: 1.1rem 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .cert-equation {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  .eq-line {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: rgba(232, 228, 220, 0.85);
+    letter-spacing: 0.03em;
+  }
+
+  /* Body two-column */
+  .cert-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+  }
+  @media (max-width: 560px) {
+    .cert-body { grid-template-columns: 1fr; }
+    .cert-doc { padding: 2rem 1.5rem; }
+  }
+
+  .cert-section-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 0.75rem;
+    opacity: 0.8;
+  }
+  .cert-params { display: flex; flex-direction: column; gap: 0.45rem; }
+  .cert-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    padding-bottom: 0.45rem;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .cert-row:last-child { border-bottom: none; }
+  .cert-key { color: var(--muted); font-family: var(--font-mono); font-size: 11px; }
+  .cert-val { color: var(--fg); text-align: right; max-width: 55%; }
+
+  .color-dot {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  /* Footer */
+  .cert-footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+  .cert-footer-text {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.7;
+    max-width: 480px;
+    margin: 0;
+  }
+  .cert-qr-wrap img {
+    display: block;
+    opacity: 0.85;
+    flex-shrink: 0;
+  }
+  @media (max-width: 480px) {
+    .cert-footer-inner { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+{% endblock %}

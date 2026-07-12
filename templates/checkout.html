@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+{% block title %}Checkout - MathRelaxing{% endblock %}
+{% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <p class="section-label">Almost there</p>
+    <h1>Checkout</h1>
+  </div>
+</div>
+
+<section class="section-sm">
+  <div class="container">
+    <div class="checkout-grid" id="checkout-form-wrap">
+      <form id="checkout-form">
+
+        <div class="form-section" style="margin-bottom:2rem;">
+          <h4>Contact</h4>
+          <div class="form-group">
+            <label>Email address</label>
+            <input type="email" class="form-input" id="email" required placeholder="you@example.com">
+          </div>
+          <div class="form-group" style="margin-top:1rem;">
+            <label for="confirm-email">Confirm Email</label>
+            <input type="email" id="confirm-email" placeholder="Repeat your email address"
+              style="width:100%; padding:.75rem 1rem; background:var(--bg2); border:1px solid var(--border); color:var(--fg); border-radius:4px; font-size:14px; box-sizing:border-box;">
+            <div id="email-match-error" style="color:#f87171; font-size:12px; margin-top:.3rem; display:none;">Emails do not match.</div>
+          </div>
+          <div class="form-group" style="margin-top:0.75rem;">
+            <label>Full name</label>
+            <input type="text" class="form-input" id="full-name" required placeholder="Your name">
+          </div>
+        </div>
+
+        <!-- Shipping section — shown only for physical products -->
+        <div id="shipping-section" style="display:none; margin-bottom:2rem;">
+          <h4>Shipping address</h4>
+          <div class="form-row" style="margin-top:0.75rem;">
+            <div class="form-group">
+              <label>First name</label>
+              <input type="text" class="form-input" id="ship-first" placeholder="First name">
+            </div>
+            <div class="form-group">
+              <label>Last name</label>
+              <input type="text" class="form-input" id="ship-last" placeholder="Last name">
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:0.75rem;">
+            <label>Address</label>
+            <input type="text" class="form-input" id="ship-address1" placeholder="Street address">
+          </div>
+          <div class="form-group" style="margin-top:0.5rem;">
+            <input type="text" class="form-input" id="ship-address2" placeholder="Apt, suite, etc. (optional)">
+          </div>
+          <div class="form-row" style="margin-top:0.5rem;">
+            <div class="form-group">
+              <label>City</label>
+              <input type="text" class="form-input" id="ship-city" placeholder="City">
+            </div>
+            <div class="form-group">
+              <label>State / Province</label>
+              <input type="text" class="form-input" id="ship-state" placeholder="CA">
+            </div>
+          </div>
+          <div class="form-row" style="margin-top:0.5rem;">
+            <div class="form-group">
+              <label>ZIP / Postal code</label>
+              <input type="text" class="form-input" id="ship-zip" placeholder="90210">
+            </div>
+            <div class="form-group">
+              <label>Country</label>
+              <select class="form-input" id="ship-country">
+                <option value="US">United States</option>
+                <option value="CA">Canada</option>
+                <option value="GB">United Kingdom</option>
+                <option value="AU">Australia</option>
+                <option value="DE">Germany</option>
+                <option value="FR">France</option>
+                <option value="ES">Spain</option>
+                <option value="IT">Italy</option>
+                <option value="NL">Netherlands</option>
+                <option value="NO">Norway</option>
+                <option value="CH">Switzerland</option>
+                <option value="MX">Mexico</option>
+                <option value="BR">Brazil</option>
+                <option value="CL">Chile</option>
+                <option value="JP">Japan</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Digital delivery note — shown only for digital products -->
+        <div id="digital-section" style="display:none; margin-bottom:2rem; background:rgba(200,169,110,0.05); border:1px solid var(--border); border-radius:4px; padding:1.25rem;">
+          <h4>Digital Delivery</h4>
+          <p style="font-size:11px; color:var(--muted); line-height:1.5; margin-top:0.5rem;">
+            After payment, you'll receive an instant download link via email and on the confirmation page.
+            Up to 3 downloads per purchase. No shipping required.
+          </p>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg" id="pay-btn" style="width:100%; justify-content:center;">
+          Continue to Payment &rarr;
+        </button>
+        <p style="font-size:11px; color:var(--muted); margin-top:1rem; text-align:center;">
+          Secure payment via PayPal
+        </p>
+      </form>
+
+      <div class="order-summary-box" id="order-summary">
+        <h4>Order Summary</h4>
+        <div id="summary-items"></div>
+        <div id="delivery-line" style="display:none; padding:0.35rem 0; font-size:11px; color:var(--muted);">
+          <span>Est. delivery: </span><span id="summary-delivery">—</span>
+        </div>
+        <div id="coupon-box" style="margin:1.5rem 0; padding:1rem; background:var(--bg2); border:1px solid var(--border); border-radius:4px;">
+          <label style="font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); display:block; margin-bottom:.5rem;">Promo Code</label>
+          <div style="display:flex; gap:.5rem;">
+            <input type="text" id="coupon-input" placeholder="Enter code"
+              style="flex:1; padding:.6rem .8rem; background:var(--bg); border:1px solid var(--border); color:var(--fg); border-radius:4px; font-size:13px; text-transform:uppercase;">
+            <button type="button" id="apply-coupon-btn" class="btn btn-sm btn-outline" style="white-space:nowrap;">Apply</button>
+          </div>
+          <div id="coupon-msg" style="font-size:12px; margin-top:.4rem; display:none;"></div>
+          <p style="font-size:11px; color:var(--muted); margin-top:.4rem;">Try: <code style="color:var(--accent); user-select:all;">MATH20</code> · <code style="color:var(--accent); user-select:all;">WELCOME10</code> · <code style="color:var(--accent); user-select:all;">PACKDEAL</code></p>
+        </div>
+        <div class="summary-line total">
+          <span>Total</span>
+          <span id="summary-total">$0</span>
+        </div>
+        <div id="shipping-included-note" style="display:none; font-size:12px; color:var(--accent); text-align:right; margin-top:0.25rem; font-weight:600;">✓ Free worldwide shipping included</div>
+        <div id="ships-note" style="display:none; margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border);">
+          <p style="font-size:11px; color:var(--muted); line-height:1.5;">
+            <span id="physical-format-note">Professionally printed physical product</span><br>
+            Professionally printed and shipped (2–5 business days production).
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div id="checkout-empty" style="display:none; text-align:center; padding:4rem 0; color:var(--muted);">
+      <h3 style="font-family:var(--font-display); font-weight:300; margin-bottom:1rem;">Your cart is empty</h3>
+      <a href="/" class="btn btn-outline">Browse products</a>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const cart = JSON.parse(localStorage.getItem('mr_cart') || '[]');
+  const formWrap  = document.getElementById('checkout-form-wrap');
+  const emptyEl   = document.getElementById('checkout-empty');
+
+  if (cart.length === 0) {
+    formWrap.style.display = 'none';
+    emptyEl.style.display  = 'block';
+    return;
+  }
+
+  const item       = cart[0];
+  const money = (n) => Number.isInteger(n) ? `$${n.toFixed(0)}` : `$${n.toFixed(2)}`;
+  // Countries the coloring book drop-ships to (free shipping).
+  const BOOK_COUNTRIES = ['US', 'GB', 'ES', 'DE', 'AU'];
+  const PHYSICAL_FORMATS = {
+    poster: { label: 'Art Print 18x24' },
+    gaming_mouse_pad: { label: 'Gaming Mouse Pad 36x18' },
+    mouse_pad: { label: 'Mouse Pad 8.7x7.1' },
+    book: { label: 'Coloring Book (Paperback)' },
+    unisex_tshirt: { label: 'Unisex T-Shirt (Black)' },
+    unisex_hoodie: { label: 'Unisex Hoodie (Black)' },
+  };
+  const SHIPPING_RATES = {
+    poster: { US: 4.99, CA: 5.69, GB: 5.79, DE: 5.79, FR: 5.79, ES: 5.79, AU: 6.19, JP: 6.49, CL: 11.99, MX: 11.99, BR: 13.19, NO: 10.49, CH: 10.49, DEFAULT: 13.19 },
+    gaming_mouse_pad: { US: 11.99, CA: 15.99, GB: 15.99, DE: 15.99, FR: 15.99, ES: 15.99, AU: 26.99, JP: 15.99, CL: 15.99, MX: 15.99, BR: 15.99, NO: 17.99, CH: 17.99, DEFAULT: 26.99 },
+    mouse_pad: { US: 4.49, CA: 6.99, GB: 4.39, DE: 4.59, FR: 4.59, ES: 4.59, AU: 7.19, JP: 4.39, CL: 11.99, MX: 11.99, BR: 4.49, NO: 9.99, CH: 9.99, DEFAULT: 11.99 },
+    unisex_tshirt: { US: 4.69, CA: 7.39, GB: 5.49, DE: 5.49, FR: 5.49, ES: 5.49, AU: 8.99, JP: 5.49, CL: 11.99, MX: 11.99, BR: 11.99, NO: 10.49, CH: 10.49, DEFAULT: 11.99 },
+    unisex_hoodie: { US: 8.49, CA: 10.99, GB: 7.99, DE: 7.99, FR: 7.99, ES: 7.99, AU: 12.99, JP: 8.99, CL: 14.99, MX: 14.99, BR: 14.99, NO: 12.49, CH: 12.49, DEFAULT: 14.99 },
+    book: { US: 0, GB: 0, ES: 0, DE: 0, AU: 0, DEFAULT: 0 },
+  };
+  const isPhysical = Boolean(item.format_id && PHYSICAL_FORMATS[item.format_id]);
+  const isBook = item.format_id === 'book';
+
+  // The book ships to a restricted set of countries — trim the dropdown.
+  if (isBook) {
+    const sel = document.getElementById('ship-country');
+    Array.from(sel.options).forEach(opt => {
+      if (!BOOK_COUNTRIES.includes(opt.value)) opt.remove();
+    });
+  }
+
+  // Show/hide sections
+  document.getElementById('shipping-section').style.display = isPhysical ? 'block' : 'none';
+  document.getElementById('digital-section').style.display  = isPhysical ? 'none'  : 'block';
+  document.getElementById('ships-note').style.display              = isPhysical ? 'block' : 'none';
+  document.getElementById('shipping-included-note').style.display  = (isPhysical && !isBook) ? 'block' : 'none';
+  document.getElementById('coupon-box').style.display              = isPhysical ? 'none'  : 'block';
+  if (isPhysical) {
+    let fmtLabel = item.format_label || PHYSICAL_FORMATS[item.format_id].label;
+    if (item.size) fmtLabel += ` (Size ${item.size})`;
+    document.getElementById('physical-format-note').textContent = fmtLabel;
+  }
+
+  const DELIVERY = {
+    poster: { US: '4–6 business days', CA: '2–5 business days', GB: '2–4 business days', DE: '4 business days', FR: '5–7 business days', ES: '3 business days', AU: '3–7 business days', JP: '2–3 business days', CL: '8–14 business days', MX: '6–8 business days', BR: '10–25 business days', NO: '5–8 business days', CH: '3–6 business days', DEFAULT: '5–25 business days' },
+    gaming_mouse_pad: { US: '3–6 business days', CA: '5–8 business days', GB: '8–11 business days', DE: '9–12 business days', FR: '10–15 business days', ES: '10–15 business days', AU: '10–15 business days', JP: '10–15 business days', CL: '10–15 business days', MX: '10–15 business days', BR: '10–15 business days', NO: '10–15 business days', CH: '10–15 business days', DEFAULT: '10–20 business days' },
+    mouse_pad: { US: '4–6 business days', CA: '7–10 business days', GB: '3–4 business days', DE: '4 business days', FR: '5–7 business days', ES: '5–6 business days', AU: '16–17 business days', JP: '8–11 business days', CL: '21–23 business days', MX: '5–7 business days', BR: '16 business days', NO: '5–8 business days', CH: '3–6 business days', DEFAULT: '5–25 business days' },
+    unisex_tshirt: { US: '4–6 business days', CA: '6–9 business days', GB: '4–6 business days', DE: '4–6 business days', FR: '5–7 business days', ES: '5–7 business days', AU: '10–15 business days', JP: '8–11 business days', CL: '15–20 business days', MX: '7–10 business days', BR: '15–20 business days', NO: '5–8 business days', CH: '4–6 business days', DEFAULT: '5–25 business days' },
+    unisex_hoodie: { US: '4–6 business days', CA: '6–9 business days', GB: '4–6 business days', DE: '4–6 business days', FR: '5–7 business days', ES: '5–7 business days', AU: '10–15 business days', JP: '8–11 business days', CL: '15–20 business days', MX: '7–10 business days', BR: '15–20 business days', NO: '5–8 business days', CH: '4–6 business days', DEFAULT: '5–25 business days' },
+    book: { US: '6–9 business days', GB: '6–9 business days', ES: '7–11 business days', DE: '7–11 business days', AU: '8–14 business days', DEFAULT: '8–14 business days' },
+  };
+
+  function getShipping() {
+    // Free shipping — the cost is baked into the product price.
+    return 0;
+  }
+
+  function getDelivery() {
+    const country = document.getElementById('ship-country').value;
+    const estimates = DELIVERY[item.format_id] || DELIVERY.poster;
+    return estimates[country] || estimates.DEFAULT;
+  }
+
+  function updateSummary() {
+    const ship  = getShipping();
+    const total = item.price_usd + ship;
+    document.getElementById('summary-total').textContent = money(total);
+    const priceEl = document.querySelector('#summary-items .item-price');
+    if (priceEl) priceEl.textContent = money(total);
+    if (isPhysical) {
+      document.getElementById('summary-delivery').textContent = getDelivery();
+      document.getElementById('delivery-line').style.display  = 'block';
+    }
+  }
+
+  const itemsEl = document.getElementById('summary-items');
+  const div = document.createElement('div');
+  div.className = 'summary-line';
+  let itemTypeLabel = isPhysical ? (item.format_label || PHYSICAL_FORMATS[item.format_id].label) : (item.item_index !== undefined ? 'Single digital image' : 'Digital bundle');
+  if (item.size) itemTypeLabel += ` (Size ${item.size})`;
+  div.innerHTML = `<span>${item.name}<br><small>${itemTypeLabel}</small></span><span class="item-price">${money(item.price_usd + getShipping())}</span>`;
+  itemsEl.appendChild(div);
+  updateSummary();
+
+  if (isPhysical) {
+    document.getElementById('ship-country').addEventListener('change', updateSummary);
+  }
+
+  // Make shipping fields required for physical
+  function setShippingRequired(required) {
+    ['ship-first','ship-last','ship-address1','ship-city','ship-zip'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.required = required;
+    });
+  }
+  setShippingRequired(isPhysical);
+
+  // Pre-fill first/last name from full-name field
+  document.getElementById('full-name').addEventListener('blur', () => {
+    if (!isPhysical) return;
+    const parts = document.getElementById('full-name').value.trim().split(' ');
+    if (parts.length >= 2 && !document.getElementById('ship-first').value) {
+      document.getElementById('ship-first').value = parts[0];
+      document.getElementById('ship-last').value  = parts.slice(1).join(' ');
+    }
+  });
+
+  document.getElementById('checkout-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('pay-btn');
+    btn.textContent = 'Processing…';
+    btn.disabled    = true;
+
+    const emailVal = document.getElementById('email')?.value || document.querySelector('input[type="email"]')?.value || '';
+    const confirmVal = document.getElementById('confirm-email').value;
+    if (emailVal && confirmVal && emailVal !== confirmVal) {
+      document.getElementById('email-match-error').style.display = 'block';
+      btn.textContent = 'Continue to Payment →';
+      btn.disabled    = false;
+      return;
+    }
+    document.getElementById('email-match-error').style.display = 'none';
+
+    try {
+      let resp, data;
+
+      if (isPhysical) {
+        resp = await fetch('/api/physical-orders/create', {
+          method:  'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            product_slug:   item.slug,
+            customer_name:  document.getElementById('full-name').value,
+            customer_email: document.getElementById('email').value,
+            shipping: {
+              first_name: document.getElementById('ship-first').value,
+              last_name:  document.getElementById('ship-last').value,
+              address1:   document.getElementById('ship-address1').value,
+              address2:   document.getElementById('ship-address2').value,
+              city:       document.getElementById('ship-city').value,
+              state:      document.getElementById('ship-state').value,
+              zip:        document.getElementById('ship-zip').value,
+              country:    document.getElementById('ship-country').value,
+            },
+            format_id: item.format_id || 'poster',
+            size: item.size || null,
+          }),
+        });
+      } else {
+        const purchaseBody = {
+          product_slug:   item.slug,
+          customer_name:  document.getElementById('full-name').value,
+          customer_email: document.getElementById('email').value,
+          ref_source:     'direct',
+          coupon_code:    appliedCoupon || '',
+        };
+        if (item.item_index !== undefined) purchaseBody.item_index = item.item_index;
+        resp = await fetch('/api/purchases/create', {
+          method:  'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(purchaseBody),
+        });
+      }
+
+      data = await resp.json();
+      if (data.checkout_url) {
+        if (window.mrTrack) window.mrTrack('payment_redirect', { product_slug: item.slug, value: totalAmount });
+        localStorage.removeItem('mr_cart');
+        window.location.href = data.checkout_url;
+      } else {
+        throw new Error(data.detail || 'No checkout URL returned');
+      }
+    } catch (err) {
+      btn.textContent = 'Continue to Payment →';
+      btn.disabled    = false;
+      alert('Something went wrong: ' + err.message);
+    }
+  });
+});
+
+let appliedCoupon = null;
+let baseTotal = 0;
+
+document.getElementById('apply-coupon-btn')?.addEventListener('click', async () => {
+  const code = document.getElementById('coupon-input').value.trim();
+  const msgEl = document.getElementById('coupon-msg');
+  if (!code) return;
+
+  const cart = JSON.parse(localStorage.getItem('mr_cart') || '[]');
+  const item = cart[0] || {};
+  const isPhysical = Boolean(item.format_id && ['poster', 'gaming_mouse_pad', 'mouse_pad', 'unisex_tshirt', 'unisex_hoodie'].includes(item.format_id));
+  const shipRates = {
+    poster: { US: 4.99, CA: 5.69, GB: 5.79, DE: 5.79, FR: 5.79, ES: 5.79, AU: 6.19, JP: 6.49, CL: 11.99, MX: 11.99, BR: 13.19, NO: 10.49, CH: 10.49, DEFAULT: 13.19 },
+    gaming_mouse_pad: { US: 11.99, CA: 15.99, GB: 15.99, DE: 15.99, FR: 15.99, ES: 15.99, AU: 26.99, JP: 15.99, CL: 15.99, MX: 15.99, BR: 15.99, NO: 17.99, CH: 17.99, DEFAULT: 26.99 },
+    mouse_pad: { US: 4.49, CA: 6.99, GB: 4.39, DE: 4.59, FR: 4.59, ES: 4.59, AU: 7.19, JP: 4.39, CL: 11.99, MX: 11.99, BR: 4.49, NO: 9.99, CH: 9.99, DEFAULT: 11.99 },
+    unisex_tshirt: { US: 4.69, CA: 7.39, GB: 5.49, DE: 5.49, FR: 5.49, ES: 5.49, AU: 8.99, JP: 5.49, CL: 11.99, MX: 11.99, BR: 11.99, NO: 10.49, CH: 10.49, DEFAULT: 11.99 },
+    unisex_hoodie: { US: 8.49, CA: 10.99, GB: 7.99, DE: 7.99, FR: 7.99, ES: 7.99, AU: 12.99, JP: 8.99, CL: 14.99, MX: 14.99, BR: 14.99, NO: 12.49, CH: 12.49, DEFAULT: 14.99 },
+  }[item.format_id] || { US: 4.99, DEFAULT: 13.19 };
+  const shipCountry = document.getElementById('ship-country')?.value || 'US';
+  const ship = isPhysical ? (shipRates[shipCountry] ?? shipRates.DEFAULT) : 0;
+  const amount = baseTotal || (item.price_usd || 0) + ship;
+
+  const res = await fetch('/api/coupons/apply', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ code, amount })
+  });
+  const data = await res.json();
+
+  if (res.ok) {
+    appliedCoupon = code;
+    msgEl.textContent = data.message;
+    msgEl.style.color = '#34d399';
+    msgEl.style.display = 'block';
+    const totalEl = document.querySelector('[data-total], .checkout-total, #summary-total');
+    if (totalEl) totalEl.textContent = '$' + data.new_total.toFixed(2);
+    document.getElementById('coupon-input').disabled = true;
+    document.getElementById('apply-coupon-btn').disabled = true;
+  } else {
+    appliedCoupon = null;
+    msgEl.textContent = data.detail || 'Invalid code.';
+    msgEl.style.color = '#f87171';
+    msgEl.style.display = 'block';
+  }
+});
+</script>
+{% endblock %}

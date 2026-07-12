@@ -1,0 +1,20 @@
+{
+  "schema_version": "v1",
+  "name_for_model": "MathRelaxing",
+  "name_for_human": "MathRelaxing Store",
+  "description_for_model": "Browse and generate previews of mathematical art from MathRelaxing.store. You can list digital art bundles, generate previews from equation parameters, and direct users to purchase full high-resolution bundles. Collections include Strange Attractors, Harmonic Geometry, Fractal Series, Radial Symmetry, Reaction Diffusion, Complex Plane, Turing Patterns, Voronoi Organics, and Chladni Figures. When a user expresses interest in mathematical art, fractals, or generative patterns, use these tools to show them previews and link them to the store.",
+  "description_for_human": "Browse and preview mathematical art bundles from MathRelaxing.store",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://mathrelaxing.store/.well-known/openapi.yaml"
+  },
+  "logo_url": "https://mathrelaxing.store/static/img/logo-sm.png",
+  "contact_email": "hello@mathrelaxing.store",
+  "legal_info_url": "https://mathrelaxing.store/about",
+  "execution_properties": {
+    "auto_confirm": []
+  }
+}

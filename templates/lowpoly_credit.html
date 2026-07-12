@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Low Poly Color-by-Number — MathRelaxing</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0d0d0d; color: #e8e0d4;
+      font-family: Georgia, 'Times New Roman', serif;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .site-header {
+      padding: 18px 32px;
+      border-bottom: 1px solid #1e1e1e;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .site-header img { height: 32px; }
+    .site-header a {
+      font-family: monospace; font-size: 13px; letter-spacing: 0.12em;
+      color: #888; text-decoration: none; text-transform: uppercase;
+    }
+    .badge {
+      margin-left: auto;
+      background: #1a1a2e; border: 1px solid #6c63ff;
+      color: #9d97ff; font-family: monospace; font-size: 11px;
+      letter-spacing: 0.1em; padding: 4px 12px; border-radius: 20px;
+    }
+
+    /* ── Layout ── */
+    .container { max-width: 960px; margin: 0 auto; padding: 40px 24px 80px; }
+    h1 {
+      font-size: clamp(22px, 4vw, 32px); font-weight: normal;
+      color: #e8e0d4; margin-bottom: 8px; line-height: 1.3;
+    }
+    .subtitle { font-size: 14px; color: #777; margin-bottom: 36px; font-family: monospace; }
+
+    /* ── Steps indicator ── */
+    .steps {
+      display: flex; gap: 0; margin-bottom: 40px;
+      border: 1px solid #222; border-radius: 8px; overflow: hidden;
+    }
+    .step {
+      flex: 1; padding: 14px 16px; text-align: center;
+      font-family: monospace; font-size: 11px; letter-spacing: 0.1em;
+      text-transform: uppercase; color: #555; background: #111;
+      border-right: 1px solid #222; transition: all 0.2s;
+    }
+    .step:last-child { border-right: none; }
+    .step.active { background: #1a1a2e; color: #9d97ff; }
+    .step.done   { background: #0d1a0f; color: #4caf50; }
+    .step-num { display: block; font-size: 16px; margin-bottom: 3px; }
+
+    /* ── Panel ── */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* ── Demo panel ── */
+    .demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
+    @media(max-width: 640px) { .demo-grid { grid-template-columns: 1fr; } }
+
+    .demo-preview {
+      background: #111; border: 1px solid #222; border-radius: 8px;
+      overflow: hidden; position: relative;
+    }
+    .demo-preview img {
+      width: 100%; height: auto; display: block;
+      transition: opacity 0.25s;
+    }
+    .demo-label {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.8));
+      padding: 16px 12px 10px;
+      font-family: monospace; font-size: 10px; letter-spacing: 0.1em;
+      text-transform: uppercase; color: #aaa;
+    }
+
+    /* ── Controls ── */
+    .controls { background: #111; border: 1px solid #222; border-radius: 8px; padding: 24px; }
+    .control-group { margin-bottom: 20px; }
+    .control-group:last-child { margin-bottom: 0; }
+    .control-label {
+      font-family: monospace; font-size: 11px; letter-spacing: 0.12em;
+      text-transform: uppercase; color: #666; margin-bottom: 10px; display: block;
+    }
+    .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-opt {
+      padding: 9px 18px; border: 1px solid #333; border-radius: 4px;
+      background: #0d0d0d; color: #888; font-family: monospace;
+      font-size: 12px; cursor: pointer; transition: all 0.15s;
+    }
+    .btn-opt:hover { border-color: #555; color: #ccc; }
+    .btn-opt.selected { border-color: #6c63ff; background: #1a1a2e; color: #9d97ff; }
+
+    .hint {
+      margin-top: 8px; font-size: 11px; color: #555; font-family: monospace;
+      font-style: italic;
+    }
+
+    /* ── CTA ── */
+    .cta-row { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
+    .btn-primary {
+      padding: 14px 32px; background: #6c63ff; color: #fff;
+      border: none; border-radius: 6px; font-family: monospace;
+      font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .btn-primary:hover { background: #5a52e0; }
+    .btn-secondary {
+      padding: 14px 32px; background: transparent; color: #888;
+      border: 1px solid #333; border-radius: 6px; font-family: monospace;
+      font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .btn-secondary:hover { border-color: #555; color: #ccc; }
+
+    /* ── Upload panel ── */
+    .upload-zone {
+      border: 2px dashed #333; border-radius: 8px; padding: 48px 24px;
+      text-align: center; cursor: pointer; transition: all 0.2s;
+      background: #111; margin-bottom: 24px;
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: #6c63ff; background: #1a1a2e;
+    }
+    .upload-zone .icon { font-size: 40px; margin-bottom: 12px; }
+    .upload-zone p { color: #777; font-size: 13px; line-height: 1.6; }
+    .upload-zone strong { color: #aaa; }
+    #file-input { display: none; }
+    .thumb-preview {
+      display: none; margin-bottom: 24px;
+      background: #111; border: 1px solid #222; border-radius: 8px;
+      padding: 16px; align-items: center; gap: 16px;
+    }
+    .thumb-preview img { width: 80px; height: 80px; object-fit: cover; border-radius: 4px; }
+    .thumb-info { flex: 1; }
+    .thumb-info .fname { font-family: monospace; font-size: 13px; color: #ccc; }
+    .thumb-info .fsize { font-family: monospace; font-size: 11px; color: #555; margin-top: 4px; }
+    .thumb-remove { background: none; border: none; color: #555; cursor: pointer; font-size: 18px; }
+    .thumb-remove:hover { color: #e55; }
+
+    .field-row { margin-bottom: 16px; }
+    .field-row label {
+      display: block; font-family: monospace; font-size: 11px;
+      letter-spacing: 0.12em; text-transform: uppercase; color: #666; margin-bottom: 6px;
+    }
+    .field-row input {
+      width: 100%; padding: 12px 14px; background: #111; border: 1px solid #333;
+      border-radius: 4px; color: #e8e0d4; font-family: monospace; font-size: 13px;
+      outline: none; transition: border-color 0.15s;
+    }
+    .field-row input:focus { border-color: #6c63ff; }
+
+    /* ── Settings summary ── */
+    .settings-summary {
+      background: #1a1a2e; border: 1px solid #2d2a5e; border-radius: 6px;
+      padding: 14px 18px; margin-bottom: 20px;
+      font-family: monospace; font-size: 12px; color: #9d97ff;
+    }
+
+    /* ── Result panel ── */
+    .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
+    @media(max-width: 580px) { .result-grid { grid-template-columns: 1fr; } }
+    .result-card {
+      background: #111; border: 1px solid #222; border-radius: 8px; overflow: hidden;
+    }
+    .result-card img { width: 100%; height: auto; display: block; }
+    .result-card-footer {
+      padding: 12px 14px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .result-card-footer span { font-family: monospace; font-size: 11px; color: #666; }
+    .btn-download {
+      padding: 8px 16px; background: #1a3a22; color: #6dbf7a;
+      border: 1px solid #2d5a3d; border-radius: 4px;
+      font-family: monospace; font-size: 11px; letter-spacing: 0.08em;
+      text-decoration: none; text-transform: uppercase; cursor: pointer;
+      display: inline-block;
+    }
+    .btn-download:hover { background: #223a2a; }
+
+    .credits-remaining {
+      background: #0d1a0f; border: 1px solid #2d5a3d;
+      border-radius: 6px; padding: 14px 18px; margin-bottom: 20px;
+      font-family: monospace; font-size: 12px; color: #6dbf7a;
+    }
+
+    /* ── Loading overlay ── */
+    .loading-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(13,13,13,0.92); z-index: 100;
+      justify-content: center; align-items: center; flex-direction: column; gap: 20px;
+    }
+    .loading-overlay.active { display: flex; }
+    .spinner {
+      width: 48px; height: 48px; border: 3px solid #222;
+      border-top-color: #6c63ff; border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-family: monospace; font-size: 13px; color: #777; }
+
+    /* ── Error ── */
+    .error-msg {
+      display: none; background: #1a0d0d; border: 1px solid #5a2d2d;
+      border-radius: 6px; padding: 14px 18px; margin-bottom: 16px;
+      font-family: monospace; font-size: 12px; color: #e57373;
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <a href="https://mathrelaxing.store">
+    <img src="/static/img/logo-sm.png" alt="MathRelaxing">
+  </a>
+  <a href="https://mathrelaxing.store">MathRelaxing</a>
+  <span class="badge">{{ remaining }} credit{% if remaining != 1 %}s{% endif %} remaining</span>
+</header>
+
+<div class="container">
+  <h1>Low Poly Color-by-Number</h1>
+  <p class="subtitle">Generate a print-ready coloring page from your photo — powered by mathematics</p>
+
+  <!-- Steps -->
+  <div class="steps">
+    <div class="step active" id="step-1">
+      <span class="step-num">①</span> Choose style
+    </div>
+    <div class="step" id="step-2">
+      <span class="step-num">②</span> Upload photo
+    </div>
+    <div class="step" id="step-3">
+      <span class="step-num">③</span> Download
+    </div>
+  </div>
+
+  <!-- ── PANEL 1: Demo / Choose style ── -->
+  <div class="panel active" id="panel-demo">
+
+    <div class="demo-grid">
+      <div class="demo-preview">
+        <img id="img-coloring" src="/static/examples/web/12_square_portrait_coloring.jpg" alt="Coloring page">
+        <div class="demo-label">Coloring page</div>
+      </div>
+      <div class="demo-preview">
+        <img id="img-colored" src="/static/examples/web/12_square_portrait_colored.jpg" alt="Color reference">
+        <div class="demo-label">Color reference</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="control-group">
+        <span class="control-label">Number of colors</span>
+        <div class="btn-group">
+          <button class="btn-opt" data-param="colors" data-value="8">8 colors <small style="display:block;font-size:10px;opacity:.6">Simple</small></button>
+          <button class="btn-opt selected" data-param="colors" data-value="12">12 colors <small style="display:block;font-size:10px;opacity:.6">Balanced</small></button>
+          <button class="btn-opt" data-param="colors" data-value="16">16 colors <small style="display:block;font-size:10px;opacity:.6">Detailed</small></button>
+          <button class="btn-opt" data-param="colors" data-value="20">20 colors <small style="display:block;font-size:10px;opacity:.6">Complex</small></button>
+        </div>
+        <p class="hint">More colors = more detail, longer to color by hand.</p>
+      </div>
+
+      <div class="control-group">
+        <span class="control-label">Grid style</span>
+        <div class="btn-group">
+          <button class="btn-opt selected" data-param="grid" data-value="square">Square grid</button>
+          <button class="btn-opt" data-param="grid" data-value="hexagonal">Hexagonal grid</button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <span class="control-label">Orientation</span>
+        <div class="btn-group">
+          <button class="btn-opt selected" data-param="orientation" data-value="portrait">Portrait <small style="display:block;font-size:10px;opacity:.6">8.5×11 in</small></button>
+          <button class="btn-opt" data-param="orientation" data-value="landscape">Landscape <small style="display:block;font-size:10px;opacity:.6">11×8.5 in</small></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="cta-row">
+      <button class="btn-primary" id="btn-use-style">
+        Use this style — upload my photo →
+      </button>
+    </div>
+  </div>
+
+  <!-- ── PANEL 2: Upload ── -->
+  <div class="panel" id="panel-upload">
+
+    <div class="settings-summary" id="settings-summary">
+      Style: 12 colors · Square grid · Portrait
+    </div>
+
+    <div class="upload-zone" id="upload-zone">
+      <div class="icon">📷</div>
+      <p><strong>Drop your photo here</strong> or click to browse</p>
+      <p style="margin-top:8px;">JPEG or PNG · max 20 MB</p>
+    </div>
+    <input type="file" id="file-input" accept="image/jpeg,image/png,image/webp">
+
+    <div class="thumb-preview" id="thumb-preview">
+      <img id="thumb-img" src="" alt="">
+      <div class="thumb-info">
+        <div class="fname" id="thumb-name"></div>
+        <div class="fsize" id="thumb-size"></div>
+      </div>
+      <button class="thumb-remove" id="thumb-remove">✕</button>
+    </div>
+
+    <div class="field-row">
+      <label>Your email (to receive the files)</label>
+      <input type="email" id="email-input" placeholder="you@example.com">
+    </div>
+
+    <div class="error-msg" id="error-msg"></div>
+
+    <div class="cta-row">
+      <button class="btn-primary" id="btn-generate" disabled>
+        Generate my coloring page →
+      </button>
+      <button class="btn-secondary" id="btn-back-demo">← Change style</button>
+    </div>
+  </div>
+
+  <!-- ── PANEL 3: Result ── -->
+  <div class="panel" id="panel-result">
+
+    <div class="credits-remaining" id="credits-remaining"></div>
+
+    <div class="result-grid">
+      <div class="result-card">
+        <img id="result-coloring" src="" alt="Coloring page">
+        <div class="result-card-footer">
+          <span>Coloring page (blank + numbers)</span>
+          <a class="btn-download" id="dl-coloring" href="#" download>Download</a>
+        </div>
+      </div>
+      <div class="result-card">
+        <img id="result-colored" src="" alt="Color reference">
+        <div class="result-card-footer">
+          <span>Color reference</span>
+          <a class="btn-download" id="dl-colored" href="#" download>Download</a>
+        </div>
+      </div>
+    </div>
+
+    <p style="font-family:monospace;font-size:12px;color:#555;margin-bottom:24px;">
+      📧 Files also sent to your email.
+      Resolution: 2550 × 3300 px, 300 DPI — US Letter, print-ready.
+    </p>
+
+    <div id="use-another" style="display:none;">
+      <button class="btn-primary" id="btn-use-credit">Use another credit →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">Generating your coloring page…</div>
+  <div class="loading-text" style="font-size:11px;color:#444;">This takes 20–60 seconds depending on complexity</div>
+</div>
+
+<script>
+const TOKEN = "{{ token }}";
+const REMAINING_INIT = {{ remaining }};
+
+// ── State ──
+const state = { colors: '12', grid: 'square', orientation: 'portrait' };
+let uploadedFile = null;
+
+// ── Example image map ──
+function exampleKey(colors, grid, orientation) {
+  return `${colors}_${grid}_${orientation}`;
+}
+function updateExamples() {
+  const key = exampleKey(state.colors, state.grid, state.orientation);
+  const base = `/static/examples/web/${key}`;
+  fadeSwap(document.getElementById('img-coloring'), `${base}_coloring.jpg`);
+  fadeSwap(document.getElementById('img-colored'),  `${base}_colored.jpg`);
+}
+function fadeSwap(el, src) {
+  el.style.opacity = '0.4';
+  const tmp = new Image();
+  tmp.onload = () => { el.src = src; el.style.opacity = '1'; };
+  tmp.onerror = () => { el.style.opacity = '1'; };
+  tmp.src = src;
+}
+
+// ── Parameter buttons ──
+document.querySelectorAll('.btn-opt').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const param = btn.dataset.param;
+    const val   = btn.dataset.value;
+    document.querySelectorAll(`.btn-opt[data-param="${param}"]`).forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    state[param] = val;
+    updateExamples();
+  });
+});
+
+// ── Step navigation ──
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`panel-${name}`).classList.add('active');
+  ['demo','upload','result'].forEach((n,i) => {
+    const s = document.getElementById(`step-${i+1}`);
+    s.classList.remove('active','done');
+    if (n === name) s.classList.add('active');
+    else if (['demo','upload','result'].indexOf(n) < ['demo','upload','result'].indexOf(name)) s.classList.add('done');
+  });
+}
+
+document.getElementById('btn-use-style').addEventListener('click', () => {
+  const summary = `Style: ${state.colors} colors · ${state.grid === 'square' ? 'Square' : 'Hexagonal'} grid · ${state.orientation.charAt(0).toUpperCase()+state.orientation.slice(1)}`;
+  document.getElementById('settings-summary').textContent = summary;
+  showPanel('upload');
+});
+document.getElementById('btn-back-demo').addEventListener('click', () => showPanel('demo'));
+
+// ── File upload ──
+const zone   = document.getElementById('upload-zone');
+const input  = document.getElementById('file-input');
+const thumb  = document.getElementById('thumb-preview');
+const btnGen = document.getElementById('btn-generate');
+
+zone.addEventListener('click', () => input.click());
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+zone.addEventListener('drop', e => {
+  e.preventDefault(); zone.classList.remove('dragover');
+  if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+});
+input.addEventListener('change', () => { if (input.files[0]) setFile(input.files[0]); });
+
+function setFile(file) {
+  if (!file.type.startsWith('image/')) { showError('Please upload a JPEG or PNG image.'); return; }
+  if (file.size > 20 * 1024 * 1024)   { showError('File is too large (max 20 MB).'); return; }
+  uploadedFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('thumb-img').src = e.target.result;
+    document.getElementById('thumb-name').textContent = file.name;
+    document.getElementById('thumb-size').textContent = (file.size / 1024 / 1024).toFixed(1) + ' MB';
+    zone.style.display = 'none';
+    thumb.style.display = 'flex';
+    checkReady();
+  };
+  reader.readAsDataURL(file);
+}
+document.getElementById('thumb-remove').addEventListener('click', () => {
+  uploadedFile = null; input.value = '';
+  thumb.style.display = 'none'; zone.style.display = '';
+  btnGen.disabled = true;
+});
+document.getElementById('email-input').addEventListener('input', checkReady);
+function checkReady() {
+  const email = document.getElementById('email-input').value.trim();
+  btnGen.disabled = !(uploadedFile && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
+}
+
+// ── Generate ──
+document.getElementById('btn-generate').addEventListener('click', async () => {
+  const email = document.getElementById('email-input').value.trim();
+  if (!uploadedFile || !email) return;
+  hideError();
+
+  const fd = new FormData();
+  fd.append('image', uploadedFile);
+  fd.append('customer_email', email);
+  fd.append('num_colors', state.colors);
+  fd.append('density', 'medium');
+  fd.append('orientation', state.orientation);
+  fd.append('polygon_type', state.grid === 'hexagonal' ? 'hexagonal' : 'square');
+
+  showLoading('Generating your coloring page… (20–60 seconds)');
+  try {
+    const res = await fetch(`/lowpoly/credit/${TOKEN}/generate`, { method: 'POST', body: fd });
+    const data = await res.json();
+    hideLoading();
+    if (!res.ok) { showError(data.detail || 'Generation failed. Please try again.'); return; }
+
+    // Show result
+    document.getElementById('result-coloring').src = data.coloring_url;
+    document.getElementById('result-colored').src  = data.colored_url;
+    document.getElementById('dl-coloring').href    = data.coloring_url;
+    document.getElementById('dl-colored').href     = data.colored_url;
+
+    const rem = data.remaining_credits;
+    const credEl = document.getElementById('credits-remaining');
+    if (rem > 0) {
+      credEl.textContent = `✓ Done! You have ${rem} credit${rem !== 1 ? 's' : ''} remaining.`;
+      document.getElementById('use-another').style.display = 'block';
+    } else {
+      credEl.textContent = '✓ Done! All credits used.';
+    }
+
+    showPanel('result');
+  } catch (e) {
+    hideLoading();
+    showError('Network error. Please try again.');
+  }
+});
+
+document.getElementById('btn-use-credit').addEventListener('click', () => {
+  uploadedFile = null; input.value = '';
+  thumb.style.display = 'none'; zone.style.display = '';
+  btnGen.disabled = true;
+  document.getElementById('email-input').value = '';
+  showPanel('upload');
+});
+
+// ── Helpers ──
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = msg; el.style.display = 'block';
+}
+function hideError() { document.getElementById('error-msg').style.display = 'none'; }
+function showLoading(msg) {
+  document.getElementById('loading-text').textContent = msg;
+  document.getElementById('loading').classList.add('active');
+}
+function hideLoading() { document.getElementById('loading').classList.remove('active'); }
+</script>
+</body>
+</html>

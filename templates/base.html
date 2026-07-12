@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}MathRelaxing{% endblock %}</title>
+  <meta name="description" content="{% block description %}Digital mathematical art bundles. Strange attractors, fractals, harmonic geometry — generated from real equations. Instant download of 4K images, animations, and creator assets.{% endblock %}">
+  {% block robots %}{% endblock %}
+  <meta property="og:title"       content="{% block og_title %}MathRelaxing — Digital Mathematical Art{% endblock %}">
+  <meta property="og:description" content="{% block og_desc %}Digital mathematical art bundles — 4K images, animations, and creator assets generated from real equations.{% endblock %}">
+  <meta property="og:image"       content="{% block og_image %}https://mathrelaxing.store/static/img/og-default.jpg{% endblock %}">
+  <meta property="og:image:width"  content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:type"        content="{% block og_type %}website{% endblock %}">
+  <meta property="og:url"         content="https://mathrelaxing.store{{ request.url.path }}">
+  {% set _pdv = pinterest_verify_code() %}{% if _pdv %}<meta name="p:domain_verify" content="{{ _pdv }}">{% endif %}
+  {% block product_meta %}{% endblock %}
+  <meta name="twitter:card"        content="summary_large_image">
+  <meta name="twitter:title"       content="{{ self.og_title() }}">
+  <meta name="twitter:description" content="{{ self.og_desc() }}">
+  <meta name="twitter:image"       content="{{ self.og_image() }}">
+  <link rel="canonical"           href="https://mathrelaxing.store{{ request.url.path }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/main.css?v=nav2">
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
+  <script>
+    // ── Self-hosted live tracking (/admin/live dashboard) ──────────────────
+    (function () {
+      try {
+        var SID_KEY = 'mr_sid', ATTR_KEY = 'mr_attr';
+        var sid = localStorage.getItem(SID_KEY);
+        if (!sid) {
+          sid = (Date.now().toString(36) + Math.random().toString(36).slice(2, 10)).slice(0, 32);
+          localStorage.setItem(SID_KEY, sid);
+        }
+        window.mrSession = sid;
+
+        // ── Attribution: first-touch is sticky; paid signals always override ──
+        var qs = new URLSearchParams(location.search);
+        var paidKeys = ['utm_source','utm_medium','utm_campaign','utm_term','utm_content',
+                        'fbclid','gclid','ttclid','msclkid','wbraid','gbraid'];
+        var hasPaidSignal = paidKeys.some(function (k) { return qs.has(k); });
+        var attr = null;
+        try { attr = JSON.parse(localStorage.getItem(ATTR_KEY) || 'null'); } catch (_) {}
+
+        // First-touch attribution expires after 30 days, so a visitor who came
+        // once via Pinterest/TikTok and returns directly weeks later isn't
+        // credited to that original source forever.
+        var ATTR_TTL = 30 * 24 * 3600 * 1000;
+        if (attr && attr.ts && (Date.now() - attr.ts > ATTR_TTL)) { attr = null; }
+
+        if (!attr || hasPaidSignal) {
+          var newAttr = {
+            source:   qs.get('utm_source')   || null,
+            medium:   qs.get('utm_medium')   || null,
+            campaign: qs.get('utm_campaign') || null,
+            ts: Date.now(),
+          };
+          // Infer source/medium from click IDs when UTMs are missing
+          if (qs.get('fbclid')) {
+            newAttr.source = newAttr.source || 'facebook';
+            newAttr.medium = newAttr.medium || 'social';
+          }
+          if (qs.get('gclid') || qs.get('gbraid') || qs.get('wbraid')) {
+            newAttr.source = newAttr.source || 'google';
+            newAttr.medium = newAttr.medium || 'cpc';
+          }
+          if (qs.get('ttclid')) {
+            newAttr.source = newAttr.source || 'tiktok';
+            newAttr.medium = newAttr.medium || 'paid_social';
+          }
+          if (qs.get('msclkid')) {
+            newAttr.source = newAttr.source || 'bing';
+            newAttr.medium = newAttr.medium || 'cpc';
+          }
+          // Fallback to referrer hostname for organic visits
+          if (!newAttr.source && document.referrer) {
+            try {
+              var rh = new URL(document.referrer).hostname;
+              if (rh && rh.indexOf('mathrelaxing.store') === -1) {
+                newAttr.source = rh;
+                newAttr.medium = newAttr.medium || 'referral';
+              }
+            } catch (_) {}
+          }
+          if (!attr || hasPaidSignal) {
+            attr = newAttr;
+            localStorage.setItem(ATTR_KEY, JSON.stringify(attr));
+          }
+        }
+        window.mrAttr = attr;
+
+        window.mrTrack = function (type, data) {
+          var body = {
+            type: type,
+            session_id: sid,
+            path: location.pathname + location.search,
+            referrer: document.referrer || null,
+          };
+          if (attr) {
+            if (attr.source)   body.source   = attr.source;
+            if (attr.medium)   body.medium   = attr.medium;
+            if (attr.campaign) body.campaign = attr.campaign;
+          }
+          if (data) {
+            if (data.product_slug) body.product_slug = data.product_slug;
+            if (data.value != null) body.value = data.value;
+            if (data.extra) body.extra = data.extra;
+          }
+          var json = JSON.stringify(body);
+          // fetch() with keepalive is the primary transport: navigator.sendBeacon
+          // delivers an EMPTY body inside iOS WKWebView (TikTok / Instagram /
+          // Facebook in-app browsers), which silently dropped ~all in-app traffic.
+          // None of our events fire during page unload, so fetch is reliable here.
+          try {
+            fetch('/api/track', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: json,
+              keepalive: true,
+            }).catch(function () {});
+            return;
+          } catch (_) {}
+          // Fallback for ancient browsers without fetch
+          try {
+            if (navigator.sendBeacon) {
+              navigator.sendBeacon('/api/track', new Blob([json], { type: 'application/json' }));
+            }
+          } catch (__) {}
+        };
+        {% block auto_pageview %}window.mrTrack('pageview');{% endblock %}
+      } catch (e) { /* fail silent */ }
+    })();
+  </script>
+  {% if meta_pixel_id %}
+  <script>
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+    (window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '{{ meta_pixel_id|e }}');
+    fbq('track', 'PageView');
+    window.mrTrackMeta = function(eventName, payload) {
+      if (window.fbq && eventName) window.fbq('track', eventName, payload || {});
+    };
+  </script>
+  <noscript>
+    <img height="1" width="1" style="display:none" alt=""
+         src="https://www.facebook.com/tr?id={{ meta_pixel_id|e }}&ev=PageView&noscript=1">
+  </noscript>
+  {% endif %}
+  {% block head %}{% endblock %}
+  <style>
+    .social-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .social-link svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    .social-link:hover svg {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+
+<nav class="navbar" id="navbar">
+  <a href="/" class="navbar-logo">
+    <img src="/static/img/logo-sm.png?v=2" alt="MathRelaxing" class="navbar-logo-img">
+  </a>
+  <ul class="navbar-links" id="navbar-links">
+    <li><a href="/#coloring-books" class="nav-toplink">Coloring Books</a></li>
+    <li><a href="/collection/digital-downloads" class="nav-toplink">Digital Downloads</a></li>
+    <li><a href="/collection/apparel" class="nav-toplink">Apparel</a></li>
+
+    <li><a href="/collection/desk-mats" class="nav-toplink">Desk Mats</a></li>
+    <li><a href="/about" class="nav-toplink">About</a></li>
+  </ul>
+  <div class="navbar-right">
+    <a href="/cart" class="cart-btn">
+      Cart
+      <span class="cart-count" id="cart-count">0</span>
+    </a>
+    <button class="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobile-menu" aria-hidden="true">
+  <div class="mobile-menu-inner">
+    <div class="mobile-section">
+      <p class="mobile-section-label">Shop</p>
+      <ul>
+        <li><a href="/#coloring-books">Coloring Books</a></li>
+        <li><a href="/collection/digital-downloads">Digital Downloads</a></li>
+        <li><a href="/collection/apparel">Apparel</a></li>
+
+        <li><a href="/collection/desk-mats">Desk Mats</a></li>
+        <li><a href="/about">About</a></li>
+      </ul>
+    </div>
+    <div class="mobile-section">
+      <a href="/cart" class="mobile-cart-link">Cart →</a>
+    </div>
+  </div>
+</div>
+
+
+{% block content %}{% endblock %}
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <h3>MathRelaxing</h3>
+        <p>Art born from equations. Premium apparel and coloring books featuring art generated from real mathematics.</p>
+      </div>
+      <nav class="footer-nav">
+        <h5>Shop</h5>
+        <ul>
+          <li><a href="/#coloring-books">Coloring Books</a></li>
+          <li><a href="/collection/digital-downloads">Digital Downloads</a></li>
+          <li><a href="/collection/apparel">Apparel</a></li>
+
+          <li><a href="/collection/desk-mats">Desk Mats</a></li>
+        </ul>
+      </nav>
+      <nav class="footer-nav">
+        <h5>Info</h5>
+        <ul>
+          <li><a href="/cart">Cart</a></li>
+          <li><a href="/my-downloads">My Downloads</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="/privacy">Privacy Policy</a></li>
+          <li><a href="/terms">Terms of Service</a></li>
+        </ul>
+      </nav>
+      <nav class="footer-nav">
+        <h5>Connect</h5>
+        <ul>
+          <li>
+            <a href="https://www.youtube.com/@MathRelaxing" target="_blank" rel="noopener noreferrer" class="social-link">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+              YouTube @MathRelaxing
+            </a>
+          </li>
+          <li><a href="/sitemap.xml">Sitemap</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 MathRelaxing. All equations reserved.</span>
+      <span style="display:flex; gap:1rem; flex-wrap:wrap;">
+        <a href="/privacy" style="font-size:11px; color:var(--muted); text-decoration:none;">Privacy Policy</a>
+        <a href="/terms" style="font-size:11px; color:var(--muted); text-decoration:none;">Terms of Service</a>
+      </span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Navbar scroll effect
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 50);
+  });
+
+  // Cart count badge
+  function updateCartBadge() {
+    const cart = JSON.parse(localStorage.getItem('mr_cart') || '[]');
+    const badge = document.getElementById('cart-count');
+    if (cart.length > 0) {
+      badge.textContent = cart.length;
+      badge.classList.add('visible');
+    } else {
+      badge.classList.remove('visible');
+    }
+  }
+  updateCartBadge();
+  window.addEventListener('storage', updateCartBadge);
+
+  // Hamburger menu toggle
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobile-menu');
+  if (hamburger && mobileMenu) {
+    hamburger.addEventListener('click', () => {
+      const open = mobileMenu.classList.toggle('open');
+      hamburger.classList.toggle('open', open);
+      hamburger.setAttribute('aria-expanded', open);
+      mobileMenu.setAttribute('aria-hidden', !open);
+      document.body.style.overflow = open ? 'hidden' : '';
+    });
+    mobileMenu.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        mobileMenu.classList.remove('open');
+        hamburger.classList.remove('open');
+        hamburger.setAttribute('aria-expanded', false);
+        mobileMenu.setAttribute('aria-hidden', true);
+        document.body.style.overflow = '';
+      });
+    });
+  }
+
+  // Smooth fade in for all images
+  document.querySelectorAll('img').forEach(img => {
+    if (img.complete) {
+      img.classList.add('loaded');
+    } else {
+      img.addEventListener('load', () => {
+        img.classList.add('loaded');
+      });
+    }
+  });
+</script>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

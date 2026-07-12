@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Contact · MathRelaxing{% endblock %}
+{% block description %}Get in touch with MathRelaxing — support for orders, downloads, licensing and partnerships. We reply within 24 hours.{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container" style="max-width: 720px;">
+    <p class="section-label">Support</p>
+    <h1 style="margin-bottom: 1rem;">Contact us</h1>
+    <p style="color: var(--muted); margin-bottom: 2.5rem;">
+      Questions about an order, a download link, licensing, or anything else —
+      we answer every message, usually within 24 hours.
+    </p>
+
+    <div style="display: grid; gap: 1.25rem;">
+      <div style="border: 1px solid var(--border, #2a2a2a); border-radius: 6px; padding: 1.5rem;">
+        <h3 style="margin: 0 0 .4rem; font-size: 1.05rem;">📧 Email</h3>
+        <p style="margin: 0; color: var(--muted);">
+          <a href="mailto:admin@mathrelaxing.store" style="color: var(--accent, #c8a96e);">admin@mathrelaxing.store</a><br>
+          Orders, refunds, download issues, licensing and business inquiries.
+        </p>
+      </div>
+
+      <div style="border: 1px solid var(--border, #2a2a2a); border-radius: 6px; padding: 1.5rem;">
+        <h3 style="margin: 0 0 .4rem; font-size: 1.05rem;">📦 Orders &amp; downloads</h3>
+        <p style="margin: 0; color: var(--muted);">
+          Digital purchases are delivered instantly by email after checkout.
+          Lost your link? Recover it at <a href="/my-downloads" style="color: var(--accent, #c8a96e);">My Downloads</a>
+          or write to us with your order email.
+        </p>
+      </div>
+
+      <div style="border: 1px solid var(--border, #2a2a2a); border-radius: 6px; padding: 1.5rem;">
+        <h3 style="margin: 0 0 .4rem; font-size: 1.05rem;">🏢 Business</h3>
+        <p style="margin: 0; color: var(--muted);">
+          MathRelaxing · Independent generative-art studio<br>
+          Operated from Chile · Serving customers worldwide<br>
+          See our <a href="/terms" style="color: var(--accent, #c8a96e);">Terms of Service</a>
+          and <a href="/privacy" style="color: var(--accent, #c8a96e);">Privacy Policy</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

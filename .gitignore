@@ -1,0 +1,71 @@
+# --- secretos / tokens / env (NUNCA) ---
+.env
+.env.*
+*.env
+env.before-*
+*_token.json
+.*_token.json
+.pinterest_claim.json
+.tiktok_last_upload.json
+*.pem
+*.key
+credentials.json
+
+# --- base de datos (pedidos + PII) ---
+*.db
+*.db.*
+*.sqlite3
+
+# --- backups / temporales / scratch ---
+.codex-backups-*/
+*.bak
+*.bak-*
+*.before-*
+temp_*.pdf
+tshirt_mockup_tmp.jpg
+=
+
+# --- media pesado / deliverables / cachés (se respaldan aparte) ---
+static/videos/
+static/video/
+static/previews/
+static/downloads/
+static/purchases/
+static/social/
+static/pinterest/
+static/psd-mockups/
+static/examples/
+static/mockups/
+static/bonanza/
+static/digital/
+mockup_cache/
+private_downloads/
+*.mp4
+*.psd
+*.mp3
+
+# --- state/cache json ---
+.bonanza_*.json
+.gumroad_products.json
+.ebay_fulfilled.json
+
+# --- python / venv ---
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# --- logs / os ---
+*.log
+.DS_Store
+
+# binarios pesados / assets de producto
+*.pdf
+*.zip
+*.psd
+static/*_print.*
+
+# scripts con API key hardcodeada (limpiar y re-añadir luego)
+check_notebook_variants.py
+fetch_mockup.py

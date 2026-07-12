@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}About — MathRelaxing{% endblock %}
+{% block description %}The story behind MathRelaxing — mathematical canvas prints generated from real equations.{% endblock %}
+{% block og_title %}About MathRelaxing — Art Born from Equations{% endblock %}
+{% block og_desc %}The story behind MathRelaxing. We explore strange attractors, fractals and harmonic geometry parametrically — curating the configurations where mathematics and beauty intersect.{% endblock %}
+
+{% block content %}
+<div class="about-page">
+  <div class="container" style="max-width:860px;">
+    <p class="section-label">Our story</p>
+    <h1 style="margin-bottom:2.5rem;">Mathematics is<br>the oldest art form</h1>
+
+    <p>Long before the first brushstroke was made on cave walls, the universe was already painting with equations. The spiral of a nautilus shell follows the golden ratio. The branching of a river delta obeys fractal geometry. The spots on a leopard emerge from a chemical reaction-diffusion system described by Alan Turing in 1952.</p>
+
+    <p style="margin-top:1.5rem;">MathRelaxing explores these systems parametrically — running each equation thousands of times, curating the configurations where mathematics and beauty intersect.</p>
+
+    <h2 style="margin-top:4rem; margin-bottom:1.5rem;">The Process</h2>
+    <p>Every print begins with an equation. We implement each system faithfully — Runge-Kutta integration for attractors, finite-difference methods for reaction-diffusion, iterative escape-time algorithms for fractals. The parameter space is explored systematically and visually.</p>
+
+    <p style="margin-top:1.5rem;">When a configuration is selected, it is rendered at 3840×3840 pixels using matplotlib and numpy on our server. The image goes directly to our print network, which produces it at a facility near the destination — reducing shipping distance and carbon footprint.</p>
+
+    <h2 style="margin-top:4rem; margin-bottom:1.5rem;">The Interactive Slider</h2>
+    <p>The slider on each product page is not decorative — it runs the actual equation in your browser using a JavaScript canvas renderer. The parameters you set are the parameters used to generate your print. A certificate of authenticity records the exact values and is included with every order.</p>
+
+    <p style="margin-top:3rem;">
+      <a href="/" class="btn btn-outline">Explore Collections</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

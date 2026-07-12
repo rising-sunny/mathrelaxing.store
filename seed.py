@@ -1,0 +1,92 @@
+import json
+
+PRODUCTS = [
+    {
+        'slug': 'aurora-interface-desk-mat',
+        'active': False,
+        'name': 'Aurora Interface Desk Mat',
+        'collection': 'desk-mats',
+        'equation_type': 'deskmat-aurora-interface',
+        'description': 'Luminous horizontal aurora ribbons threaded with fine technical measurement ticks. A panoramic surface that reads left-to-right under the mouse, with a denser keyboard side and a quieter mouse field.',
+        'price_usd': 46.0,
+        "params_json": json.dumps({'design_family': {'value': 'aurora-interface'}, 'palette': {'value': 'cyan-gold-ink'}, 'layout': {'value': 'keyboard-left-mouse-right'}, 'seed': {'value': 1207}, 'background_color': {'value': '#06121f'}}),
+    },
+    {
+        'slug': 'topographic-circuit-desk-mat',
+        'name': 'Golden Guilloché Desk Mat',
+        'collection': 'desk-mats',
+        'equation_type': 'deskmat-spirograph',
+        'description': 'A hypotrochoid guilloché medallion — thousands of fine gold curves woven by rolling-circle mathematics, the way security engraving is drawn on banknotes. Its generating equation is signed discreetly in the corner. Calm dark field around the mouse and keyboard.',
+        'price_usd': 46.0,
+        "params_json": json.dumps({'design_family': {'value': 'spirograph'}, 'palette': {'value': 'gold-black'}, 'layout': {'value': 'keyboard-left-mouse-right'}, 'seed': {'value': 100}, 'background_color': {'value': '#050505'}}),
+    },
+    {
+        'slug': 'computational-textile-desk-mat',
+        'active': False,
+        'name': 'Computational Textile Desk Mat',
+        'collection': 'desk-mats',
+        'equation_type': 'deskmat-textile',
+        'description': 'A woven horizontal line-field with mathematically modulated density. Reads as fabric texture rather than as printed graphics — product-native for a mat that is, after all, a piece of cloth.',
+        'price_usd': 46.0,
+        "params_json": json.dumps({'design_family': {'value': 'textile'}, 'palette': {'value': 'ink-magenta'}, 'layout': {'value': 'keyboard-left-mouse-right'}, 'seed': {'value': 555}, 'background_color': {'value': '#080414'}}),
+    },
+    {
+        'slug': 'carbon-aurora-desk-mat',
+        'active': False,
+        'name': 'Carbon Aurora Desk Mat',
+        'collection': 'desk-mats',
+        'equation_type': 'deskmat-aurora-interface',
+        'description': 'Cool carbon-cyan aurora bands across a deep graphite field. A neutral palette designed to live well under any mechanical keyboard color and not fight RGB lighting.',
+        'price_usd': 46.0,
+        "params_json": json.dumps({'design_family': {'value': 'aurora-interface'}, 'palette': {'value': 'carbon-cyan'}, 'layout': {'value': 'keyboard-left-mouse-right'}, 'seed': {'value': 871}, 'background_color': {'value': '#040608'}}),
+    },
+    {
+        'slug': 'azure-bronze-topography-desk-mat',
+        'name': 'Harmonograph Desk Mat',
+        'collection': 'desk-mats',
+        'equation_type': 'deskmat-harmonograph',
+        'description': 'A harmonograph field — the delicate interference woven by damped pendulum sine motion, drawn as fine rose-gold filaments on deep noir. Its generating equation is signed discreetly in the corner. A calm, gallery-grade surface for the desk.',
+        'price_usd': 46.0,
+        "params_json": json.dumps({'design_family': {'value': 'harmonograph'}, 'palette': {'value': 'rose-noir'}, 'layout': {'value': 'keyboard-left-mouse-right'}, 'seed': {'value': 8}, 'background_color': {'value': '#0a0509'}}),
+    },
+    {
+        'slug': 'cyan-guilloche-desk-mat',
+        'name': 'Cyan Guilloché Desk Mat',
+        'collection': 'desk-mats',
+        'equation_type': 'deskmat-spirograph',
+        'description': 'A hypotrochoid guilloché medallion in luminous cyan on deep abyss black — thousands of fine curves woven by rolling-circle mathematics, security-engraving style. Its generating equation is signed discreetly in the corner.',
+        'price_usd': 46.0,
+        "params_json": json.dumps({'design_family': {'value': 'spirograph'}, 'palette': {'value': 'cyan-abyss'}, 'layout': {'value': 'keyboard-left-mouse-right'}, 'seed': {'value': 3}, 'background_color': {'value': '#02060a'}}),
+    },
+    {
+        'slug': 'violet-guilloche-desk-mat',
+        'name': 'Violet Guilloché Desk Mat',
+        'collection': 'desk-mats',
+        'equation_type': 'deskmat-spirograph',
+        'description': 'A hypotrochoid guilloché medallion in violet and gold — an intricate rosette drawn by the mathematics of rolling circles, the way banknote security patterns are engraved. Its generating equation is signed discreetly in the corner.',
+        'price_usd': 46.0,
+        "params_json": json.dumps({'design_family': {'value': 'spirograph'}, 'palette': {'value': 'violet-gold'}, 'layout': {'value': 'keyboard-left-mouse-right'}, 'seed': {'value': 7}, 'background_color': {'value': '#070518'}}),
+    },
+    {
+        'slug': 'golden-harmonograph-desk-mat',
+        'name': 'Golden Harmonograph Desk Mat',
+        'collection': 'desk-mats',
+        'equation_type': 'deskmat-harmonograph',
+        'description': 'A harmonograph field in warm gold — the delicate interference woven by damped pendulum sine motion, drawn as fine gold filaments on black. Its generating equation is signed discreetly in the corner. A calm, gallery-grade desk surface.',
+        'price_usd': 46.0,
+        "params_json": json.dumps({'design_family': {'value': 'harmonograph'}, 'palette': {'value': 'gold-black'}, 'layout': {'value': 'keyboard-left-mouse-right'}, 'seed': {'value': 5}, 'background_color': {'value': '#050505'}}),
+    },
+    {
+        'slug': 'emerald-harmonograph-desk-mat',
+        'name': 'Emerald Harmonograph Desk Mat',
+        'collection': 'desk-mats',
+        'equation_type': 'deskmat-harmonograph',
+        'description': 'A harmonograph field in cool emerald — the interference of damped pendulum sine motion drawn as fine jade filaments on deep ink. Its generating equation is signed discreetly in the corner. A calm, gallery-grade desk surface.',
+        'price_usd': 46.0,
+        "params_json": json.dumps({'design_family': {'value': 'harmonograph'}, 'palette': {'value': 'emerald-ink'}, 'layout': {'value': 'keyboard-left-mouse-right'}, 'seed': {'value': 21}, 'background_color': {'value': '#030605'}}),
+    },
+]
+
+
+def get_seed_products():
+    return PRODUCTS

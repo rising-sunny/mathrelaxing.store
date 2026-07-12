@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Pinterest Analytics · MathRelaxing</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<style>
+  :root {
+    --bg: #0e0e10; --panel: #16161a; --panel-2: #1d1d22; --border: #2a2a30;
+    --text: #e8e6e3; --muted: #8b8a87; --accent: #c8a96e; --accent2: #6e9bc8;
+    --good: #5fbf7a; --pin: #e60023;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+    font-size: 14px; line-height: 1.4; min-height: 100vh;
+  }
+  a { color: var(--accent2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 24px; border-bottom: 1px solid var(--border); background: var(--panel);
+  }
+  header h1 { font-size: 16px; font-weight: 600; }
+  header h1 .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--pin); margin-right: 8px; vertical-align: middle; }
+  header .nav { display: flex; gap: 16px; align-items: center; font-size: 12px; color: var(--muted); }
+  header .nav a { color: var(--muted); }
+  header .nav a.active { color: var(--pin); }
+
+  .range-bar {
+    display: flex; gap: 8px; padding: 14px 24px; background: var(--panel-2);
+    border-bottom: 1px solid var(--border); align-items: center;
+  }
+  .range-bar .label { color: var(--muted); font-size: 12px; margin-right: 8px; text-transform: uppercase; letter-spacing: .08em; }
+  .range-bar button {
+    background: var(--panel); border: 1px solid var(--border); color: var(--text);
+    padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 13px;
+    font-family: inherit;
+  }
+  .range-bar button:hover { border-color: var(--pin); }
+  .range-bar button.active { background: var(--pin); color: #fff; border-color: var(--pin); font-weight: 600; }
+  .range-bar .info { margin-left: auto; color: var(--muted); font-size: 12px; }
+  .range-bar .refresh { background: transparent; color: var(--accent); border: 1px solid var(--border); padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+
+  main { display: grid; gap: 16px; padding: 16px; grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+  .kpi { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; }
+  .kpi .label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+  .kpi .value { font-size: 28px; font-weight: 600; margin-top: 4px; }
+  .kpi .sub { color: var(--muted); font-size: 11px; margin-top: 4px; }
+
+  section { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  section h2 {
+    font-size: 11px; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--muted); padding: 12px 16px; border-bottom: 1px solid var(--border);
+    background: var(--panel-2); font-weight: 600;
+  }
+  .stretch-2 { grid-column: span 2; }
+  .stretch-4 { grid-column: 1 / -1; }
+  .chart-wrap { padding: 16px; height: 280px; position: relative; }
+
+  table.t { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.t th { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .08em; padding: 8px 16px; border-bottom: 1px solid var(--border); text-align: left; background: var(--panel-2); font-weight: 600; }
+  table.t td { padding: 8px 16px; border-bottom: 1px solid var(--border); }
+  table.t td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  table.t td.winner { color: var(--accent); font-weight: 600; }
+  table.t tr:last-child td { border-bottom: none; }
+  table.t code { font-size: 11px; color: var(--accent2); }
+
+  .badge-v0 { background: #f2ebe0; color: #14110d; padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; }
+  .badge-v1 { background: #1c1420; color: #c8a96e; padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; border: 1px solid #c8a96e; }
+  .badge-v2 { background: #18202c; color: #8cb4dc; padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; }
+
+  .empty { padding: 24px 16px; text-align: center; color: var(--muted); font-size: 13px; }
+  .ctr { font-size: 12px; color: var(--good); margin-left: 4px; }
+
+  @media (max-width: 900px) {
+    main { grid-template-columns: 1fr 1fr; }
+    .stretch-2, .stretch-4 { grid-column: 1 / -1; }
+  }
+  @media (max-width: 560px) {
+    main { grid-template-columns: 1fr; }
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<header>
+  <h1><span class="dot"></span>Pinterest Analytics</h1>
+  <div class="nav">
+    <a href="/admin/pinterest">← Publisher</a>
+    <a href="/admin/pinterest/analytics" class="active">Analytics</a>
+    <a href="/admin/live">Live view</a>
+    <a href="/admin/pinterest/logout">logout</a>
+  </div>
+</header>
+
+<div class="range-bar">
+  <span class="label">Range:</span>
+  <button data-days="7">7 days</button>
+  <button data-days="30" class="active">30 days</button>
+  <button data-days="90">90 days</button>
+  <button class="refresh" id="btn-refresh">Refresh ↻</button>
+  <span class="info" id="info">loading…</span>
+</div>
+
+<main>
+  <div class="kpi"><div class="label">Impressions</div><div class="value" id="kpi-imp">—</div><div class="sub">people who saw your pins</div></div>
+  <div class="kpi"><div class="label">Saves</div><div class="value" id="kpi-sav">—</div><div class="sub">pins saved to user boards</div></div>
+  <div class="kpi"><div class="label">Pin clicks</div><div class="value" id="kpi-pc">—</div><div class="sub">clicks on the pin itself</div></div>
+  <div class="kpi"><div class="label">Outbound clicks</div><div class="value" id="kpi-oc">—</div><div class="sub">clicks to mathrelaxing.store</div></div>
+
+  <section class="stretch-2">
+    <h2>By variant — which layout wins?</h2>
+    <table class="t">
+      <thead><tr>
+        <th>Variant</th><th class="num">Pins</th><th class="num">Impr.</th>
+        <th class="num">Saves</th><th class="num">Clicks</th><th class="num">CTR</th>
+      </tr></thead>
+      <tbody id="by-variant"><tr><td colspan="6" class="empty">—</td></tr></tbody>
+    </table>
+  </section>
+
+  <section class="stretch-2">
+    <h2>Engagement breakdown</h2>
+    <div class="chart-wrap"><canvas id="chart-variant"></canvas></div>
+  </section>
+
+  <section class="stretch-4">
+    <h2>Top products (sorted by outbound clicks)</h2>
+    <table class="t">
+      <thead><tr>
+        <th>Product</th><th class="num">Pins</th><th class="num">Impressions</th>
+        <th class="num">Saves</th><th class="num">Pin clicks</th><th class="num">Outbound</th>
+      </tr></thead>
+      <tbody id="by-product"><tr><td colspan="6" class="empty">—</td></tr></tbody>
+    </table>
+  </section>
+
+  <section class="stretch-4">
+    <h2>Every pin we created</h2>
+    <table class="t">
+      <thead><tr>
+        <th>Pin</th><th>Product</th><th>Variant</th><th class="num">Impr.</th>
+        <th class="num">Saves</th><th class="num">Pin clicks</th><th class="num">Outbound</th>
+        <th>Created</th>
+      </tr></thead>
+      <tbody id="per-pin"><tr><td colspan="8" class="empty">—</td></tr></tbody>
+    </table>
+  </section>
+</main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const fmt = (v) => Number(v).toLocaleString();
+  const variantLabel = (i) => ['Classic (cream)', 'Framed (dark)', 'Magazine (blue)'][i] || 'v' + i;
+
+  let chartVariant = null;
+
+  async function load(days, force = false) {
+    $('info').textContent = 'loading…';
+    document.querySelectorAll('.range-bar button[data-days]').forEach(b =>
+      b.classList.toggle('active', Number(b.dataset.days) === days));
+    try {
+      const url = '/api/pinterest/auto-pin/analytics?days=' + days + (force ? '&_=' + Date.now() : '');
+      const r = await fetch(url);
+      const d = await r.json();
+      if (d.error) {
+        $('info').textContent = 'error: ' + d.error;
+        return;
+      }
+      const t = d.totals || {};
+      $('kpi-imp').textContent = fmt(t.impressions || 0);
+      $('kpi-sav').textContent = fmt(t.saves || 0);
+      $('kpi-pc').textContent  = fmt(t.pin_clicks || 0);
+      $('kpi-oc').textContent  = fmt(t.outbound_clicks || 0);
+
+      // By-variant table + chart
+      const tbody = $('by-variant');
+      const variants = d.by_variant || [];
+      if (!variants.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="empty">No data yet — wait 24-48h after first pins are created.</td></tr>';
+      } else {
+        const winner = variants[0]?.variant_idx;
+        tbody.innerHTML = variants.map(v => {
+          const ctr = v.impressions > 0 ? ((v.outbound_clicks / v.impressions) * 100).toFixed(2) + '%' : '—';
+          return `<tr>
+            <td><span class="badge-v${v.variant_idx}">${variantLabel(v.variant_idx)}</span></td>
+            <td class="num">${v.pins}</td>
+            <td class="num">${fmt(v.impressions)}</td>
+            <td class="num">${fmt(v.saves)}</td>
+            <td class="num ${v.variant_idx === winner ? 'winner' : ''}">${fmt(v.outbound_clicks)}</td>
+            <td class="num">${ctr}</td>
+          </tr>`;
+        }).join('');
+      }
+
+      // Chart by variant
+      const ctx = $('chart-variant').getContext('2d');
+      if (chartVariant) chartVariant.destroy();
+      chartVariant = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: variants.map(v => variantLabel(v.variant_idx)),
+          datasets: [
+            { label: 'Impressions',    data: variants.map(v => v.impressions),     backgroundColor: '#6e9bc8aa' },
+            { label: 'Saves',          data: variants.map(v => v.saves),           backgroundColor: '#c8a96eaa' },
+            { label: 'Pin clicks',     data: variants.map(v => v.pin_clicks),      backgroundColor: '#d49ee6aa' },
+            { label: 'Outbound clicks',data: variants.map(v => v.outbound_clicks), backgroundColor: '#5fbf7aaa' },
+          ],
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { color: '#e8e6e3', boxWidth: 10 } } },
+          scales: { y: { beginAtZero: true, ticks: { color: '#8b8a87' }, grid: { color: '#2a2a3050' } },
+                    x: { ticks: { color: '#8b8a87' }, grid: { display: false } } },
+        },
+      });
+
+      // By product
+      const ptb = $('by-product');
+      if (!d.by_product || !d.by_product.length) {
+        ptb.innerHTML = '<tr><td colspan="6" class="empty">No data yet.</td></tr>';
+      } else {
+        ptb.innerHTML = d.by_product.map(p => `
+          <tr>
+            <td><code>${p.product_slug}</code></td>
+            <td class="num">${p.pins}</td>
+            <td class="num">${fmt(p.impressions)}</td>
+            <td class="num">${fmt(p.saves)}</td>
+            <td class="num">${fmt(p.pin_clicks)}</td>
+            <td class="num winner">${fmt(p.outbound_clicks)}</td>
+          </tr>
+        `).join('');
+      }
+
+      // Per pin
+      const pp = $('per-pin');
+      if (!d.per_pin || !d.per_pin.length) {
+        pp.innerHTML = '<tr><td colspan="8" class="empty">No pins yet. Run a cycle from the Publisher.</td></tr>';
+      } else {
+        pp.innerHTML = d.per_pin.map(p => {
+          const date = new Date(p.created_at).toLocaleDateString();
+          const fetchFail = p.fetched ? '' : ' ⚠';
+          return `<tr>
+            <td><a href="https://www.pinterest.com/pin/${p.pin_id}/" target="_blank">${p.pin_id}</a>${fetchFail}</td>
+            <td><code>${p.product_slug}</code></td>
+            <td><span class="badge-v${p.variant_idx}">${variantLabel(p.variant_idx)}</span></td>
+            <td class="num">${fmt(p.impressions)}</td>
+            <td class="num">${fmt(p.saves)}</td>
+            <td class="num">${fmt(p.pin_clicks)}</td>
+            <td class="num">${fmt(p.outbound_clicks)}</td>
+            <td>${date}</td>
+          </tr>`;
+        }).join('');
+      }
+
+      $('info').textContent = `${d.start || '?'} → ${d.end || '?'} · ${d.fetched_pins || 0}/${d.total_pins || 0} pins fetched`;
+    } catch (e) {
+      $('info').textContent = 'error: ' + e.message;
+    }
+  }
+
+  document.querySelectorAll('.range-bar button[data-days]').forEach(b =>
+    b.addEventListener('click', () => load(Number(b.dataset.days))));
+  $('btn-refresh').addEventListener('click', () => {
+    const active = document.querySelector('.range-bar button[data-days].active');
+    load(Number(active.dataset.days), true);
+  });
+  load(30);
+</script>
+</body>
+</html>

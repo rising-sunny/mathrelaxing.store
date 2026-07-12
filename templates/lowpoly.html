@@ -1,0 +1,899 @@
+{% extends "base.html" %}
+
+{% block title %}Color-by-Number Generator | MathRelaxing{% endblock %}
+{% block description %}Upload any photo and get a printable color-by-number coloring page in seconds. Instant download for $2.99. Perfect for kids, adults, and creative projects.{% endblock %}
+{% block og_title %}Color-by-Number Generator · MathRelaxing{% endblock %}
+{% block og_desc %}Upload any photo and get a printable color-by-number coloring page instantly. $2.99.{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <p class="section-label">Custom Tool</p>
+    <h1>Color-by-Number<br> Generator</h1>
+    <p style="max-width:520px; margin-top:1rem; color:var(--fg2);">
+      Upload any photo — a portrait, a landscape, a pet, anything.
+      We generate a printable numbered coloring page and a color reference. Instant download for $2.99.
+    </p>
+  </div>
+</div>
+
+<section class="section-sm">
+  <div class="container" style="max-width:860px;">
+
+    <!-- ── Steps indicator ─────────────────────────────────────────── -->
+    <div class="lp-steps" id="lp-steps">
+      <div class="lp-step active" id="step-ind-1"><span>1</span> Upload</div>
+      <div class="lp-step-divider"></div>
+      <div class="lp-step" id="step-ind-2"><span>2</span> Preview</div>
+      <div class="lp-step-divider"></div>
+      <div class="lp-step" id="step-ind-3"><span>3</span> Download</div>
+    </div>
+
+    <!-- ── Step 1: Upload + options ───────────────────────────────── -->
+    <div id="step-1">
+      <div class="lp-upload-zone" id="upload-zone">
+        <input type="file" id="file-input" accept="image/jpeg,image/png,image/webp" style="display:none;">
+        <div id="upload-prompt">
+          <div class="lp-upload-icon">↑</div>
+          <p style="font-size:1rem; margin:0.5rem 0 0.25rem;">Drop your photo here</p>
+          <p style="font-size:12px; color:var(--muted);">or click to browse · JPEG, PNG · max 20 MB</p>
+        </div>
+        <div id="upload-preview-wrap" style="display:none;">
+          <img id="upload-thumb" src="" alt="Your photo" style="max-height:200px; max-width:100%; border-radius:4px; object-fit:contain;">
+          <p id="upload-filename" style="font-size:12px; color:var(--muted); margin-top:0.5rem;"></p>
+          <button class="btn btn-sm btn-outline" id="change-photo" style="margin-top:0.5rem;">Change photo</button>
+        </div>
+      </div>
+      <p class="lp-upload-error" id="upload-error" style="display:none;"></p>
+
+      <!-- ── Photo tips ──────────────────────────────────────────────── -->
+      <details class="lp-tips" id="lp-tips">
+        <summary class="lp-tips-summary">
+          <span class="lp-tips-icon">💡</span>
+          What makes a good photo?
+          <span class="lp-tips-caret">›</span>
+        </summary>
+        <div class="lp-tips-body">
+          <div class="lp-tips-col">
+            <p class="lp-tips-col-label lp-tips-good">Works great</p>
+            <ul>
+              <li><strong>Clear subject with contrast</strong> — a face, an animal, a building. The subject should stand out clearly from the background.</li>
+              <li><strong>Distinct color zones</strong> — areas of different color separated by clear edges (e.g. sky vs. mountains, face vs. hair).</li>
+              <li><strong>Well-lit, in-focus</strong> — natural or even lighting, no strong blurs.</li>
+              <li><strong>Colorful or tonal variety</strong> — images with several visible colors produce richer palettes.</li>
+              <li><strong>At least 800 × 800 px</strong> — small images may lack detail for finer grids.</li>
+            </ul>
+          </div>
+          <div class="lp-tips-col">
+            <p class="lp-tips-col-label lp-tips-bad">Avoid</p>
+            <ul>
+              <li><strong>Flat or monochromatic images</strong> — a gray wall, a plain sky, or anything where most pixels are nearly the same color. There isn't enough variation to build a meaningful palette.</li>
+              <li><strong>Very fine textures</strong> — close-up hair, grass, sand, or fur. These create hundreds of tiny regions that are hard to color and look cluttered.</li>
+              <li><strong>Very dark or overexposed photos</strong> — poor lighting hides the color differences the generator relies on.</li>
+              <li><strong>Busy backgrounds</strong> — a crowd, dense foliage, or a detailed cityscape behind the subject can overwhelm the main shape.</li>
+            </ul>
+          </div>
+        </div>
+      </details>
+
+      <div class="lp-options" id="lp-options" style="margin-top:1.5rem;">
+        <div class="lp-option-group">
+          <label class="lp-option-label">Style</label>
+          <div class="lp-option-btns" id="opt-colors">
+            <button class="lp-opt-btn" data-val="8">Simple<br><small>8 colors</small></button>
+            <button class="lp-opt-btn active" data-val="12">Standard<br><small>12 colors</small></button>
+            <button class="lp-opt-btn" data-val="20">Detailed<br><small>20 colors</small></button>
+          </div>
+        </div>
+        <div class="lp-option-group">
+          <label class="lp-option-label">Grid</label>
+          <div class="lp-option-btns" id="opt-polygon">
+            <button class="lp-opt-btn active" data-val="square">Square</button>
+            <button class="lp-opt-btn" data-val="hexagonal">Hexagonal</button>
+          </div>
+        </div>
+        <div class="lp-option-group">
+          <label class="lp-option-label">Orientation</label>
+          <div class="lp-option-btns" id="opt-orientation">
+            <button class="lp-opt-btn active" data-val="portrait">Portrait</button>
+            <button class="lp-opt-btn" data-val="landscape">Landscape</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Resolution comparison ─────────────────────────────────── -->
+      <div class="lp-res-cmp" style="margin-top:1.5rem;">
+        <div class="lp-res-col lp-res-free">
+          <div class="lp-res-badge">Free Preview</div>
+          <div class="lp-res-main">~700 px wide</div>
+          <div class="lp-res-sub">Screen quality · watermarked</div>
+        </div>
+        <div class="lp-res-arrow">→</div>
+        <div class="lp-res-col lp-res-paid">
+          <div class="lp-res-badge">$2.99 Download</div>
+          <div class="lp-res-main" id="res-pixels">2550 × 3300 px</div>
+          <div class="lp-res-sub" id="res-desc">300 DPI · US Letter 8.5×11 in · print-ready</div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-lg" id="btn-preview" disabled
+              style="width:100%; justify-content:center; margin-top:1.5rem;">
+        Generate Preview — Free
+      </button>
+      <p style="font-size:11px; color:var(--muted); text-align:center; margin-top:0.5rem;">
+        Preview is free · watermark removed on purchase
+      </p>
+    </div>
+
+    <!-- ── Step 2: Preview result ──────────────────────────────────── -->
+    <div id="step-2" style="display:none;">
+      <div class="lp-preview-grid">
+        <div class="lp-preview-card">
+          <p class="lp-preview-label">Coloring Page <span style="color:var(--muted); font-size:10px;">(preview · watermark removed on purchase)</span></p>
+          <img id="preview-coloring" src="" alt="Coloring page preview" style="width:100%; border-radius:4px;">
+        </div>
+        <div class="lp-preview-card">
+          <p class="lp-preview-label">Color Reference</p>
+          <img id="preview-colored" src="" alt="Color reference" style="width:100%; border-radius:4px;">
+        </div>
+      </div>
+
+      <div class="lp-checkout-box" style="margin-top:2rem;">
+        <h3 style="font-family:var(--font-display); font-weight:300; font-size:1.4rem; margin-bottom:1rem;">
+          Get the full version — $2.99
+        </h3>
+        <p style="font-size:13px; color:var(--fg2); margin-bottom:0.75rem; line-height:1.6;">
+          No watermark · Both files sent to your email instantly after payment.
+        </p>
+        <div class="lp-res-inline" id="checkout-res-info" style="display:none; margin-bottom:1.25rem;">
+          <span id="checkout-res-text"></span>
+        </div>
+        <div class="form-row" style="margin-bottom:0.75rem;">
+          <div class="form-group">
+            <label style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted);">Your name</label>
+            <input type="text" class="form-input" id="lp-name" placeholder="Your name" style="margin-top:0.3rem;">
+          </div>
+          <div class="form-group">
+            <label style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted);">Email address *</label>
+            <input type="email" class="form-input" id="lp-email" placeholder="you@example.com" required style="margin-top:0.3rem;">
+          </div>
+        </div>
+        <button class="btn btn-primary btn-lg" id="btn-pay"
+                style="width:100%; justify-content:center;">
+          Buy &amp; Download — $2.99
+        </button>
+        <p style="font-size:11px; color:var(--muted); text-align:center; margin-top:0.75rem;">
+          Secure payment via PayPal · Files delivered by email
+        </p>
+        <button class="btn btn-outline btn-sm" id="btn-back"
+                style="width:100%; justify-content:center; margin-top:0.75rem;">
+          ← Change options
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Loading state ──────────────────────────────────────────── -->
+    <div id="step-loading" style="display:none; text-align:center; padding:4rem 0;">
+      <div class="lp-spinner"></div>
+      <p id="loading-msg" style="color:var(--muted); font-size:13px; margin-top:1.5rem;">Generating your coloring page…</p>
+    </div>
+
+    <!-- ── Error state ────────────────────────────────────────────── -->
+    <div id="step-error" style="display:none; text-align:center; padding:3rem 0;">
+      <p style="font-size:1.5rem; margin-bottom:0.75rem;">⚠</p>
+      <p id="error-msg" style="color:var(--muted); font-size:13px; margin-bottom:1.5rem;"></p>
+      <button class="btn btn-outline" id="btn-retry">Try again</button>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── Examples ──────────────────────────────────────────────────────── -->
+<section class="section" style="border-top:1px solid var(--border);">
+  <div class="container">
+    <div class="section-header" style="margin-bottom:1.5rem;">
+      <div>
+        <p class="section-label">Examples</p>
+        <h2>See what your coloring page looks like</h2>
+      </div>
+    </div>
+    <p style="color:var(--fg2); max-width:560px; margin-bottom:2rem;">
+      Each example shows the <strong>coloring page</strong> (numbered regions you color in) and the <strong>color reference</strong> (the finished image with the palette). These are real outputs from our generator.
+    </p>
+
+    <!-- Tabs -->
+    <div class="lp-ex-tabs" id="ex-tabs">
+      <button class="lp-ex-tab active" data-panel="ex-colors">Color count</button>
+      <button class="lp-ex-tab" data-panel="ex-grid">Grid style</button>
+      <button class="lp-ex-tab" data-panel="ex-density">Detail level</button>
+    </div>
+
+    <!-- Panel: color count -->
+    <div class="lp-ex-panel active" id="ex-colors">
+      <div class="lp-ex-grid">
+        <div class="lp-ex-card">
+          <div class="lp-ex-title">8 colors <span class="lp-ex-tag">Simple — easiest to color</span></div>
+          <div class="lp-ex-pair">
+            <div class="lp-ex-img-wrap">
+              <img src="/static/examples/8colors_portrait_coloring.png" alt="8-color coloring page" loading="lazy">
+              <p>Coloring page</p>
+            </div>
+            <div class="lp-ex-img-wrap">
+              <img src="/static/examples/8colors_portrait_colored.png" alt="8-color reference" loading="lazy">
+              <p>Color reference</p>
+            </div>
+          </div>
+        </div>
+        <div class="lp-ex-card">
+          <div class="lp-ex-title">12 colors <span class="lp-ex-tag lp-ex-tag-accent">Recommended</span></div>
+          <div class="lp-ex-pair">
+            <div class="lp-ex-img-wrap">
+              <img src="/static/examples/12colors_portrait_coloring.png" alt="12-color coloring page" loading="lazy">
+              <p>Coloring page</p>
+            </div>
+            <div class="lp-ex-img-wrap">
+              <img src="/static/examples/12colors_portrait_colored.png" alt="12-color reference" loading="lazy">
+              <p>Color reference</p>
+            </div>
+          </div>
+        </div>
+        <div class="lp-ex-card">
+          <div class="lp-ex-title">16 colors <span class="lp-ex-tag">Detailed — closer to original</span></div>
+          <div class="lp-ex-pair">
+            <div class="lp-ex-img-wrap">
+              <img src="/static/examples/16colors_portrait_coloring.png" alt="16-color coloring page" loading="lazy">
+              <p>Coloring page</p>
+            </div>
+            <div class="lp-ex-img-wrap">
+              <img src="/static/examples/16colors_portrait_colored.png" alt="16-color reference" loading="lazy">
+              <p>Color reference</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel: grid style -->
+    <div class="lp-ex-panel" id="ex-grid" style="display:none;">
+      <div class="lp-ex-grid lp-ex-grid-2">
+        <div class="lp-ex-card">
+          <div class="lp-ex-title">Square grid <span class="lp-ex-tag lp-ex-tag-accent">Clearest numbers</span></div>
+          <div class="lp-ex-pair">
+            <div class="lp-ex-img-wrap">
+              <img src="/static/examples/12colors_portrait_coloring.png" alt="Square grid coloring page" loading="lazy">
+              <p>Coloring page</p>
+            </div>
+            <div class="lp-ex-img-wrap">
+              <img src="/static/examples/12colors_portrait_colored.png" alt="Square grid reference" loading="lazy">
+              <p>Color reference</p>
+            </div>
+          </div>
+        </div>
+        <div class="lp-ex-card">
+          <div class="lp-ex-title">Hexagonal grid <span class="lp-ex-tag">Mosaic / organic feel</span></div>
+          <div class="lp-ex-pair">
+            <div class="lp-ex-img-wrap">
+              <img src="/static/examples/12colors_hex_coloring_v2.png" alt="Hex grid coloring page" loading="lazy">
+              <p>Coloring page</p>
+            </div>
+            <div class="lp-ex-img-wrap">
+              <img src="/static/examples/12colors_hex_colored_v2.png" alt="Hex grid reference" loading="lazy">
+              <p>Color reference</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel: density -->
+    <div class="lp-ex-panel" id="ex-density" style="display:none;">
+      <div class="lp-ex-grid lp-ex-grid-2">
+        <div class="lp-ex-card">
+          <div class="lp-ex-title">Low density <span class="lp-ex-tag">Few large cells — easiest to color</span></div>
+          <div class="lp-ex-pair">
+            <div class="lp-ex-img-wrap">
+              <img src="/static/examples/density_muy_baja_coloring.png" alt="Low density coloring page" loading="lazy">
+              <p>Coloring page</p>
+            </div>
+            <div class="lp-ex-img-wrap">
+              <img src="/static/examples/density_muy_baja_colored.png" alt="Low density reference" loading="lazy">
+              <p>Color reference</p>
+            </div>
+          </div>
+        </div>
+        <div class="lp-ex-card">
+          <div class="lp-ex-title">Medium density <span class="lp-ex-tag lp-ex-tag-accent">Recommended</span></div>
+          <div class="lp-ex-pair">
+            <div class="lp-ex-img-wrap">
+              <img src="/static/examples/density_media_coloring.png" alt="Medium density coloring page" loading="lazy">
+              <p>Coloring page</p>
+            </div>
+            <div class="lp-ex-img-wrap">
+              <img src="/static/examples/density_media_colored.png" alt="Medium density reference" loading="lazy">
+              <p>Color reference</p>
+            </div>
+          </div>
+        </div>
+        <div class="lp-ex-card">
+          <div class="lp-ex-title">High density <span class="lp-ex-tag">Many small cells — more detail</span></div>
+          <div class="lp-ex-pair">
+            <div class="lp-ex-img-wrap">
+              <img src="/static/examples/density_alta_coloring.png" alt="High density coloring page" loading="lazy">
+              <p>Coloring page</p>
+            </div>
+            <div class="lp-ex-img-wrap">
+              <img src="/static/examples/density_alta_colored.png" alt="High density reference" loading="lazy">
+              <p>Color reference</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── How it works ─────────────────────────────────────────────────── -->
+<section class="section" style="background:var(--bg2); border-top:1px solid var(--border);">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <p class="section-label">How it works</p>
+        <h2>Three steps to your coloring page</h2>
+      </div>
+    </div>
+    <div class="process-grid">
+      <div class="process-step">
+        <div class="process-number">01</div>
+        <h3>Upload your photo</h3>
+        <p>Any photo works — portraits, pets, landscapes, buildings. JPEG or PNG up to 20 MB.</p>
+      </div>
+      <div class="process-step">
+        <div class="process-number">02</div>
+        <h3>Preview for free</h3>
+        <p>See a watermarked preview instantly. Adjust colors and grid style until it looks right.</p>
+      </div>
+      <div class="process-step">
+        <div class="process-number">03</div>
+        <h3>Pay $2.99 &amp; download</h3>
+        <p>Secure PayPal payment. Both files — coloring page and color reference — arrive in your email within seconds.</p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<style>
+  .lp-steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 2.5rem;
+  }
+  .lp-step {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: var(--font-ui);
+  }
+  .lp-step span {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+  }
+  .lp-step.active { color: var(--accent); }
+  .lp-step.active span { border-color: var(--accent); color: var(--accent); }
+  .lp-step.done span { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  .lp-step-divider {
+    flex: 1; max-width: 60px; height: 1px;
+    background: var(--border); margin: 0 0.75rem;
+  }
+
+  .lp-upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 6px;
+    padding: 3rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    background: var(--bg2);
+  }
+  .lp-upload-zone:hover, .lp-upload-zone.dragover {
+    border-color: var(--accent);
+    background: rgba(200,169,110,0.04);
+  }
+  .lp-upload-icon {
+    font-size: 2.5rem;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+    line-height: 1;
+  }
+
+  .lp-options { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; }
+  @media (max-width: 600px) { .lp-options { grid-template-columns: 1fr; } }
+  .lp-option-group {}
+  .lp-option-label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+    font-family: var(--font-ui);
+  }
+  .lp-option-btns { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .lp-opt-btn {
+    flex: 1; min-width: 60px;
+    padding: 0.5rem 0.6rem;
+    font-size: 11px; line-height: 1.3;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--fg2);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: var(--font-ui);
+    text-align: center;
+  }
+  .lp-opt-btn:hover { border-color: var(--accent); color: var(--fg); }
+  .lp-opt-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(200,169,110,0.08); }
+  .lp-opt-btn small { display: block; font-size: 10px; color: var(--muted); }
+  .lp-opt-btn.active small { color: var(--accent); opacity: 0.8; }
+
+  .lp-preview-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+  @media (max-width: 600px) { .lp-preview-grid { grid-template-columns: 1fr; } }
+  .lp-preview-card {}
+  .lp-preview-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+    font-family: var(--font-ui);
+  }
+
+  .lp-checkout-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.75rem 2rem;
+  }
+
+  .lp-spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: lp-spin 0.8s linear infinite;
+    margin: 0 auto;
+  }
+  @keyframes lp-spin { to { transform: rotate(360deg); } }
+
+  /* Upload error */
+  .lp-upload-error {
+    margin-top: 0.6rem;
+    padding: 0.6rem 0.9rem;
+    background: rgba(229, 115, 115, 0.08);
+    border: 1px solid rgba(229, 115, 115, 0.35);
+    border-radius: 4px;
+    font-size: 12px;
+    color: #e57373;
+    line-height: 1.5;
+  }
+
+  /* Photo tips */
+  .lp-tips {
+    margin-top: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg2);
+    overflow: hidden;
+  }
+  .lp-tips-summary {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: var(--font-ui);
+    color: var(--fg2);
+    list-style: none;
+    user-select: none;
+  }
+  .lp-tips-summary::-webkit-details-marker { display: none; }
+  .lp-tips-summary:hover { color: var(--fg); }
+  .lp-tips-icon { font-style: normal; }
+  .lp-tips-caret {
+    margin-left: auto;
+    font-size: 1.1rem;
+    color: var(--muted);
+    transition: transform 0.2s;
+    line-height: 1;
+  }
+  details.lp-tips[open] .lp-tips-caret { transform: rotate(90deg); }
+  .lp-tips-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    padding: 0 1rem 1.25rem;
+    border-top: 1px solid var(--border);
+  }
+  @media (max-width: 600px) { .lp-tips-body { grid-template-columns: 1fr; } }
+  .lp-tips-col-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    margin: 1rem 0 0.5rem;
+  }
+  .lp-tips-good { color: #4caf50; }
+  .lp-tips-bad  { color: #e57373; }
+  .lp-tips-col ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .lp-tips-col li {
+    font-size: 12px;
+    color: var(--fg2);
+    line-height: 1.5;
+    padding-left: 1rem;
+    position: relative;
+  }
+  .lp-tips-good + ul li::before { content: '✓'; position: absolute; left: 0; color: #4caf50; }
+  .lp-tips-bad  + ul li::before { content: '✗'; position: absolute; left: 0; color: #e57373; }
+
+  /* Resolution comparison */
+  .lp-res-cmp {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+  }
+  .lp-res-col { flex: 1; }
+  .lp-res-arrow { color: var(--accent); font-size: 1.25rem; flex-shrink: 0; }
+  .lp-res-badge {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: var(--font-ui);
+    margin-bottom: 0.25rem;
+  }
+  .lp-res-paid .lp-res-badge { color: var(--accent); }
+  .lp-res-main {
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: var(--font-ui);
+    color: var(--fg);
+    margin-bottom: 0.15rem;
+  }
+  .lp-res-paid .lp-res-main { color: var(--accent); }
+  .lp-res-sub { font-size: 11px; color: var(--muted); line-height: 1.4; }
+
+  /* Inline resolution in checkout */
+  .lp-res-inline {
+    background: rgba(200,169,110,0.08);
+    border: 1px solid rgba(200,169,110,0.25);
+    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+    font-size: 12px;
+    color: var(--accent);
+    font-family: var(--font-ui);
+  }
+
+  /* Examples section */
+  .lp-ex-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+  }
+  .lp-ex-tab {
+    padding: 0.6rem 1.25rem;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    font-family: var(--font-ui);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    cursor: pointer;
+    margin-bottom: -1px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .lp-ex-tab:hover { color: var(--fg); }
+  .lp-ex-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .lp-ex-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+  .lp-ex-grid-2 { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 900px) { .lp-ex-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 600px) { .lp-ex-grid, .lp-ex-grid-2 { grid-template-columns: 1fr; } }
+
+  .lp-ex-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem;
+  }
+  .lp-ex-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    font-family: var(--font-ui);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .lp-ex-tag {
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    font-weight: 400;
+    background: var(--bg3, var(--bg));
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 1px 6px;
+    color: var(--muted);
+  }
+  .lp-ex-tag-accent { border-color: rgba(200,169,110,0.4); color: var(--accent); background: rgba(200,169,110,0.08); }
+
+  .lp-ex-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  .lp-ex-img-wrap img {
+    width: 100%;
+    border-radius: 3px;
+    display: block;
+    border: 1px solid var(--border);
+  }
+  .lp-ex-img-wrap p {
+    font-size: 10px;
+    color: var(--muted);
+    text-align: center;
+    margin: 0.3rem 0 0;
+    font-family: var(--font-ui);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+</style>
+
+<script>
+(function () {
+  let uploadedFile = null;
+  let currentSettings = { num_colors: 12, polygon_type: 'square', orientation: 'portrait' };
+
+  if (window.mrTrack) window.mrTrack('product_view', { product_slug: 'lowpoly-coloring-page', value: 2.99 });
+
+  const zone      = document.getElementById('upload-zone');
+  const fileInput = document.getElementById('file-input');
+  const btnPreview = document.getElementById('btn-preview');
+  const btnPay    = document.getElementById('btn-pay');
+  const btnBack   = document.getElementById('btn-back');
+  const btnRetry  = document.getElementById('btn-retry');
+
+  // ── Upload zone ────────────────────────────────────────────────────
+  zone.addEventListener('click', (e) => {
+    if (e.target.id === 'change-photo' || e.target.closest('#change-photo')) return;
+    fileInput.click();
+  });
+  document.getElementById('change-photo').addEventListener('click', (e) => {
+    e.stopPropagation();
+    fileInput.value = '';
+    fileInput.click();
+  });
+
+  zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+    const f = e.dataTransfer.files[0];
+    if (f) setFile(f);
+  });
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) setFile(fileInput.files[0]);
+  });
+
+  const uploadError = document.getElementById('upload-error');
+  function showUploadError(msg) {
+    uploadError.textContent = msg;
+    uploadError.style.display = 'block';
+  }
+  function clearUploadError() {
+    uploadError.style.display = 'none';
+    uploadError.textContent = '';
+  }
+
+  function setFile(f) {
+    clearUploadError();
+    if (!f.type.startsWith('image/')) {
+      showUploadError('Please upload an image file (JPEG or PNG).');
+      return;
+    }
+    if (f.size > 20 * 1024 * 1024) {
+      showUploadError(`This file is ${(f.size / 1024 / 1024).toFixed(1)} MB — the limit is 20 MB. Try compressing it or exporting at a lower resolution.`);
+      return;
+    }
+    uploadedFile = f;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      document.getElementById('upload-thumb').src = e.target.result;
+      document.getElementById('upload-filename').textContent = f.name + ' · ' + (f.size / 1024).toFixed(0) + ' KB';
+      document.getElementById('upload-prompt').style.display = 'none';
+      document.getElementById('upload-preview-wrap').style.display = 'block';
+      btnPreview.disabled = false;
+    };
+    reader.readAsDataURL(f);
+  }
+
+  // ── Resolution map ─────────────────────────────────────────────────
+  const RES_MAP = {
+    portrait:  { px: '2550 × 3300 px', desc: '300 DPI · US Letter 8.5×11 in · print-ready' },
+    landscape: { px: '3300 × 2550 px', desc: '300 DPI · US Letter 11×8.5 in · print-ready' },
+  };
+  function updateResDisplay(orientation) {
+    const r = RES_MAP[orientation] || RES_MAP.portrait;
+    document.getElementById('res-pixels').textContent = r.px;
+    document.getElementById('res-desc').textContent   = r.desc;
+  }
+
+  // ── Options ────────────────────────────────────────────────────────
+  function setupOptionGroup(containerId, key) {
+    document.getElementById(containerId).querySelectorAll('.lp-opt-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.getElementById(containerId).querySelectorAll('.lp-opt-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentSettings[key] = btn.dataset.val;
+        if (key === 'orientation') updateResDisplay(btn.dataset.val);
+      });
+    });
+  }
+  setupOptionGroup('opt-colors', 'num_colors');
+  setupOptionGroup('opt-polygon', 'polygon_type');
+  setupOptionGroup('opt-orientation', 'orientation');
+
+  // ── Step navigation ────────────────────────────────────────────────
+  function showStep(name) {
+    ['step-1','step-2','step-loading','step-error'].forEach(id => {
+      document.getElementById(id).style.display = 'none';
+    });
+    document.getElementById(name).style.display = 'block';
+  }
+
+  function setStepIndicator(n) {
+    [1,2,3].forEach(i => {
+      const el = document.getElementById('step-ind-' + i);
+      el.classList.remove('active','done');
+      if (i < n) el.classList.add('done');
+      else if (i === n) el.classList.add('active');
+    });
+  }
+
+  // ── Generate Preview ───────────────────────────────────────────────
+  btnPreview.addEventListener('click', async () => {
+    if (!uploadedFile) return;
+    showStep('step-loading');
+    document.getElementById('loading-msg').textContent = 'Generating your coloring page…';
+    setStepIndicator(2);
+
+    const fd = new FormData();
+    fd.append('image', uploadedFile);
+    fd.append('num_colors', currentSettings.num_colors);
+    fd.append('polygon_type', currentSettings.polygon_type);
+    fd.append('orientation', currentSettings.orientation);
+    fd.append('density', 'medium');
+
+    try {
+      const resp = await fetch('/api/gpt/lowpoly/preview-upload', { method: 'POST', body: fd });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.detail || `Server error ${resp.status}`);
+      }
+      const data = await resp.json();
+      document.getElementById('preview-coloring').src = data.coloring_preview_url;
+      document.getElementById('preview-colored').src  = data.colored_preview_url;
+      // Show final resolution in checkout box
+      if (data.final_resolution) {
+        const resEl = document.getElementById('checkout-res-info');
+        document.getElementById('checkout-res-text').textContent = '📄 Full download: ' + data.final_resolution;
+        resEl.style.display = 'block';
+      }
+      showStep('step-2');
+      setStepIndicator(2);
+    } catch (e) {
+      document.getElementById('error-msg').textContent = e.message || 'Something went wrong. Please try again.';
+      showStep('step-error');
+      setStepIndicator(1);
+    }
+  });
+
+  btnBack.addEventListener('click', () => { showStep('step-1'); setStepIndicator(1); });
+  btnRetry.addEventListener('click', () => { showStep('step-1'); setStepIndicator(1); });
+
+  // ── Checkout ───────────────────────────────────────────────────────
+  btnPay.addEventListener('click', async () => {
+    const email = document.getElementById('lp-email').value.trim();
+    const name  = document.getElementById('lp-name').value.trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      document.getElementById('lp-email').focus();
+      return;
+    }
+    if (!uploadedFile) { showStep('step-1'); return; }
+
+    if (window.mrTrack) window.mrTrack('checkout_start', { product_slug: 'lowpoly-coloring-page', value: 2.99 });
+
+    showStep('step-loading');
+    document.getElementById('loading-msg').textContent = 'Creating your final coloring page…';
+    setStepIndicator(3);
+
+    const fd = new FormData();
+    fd.append('image', uploadedFile);
+    fd.append('customer_email', email);
+    fd.append('customer_name', name);
+    fd.append('num_colors', currentSettings.num_colors);
+    fd.append('polygon_type', currentSettings.polygon_type);
+    fd.append('orientation', currentSettings.orientation);
+    fd.append('density', 'medium');
+
+    try {
+      const resp = await fetch('/api/gpt/lowpoly/checkout-upload', { method: 'POST', body: fd });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.detail || `Server error ${resp.status}`);
+      }
+      const data = await resp.json();
+      if (data.checkout_url) {
+        if (window.mrTrack) window.mrTrack('payment_redirect', { product_slug: 'lowpoly-coloring-page', value: 2.99 });
+        window.location.href = data.checkout_url;
+      } else {
+        throw new Error('No checkout URL returned.');
+      }
+    } catch (e) {
+      document.getElementById('error-msg').textContent = e.message || 'Something went wrong. Please try again.';
+      showStep('step-error');
+      setStepIndicator(2);
+    }
+  });
+
+  // ── Example tabs ──────────────────────────────────────────────────
+  document.getElementById('ex-tabs').querySelectorAll('.lp-ex-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.lp-ex-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.lp-ex-panel').forEach(p => p.style.display = 'none');
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.panel).style.display = 'block';
+    });
+  });
+
+})();
+</script>
+{% endblock %}

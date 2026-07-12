@@ -1,0 +1,675 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>MathRelaxing</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #171417;
+      --muted: #706975;
+      --paper: #f5f2ee;
+      --panel: #fffdf8;
+      --line: #ddd5cc;
+      --accent: #fe2c55;
+      --accent-dark: #cc1f43;
+      --cyan: #008f8a;
+      --green: #287052;
+      --amber: #a86715;
+      --shadow: 0 20px 60px rgba(22, 18, 20, 0.13);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background:
+        linear-gradient(130deg, rgba(37, 244, 238, 0.12), transparent 34%),
+        radial-gradient(circle at top right, rgba(254, 44, 85, 0.14), transparent 34%),
+        var(--paper);
+      color: var(--ink);
+      font-family: Georgia, "Times New Roman", serif;
+      min-height: 100vh;
+    }
+
+    button, input, textarea { font: inherit; }
+
+    .shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 48px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.2rem, 6vw, 4.9rem);
+      line-height: 0.92;
+      letter-spacing: 0;
+      max-width: 760px;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font: 700 12px/1.2 ui-monospace, "SFMono-Regular", Consolas, monospace;
+      text-transform: uppercase;
+    }
+
+    .status {
+      display: grid;
+      gap: 8px;
+      min-width: 280px;
+      color: var(--muted);
+      font-size: 14px;
+      text-align: right;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 7px 11px;
+      border: 1px solid var(--line);
+      background: rgba(255, 253, 248, 0.78);
+      border-radius: 999px;
+      color: var(--ink);
+      font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .pill.good { border-color: rgba(40, 112, 82, 0.35); color: var(--green); }
+    .pill.warn { border-color: rgba(254, 44, 85, 0.35); color: var(--accent); }
+    .pill.mode { border-color: rgba(0, 143, 138, 0.35); color: var(--cyan); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(360px, 0.85fr);
+      gap: 22px;
+      align-items: start;
+      margin-top: 26px;
+    }
+
+    .panel {
+      background: rgba(255, 253, 248, 0.9);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .panel-body { padding: 20px; }
+
+    .btn {
+      appearance: none;
+      border: 1px solid transparent;
+      background: var(--ink);
+      color: white;
+      min-height: 42px;
+      padding: 10px 15px;
+      border-radius: 7px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 150ms ease, background 150ms ease, border-color 150ms ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn.primary { background: var(--accent); }
+    .btn.primary:hover { background: var(--accent-dark); }
+    .btn.secondary {
+      background: transparent;
+      color: var(--ink);
+      border-color: var(--line);
+    }
+    .btn:disabled {
+      opacity: 0.56;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .connect-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 15px;
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    input, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #fffefa;
+      color: var(--ink);
+      border-radius: 7px;
+      padding: 11px 12px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 132px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    input:focus, textarea:focus {
+      border-color: rgba(254, 44, 85, 0.55);
+      box-shadow: 0 0 0 3px rgba(254, 44, 85, 0.11);
+    }
+
+    .preview {
+      display: grid;
+      gap: 14px;
+    }
+
+    .preview-frame {
+      background: #191719;
+      border: 1px solid #2d282d;
+      border-radius: 8px;
+      overflow: hidden;
+      aspect-ratio: 9 / 16;
+      display: grid;
+      place-items: center;
+      max-height: 620px;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #0f0d0f;
+    }
+
+    .info-grid {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .info-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      border-top: 1px solid var(--line);
+      padding-top: 10px;
+      font-size: 13px;
+    }
+
+    .info-line span:first-child { color: var(--muted); }
+    .info-line span:last-child {
+      font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+      text-align: right;
+      overflow-wrap: anywhere;
+    }
+
+    .account {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 14px 0;
+      min-height: 52px;
+    }
+
+    .avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(37,244,238,.22), rgba(254,44,85,.22));
+      object-fit: cover;
+      border: 1px solid var(--line);
+    }
+
+    .small {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 13px;
+    }
+
+    .callout {
+      border: 1px solid rgba(0, 143, 138, 0.25);
+      background: rgba(0, 143, 138, 0.08);
+      color: #124c49;
+      border-radius: 7px;
+      padding: 12px;
+      line-height: 1.45;
+      font-size: 13px;
+      margin-top: 14px;
+    }
+
+    .result {
+      display: none;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 12px;
+      background: #fffefa;
+      font: 12px/1.45 ui-monospace, "SFMono-Regular", Consolas, monospace;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      max-height: 240px;
+      overflow: auto;
+    }
+
+    .steps {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .steps li {
+      display: grid;
+      grid-template-columns: 24px 1fr;
+      gap: 10px;
+      align-items: start;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 14px;
+    }
+
+    .steps b {
+      display: inline-grid;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(254, 44, 85, 0.12);
+      color: var(--accent);
+      font: 700 12px/1 ui-monospace, "SFMono-Regular", Consolas, monospace;
+    }
+
+    @media (max-width: 900px) {
+      .topbar { align-items: flex-start; flex-direction: column; }
+      .status { text-align: left; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">MathRelaxing social publisher</p>
+        <h1>TikTok Draft Upload Console</h1>
+      </div>
+      <div class="status">
+        <span id="configured-pill" class="pill warn">Checking config</span>
+        <span id="connected-pill" class="pill warn">Checking connection</span>
+        <span id="scope-pill" class="pill mode">Login Kit + video.upload + video.publish</span>
+      </div>
+    </header>
+
+    <section class="grid">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Upload to TikTok draft</h2>
+          <a class="btn secondary" href="/admin/tiktok/logout">Logout</a>
+        </div>
+        <div class="panel-body">
+          <div class="connect-row">
+            <a id="connect-link" class="btn primary" href="/api/tiktok/oauth/start">Connect TikTok</a>
+            <button id="refresh-status" class="btn secondary" type="button">Refresh status</button>
+            <button id="disconnect" class="btn secondary" type="button">Disconnect</button>
+          </div>
+
+          <div class="account">
+            <img id="avatar" class="avatar" alt="" style="display:none;">
+            <div>
+              <strong id="account-name">No TikTok account connected</strong>
+              <p id="account-detail" class="small">Connect with TikTok to authorize user.info.basic and video.upload.</p>
+            </div>
+          </div>
+
+          <form id="upload-form" class="form-grid">
+            <label>
+              Verified video URL
+              <input id="video-url" name="video_url" required>
+            </label>
+            <label>
+              Caption to use inside TikTok
+              <textarea id="caption" maxlength="2200">Mathematical art loops generated from real equations. Explore the full collection at mathrelaxing.store #mathart #generativeart #fractals</textarea>
+            </label>
+            <div style="display:flex; gap:10px;">
+              <button id="upload-btn" class="btn secondary" type="submit">Upload to TikTok Draft</button>
+            </div>
+          </form>
+
+          <!-- ── Compliant Direct Post (video.publish) ─────────────────────── -->
+          <div id="direct-post" style="margin-top:18px; border-top:1px solid var(--border,#2a2a2a); padding-top:16px;">
+            <h3 style="margin:0 0 4px;">Direct Publish to TikTok Profile</h3>
+            <p class="small" id="creator-line" style="margin:0 0 12px; color:var(--muted);">Connect TikTok to load your posting settings.</p>
+
+            <div class="form-grid" id="direct-fields" style="display:none;">
+              <label>
+                Who can view this video
+                <select id="privacy-level" required>
+                  <option value="" selected disabled>Select who can view…</option>
+                </select>
+              </label>
+
+              <fieldset style="border:1px solid var(--border,#2a2a2a); border-radius:8px; padding:8px 12px 10px;">
+                <legend class="small" style="padding:0 6px;">Allow users to</legend>
+                <label class="cb" style="display:block; margin:4px 0;"><input type="checkbox" id="allow-comment"> Comment</label>
+                <label class="cb" id="allow-duet-wrap" style="display:block; margin:4px 0;"><input type="checkbox" id="allow-duet"> Duet</label>
+                <label class="cb" id="allow-stitch-wrap" style="display:block; margin:4px 0;"><input type="checkbox" id="allow-stitch"> Stitch</label>
+              </fieldset>
+
+              <fieldset style="border:1px solid var(--border,#2a2a2a); border-radius:8px; padding:8px 12px 10px;">
+                <label class="cb" style="display:block;"><input type="checkbox" id="disclose-toggle"> Disclose video content</label>
+                <p class="small" style="margin:4px 0 0; color:var(--muted);">Turn on if this promotes a brand, product or service. You must select at least one option below.</p>
+                <div id="disclose-options" style="display:none; margin-top:8px;">
+                  <label class="cb" style="display:block; margin:4px 0;"><input type="checkbox" id="brand-organic"> Your Brand</label>
+                  <span class="small" id="brand-organic-hint" style="display:block; margin:0 0 6px 22px; color:var(--muted);"></span>
+                  <label class="cb" style="display:block; margin:4px 0;"><input type="checkbox" id="brand-content"> Branded Content</label>
+                  <span class="small" id="brand-content-hint" style="display:block; margin:0 0 0 22px; color:var(--muted);"></span>
+                </div>
+              </fieldset>
+
+              <p class="small" id="declaration" style="margin:0; color:var(--muted);"></p>
+
+              <button id="direct-upload-btn" class="btn primary" type="button" disabled title="">Post to TikTok</button>
+              <p class="small" id="post-note" style="margin:0; color:var(--muted);"></p>
+            </div>
+          </div>
+
+          <pre id="result" class="result"></pre>
+        </div>
+      </div>
+
+      <aside class="panel">
+        <div class="panel-head">
+          <h2>Review demo asset</h2>
+        </div>
+        <div class="panel-body">
+          <div class="preview">
+            <div class="preview-frame">
+              <video id="preview-video" src="" controls playsinline loop muted></video>
+            </div>
+            <div class="info-grid">
+              <div class="info-line"><span>Redirect URI</span><span id="redirect-uri">...</span></div>
+              <div class="info-line"><span>Scopes</span><span id="scopes">...</span></div>
+              <div class="info-line"><span>Last publish ID</span><span id="last-publish">None</span></div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="panel" style="margin-top:22px;">
+      <div class="panel-head">
+        <h2>What the review video should show</h2>
+      </div>
+      <div class="panel-body">
+        <ol class="steps">
+          <li><b>1</b><span>Open mathrelaxing.store and show the Terms of Service + Privacy Policy in the footer.</span></li>
+          <li><b>2</b><span>Open this console (same verified domain), click Connect TikTok and show the OAuth consent.</span></li>
+          <li><b>3</b><span>Show the Direct Post form: your account nickname, the <strong>privacy selector</strong> (you choose — no default), the <strong>Comment / Duet / Stitch</strong> toggles, and the <strong>Disclose video content</strong> option.</span></li>
+          <li><b>4</b><span>Choose a privacy level (and disclosure if applicable), read the <strong>Music Usage Confirmation</strong> declaration, then click <strong>Post to TikTok</strong>.</span></li>
+          <li><b>5</b><span>Show the success response and the processing notice, then open your TikTok profile and show the post.</span></li>
+        </ol>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const resultEl = document.getElementById('result');
+    const configuredPill = document.getElementById('configured-pill');
+    const connectedPill = document.getElementById('connected-pill');
+    const videoUrlEl = document.getElementById('video-url');
+    const videoEl = document.getElementById('preview-video');
+    const uploadBtn = document.getElementById('upload-btn');
+    const directUploadBtn = document.getElementById('direct-upload-btn');
+    const connectLink = document.getElementById('connect-link');
+    const disconnectBtn = document.getElementById('disconnect');
+    const lastPublishEl = document.getElementById('last-publish');
+    const directFields = document.getElementById('direct-fields');
+    const creatorLine = document.getElementById('creator-line');
+    const privacyEl = document.getElementById('privacy-level');
+    const allowComment = document.getElementById('allow-comment');
+    const allowDuet = document.getElementById('allow-duet');
+    const allowStitch = document.getElementById('allow-stitch');
+    const discloseToggle = document.getElementById('disclose-toggle');
+    const discloseOptions = document.getElementById('disclose-options');
+    const brandOrganic = document.getElementById('brand-organic');
+    const brandContent = document.getElementById('brand-content');
+    const brandOrganicHint = document.getElementById('brand-organic-hint');
+    const brandContentHint = document.getElementById('brand-content-hint');
+    const declarationEl = document.getElementById('declaration');
+    const postNote = document.getElementById('post-note');
+
+    const PRIVACY_LABELS = {
+      PUBLIC_TO_EVERYONE: 'Public — everyone',
+      MUTUAL_FOLLOW_FRIENDS: 'Friends — mutual follows',
+      FOLLOWER_OF_CREATOR: 'Followers',
+      SELF_ONLY: 'Only me (private)',
+    };
+    const MUSIC_URL = 'https://www.tiktok.com/legal/page/global/music-usage-confirmation/en';
+    const BC_URL = 'https://www.tiktok.com/legal/page/global/bc-policy/en';
+
+    function showResult(data) {
+      resultEl.style.display = 'block';
+      resultEl.textContent = JSON.stringify(data, null, 2);
+    }
+
+    function setPill(el, good, text) {
+      el.classList.toggle('good', good);
+      el.classList.toggle('warn', !good);
+      el.textContent = text;
+    }
+
+    async function loadStatus() {
+      const resp = await fetch('/api/tiktok/status');
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.detail || 'Could not load TikTok status');
+
+      setPill(configuredPill, data.configured, data.configured ? 'Configured' : 'Missing config');
+      setPill(connectedPill, data.connected, data.connected ? 'TikTok connected' : 'Not connected');
+      document.getElementById('redirect-uri').textContent = data.redirect_uri || '';
+      document.getElementById('scopes').textContent = (data.scopes || []).join(', ');
+      videoUrlEl.value = data.demo_video_url || '';
+      videoEl.src = data.demo_video_url || '';
+      uploadBtn.disabled = !data.connected;
+      connectLink.style.display = data.connected ? 'none' : 'inline-flex';
+      disconnectBtn.disabled = !data.connected;
+
+      const user = data.token && data.token.user;
+      if (user) {
+        document.getElementById('account-name').textContent = user.display_name || 'Connected TikTok account';
+        document.getElementById('account-detail').textContent = 'Open ID: ' + (user.open_id || data.token.open_id || '');
+        if (user.avatar_url) {
+          const avatar = document.getElementById('avatar');
+          avatar.src = user.avatar_url;
+          avatar.style.display = 'block';
+        }
+      }
+
+      const last = data.last_upload || {};
+      lastPublishEl.textContent = last.publish_id || 'None';
+
+      if (data.connected) {
+        loadCreatorInfo();
+      } else {
+        directFields.style.display = 'none';
+        creatorLine.textContent = 'Connect TikTok to load your posting settings.';
+      }
+      return data;
+    }
+
+    document.getElementById('refresh-status').addEventListener('click', async () => {
+      try { showResult(await loadStatus()); }
+      catch (err) { showResult({ ok: false, error: err.message }); }
+    });
+
+    disconnectBtn.addEventListener('click', async () => {
+      if (!confirm('Disconnect TikTok from MathRelaxing?')) return;
+      const resp = await fetch('/api/tiktok/disconnect', { method: 'POST' });
+      const data = await resp.json();
+      showResult(data);
+      await loadStatus();
+    });
+
+    document.getElementById('upload-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      uploadBtn.disabled = true;
+      uploadBtn.textContent = 'Uploading to TikTok...';
+      try {
+        const resp = await fetch('/api/tiktok/upload-draft', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            video_url: videoUrlEl.value.trim(),
+            caption: document.getElementById('caption').value.trim(),
+          }),
+        });
+        const data = await resp.json();
+        showResult(data);
+        await loadStatus();
+      } catch (err) {
+        showResult({ ok: false, error: err.message });
+      } finally {
+        uploadBtn.disabled = false;
+        uploadBtn.textContent = 'Upload to TikTok Draft';
+      }
+    });
+
+    function setInteraction(cb, disabled) {
+      cb.checked = false;                  // audit: nothing checked by default
+      cb.disabled = !!disabled;            // audit: grey out if disabled in creator settings
+      const lab = cb.closest('label');
+      if (lab) lab.style.opacity = disabled ? 0.45 : 1;
+    }
+
+    async function loadCreatorInfo() {
+      try {
+        const resp = await fetch('/api/tiktok/creator-info');
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail || data));
+        const info = data.data || {};
+        creatorLine.textContent = 'Posting to: ' + (info.creator_nickname || info.creator_username || 'your TikTok account');
+        privacyEl.innerHTML = '<option value="" selected disabled>Select who can view…</option>';
+        (info.privacy_level_options || []).forEach(opt => {
+          const o = document.createElement('option');
+          o.value = opt; o.textContent = PRIVACY_LABELS[opt] || opt;
+          privacyEl.appendChild(o);
+        });
+        setInteraction(allowComment, info.comment_disabled);
+        setInteraction(allowDuet, info.duet_disabled);
+        setInteraction(allowStitch, info.stitch_disabled);
+        discloseToggle.checked = false; brandOrganic.checked = false; brandContent.checked = false;
+        directFields.style.display = '';
+        refreshDirectState();
+      } catch (err) {
+        directFields.style.display = 'none';
+        creatorLine.textContent = 'Could not load posting settings: ' + err.message;
+      }
+    }
+
+    function refreshDirectState() {
+      const disclose = discloseToggle.checked;
+      discloseOptions.style.display = disclose ? '' : 'none';
+      brandOrganicHint.textContent = (disclose && brandOrganic.checked && !brandContent.checked) ? 'Your video will be labeled ‘Promotional content’.' : '';
+      brandContentHint.textContent = (disclose && brandContent.checked) ? 'Your video will be labeled ‘Paid partnership’.' : '';
+
+      const selfOpt = privacyEl.querySelector('option[value="SELF_ONLY"]');
+      if (selfOpt) {
+        const blockPrivate = disclose && brandContent.checked;   // branded content can't be private
+        selfOpt.disabled = blockPrivate;
+        selfOpt.title = blockPrivate ? 'Branded content visibility cannot be set to private' : '';
+        if (blockPrivate && privacyEl.value === 'SELF_ONLY') privacyEl.value = '';
+      }
+
+      const branded = disclose && brandContent.checked;
+      declarationEl.innerHTML = branded
+        ? "By posting, you agree to TikTok’s <a href='" + BC_URL + "' target='_blank' rel='noopener'>Branded Content Policy</a> and <a href='" + MUSIC_URL + "' target='_blank' rel='noopener'>Music Usage Confirmation</a>."
+        : "By posting, you agree to TikTok’s <a href='" + MUSIC_URL + "' target='_blank' rel='noopener'>Music Usage Confirmation</a>.";
+
+      let ok = !!privacyEl.value, why = privacyEl.value ? '' : 'Select who can view this video';
+      if (disclose && !(brandOrganic.checked || brandContent.checked)) {
+        ok = false; why = 'You need to indicate if your content promotes yourself, a third party, or both';
+      }
+      directUploadBtn.disabled = !ok;
+      directUploadBtn.title = why;
+    }
+
+    [privacyEl, discloseToggle, brandOrganic, brandContent].forEach(el => el.addEventListener('change', refreshDirectState));
+
+    directUploadBtn.addEventListener('click', async () => {
+      directUploadBtn.disabled = true;
+      directUploadBtn.textContent = 'Posting to TikTok...';
+      postNote.textContent = '';
+      try {
+        const resp = await fetch('/api/tiktok/upload-direct', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            video_url: videoUrlEl.value.trim(),
+            caption: document.getElementById('caption').value.trim(),
+            privacy_level: privacyEl.value,
+            disable_comment: !allowComment.checked,
+            disable_duet: !allowDuet.checked,
+            disable_stitch: !allowStitch.checked,
+            brand_organic_toggle: discloseToggle.checked && brandOrganic.checked,
+            brand_content_toggle: discloseToggle.checked && brandContent.checked,
+          }),
+        });
+        const data = await resp.json();
+        showResult(data);
+        if (resp.ok && data.ok) {
+          postNote.textContent = 'Posted. It may take a few minutes for the video to process and appear on your TikTok profile.';
+        }
+        await loadStatus();
+      } catch (err) {
+        showResult({ ok: false, error: err.message });
+      } finally {
+        directUploadBtn.textContent = 'Post to TikTok';
+        refreshDirectState();
+      }
+    });
+
+    loadStatus().catch(err => showResult({ ok: false, error: err.message }));
+  </script>
+</body>
+</html>

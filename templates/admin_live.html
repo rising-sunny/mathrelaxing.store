@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Live · MathRelaxing</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<style>
+  :root {
+    --bg: #0e0e10;
+    --panel: #16161a;
+    --panel-2: #1d1d22;
+    --border: #2a2a30;
+    --text: #e8e6e3;
+    --muted: #8b8a87;
+    --accent: #c8a96e;
+    --accent2: #6e9bc8;
+    --good: #5fbf7a;
+    --warn: #d99c3b;
+    --bad: #d96e6e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+    font-size: 14px; line-height: 1.4;
+    min-height: 100vh;
+  }
+  a { color: var(--accent2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 24px; border-bottom: 1px solid var(--border); background: var(--panel);
+  }
+  header h1 { font-size: 16px; font-weight: 600; letter-spacing: .02em; }
+  header h1 .dot {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--good); margin-right: 8px; vertical-align: middle;
+    box-shadow: 0 0 0 0 rgba(95,191,122,0.7); animation: pulse 1.6s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(95,191,122,0.6); }
+    70% { box-shadow: 0 0 0 8px rgba(95,191,122,0); }
+    100% { box-shadow: 0 0 0 0 rgba(95,191,122,0); }
+  }
+  header .meta { color: var(--muted); font-size: 12px; }
+  main {
+    display: grid; gap: 16px; padding: 16px;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+  }
+  .kpi {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
+    padding: 14px 16px;
+  }
+  .kpi .label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+  .kpi .value { font-size: 28px; font-weight: 600; margin-top: 4px; }
+  .kpi .sub { color: var(--muted); font-size: 11px; margin-top: 4px; }
+  .kpi.accent .value { color: var(--accent); }
+  .kpi.good .value { color: var(--good); }
+
+  section {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
+    overflow: hidden;
+  }
+  section h2 {
+    font-size: 11px; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--muted); padding: 12px 16px; border-bottom: 1px solid var(--border);
+    background: var(--panel-2); font-weight: 600;
+  }
+  .stretch-2 { grid-column: span 2; }
+  .stretch-4 { grid-column: 1 / -1; }
+
+  ul.feed { list-style: none; max-height: 460px; overflow-y: auto; }
+  ul.feed li {
+    display: grid; grid-template-columns: 70px 1fr auto; gap: 8px;
+    padding: 9px 16px; border-bottom: 1px solid var(--border);
+    align-items: center; font-size: 13px;
+  }
+  ul.feed li:last-child { border-bottom: none; }
+  ul.feed .ago { color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+  ul.feed .what { display: flex; align-items: center; gap: 6px; overflow: hidden; }
+  ul.feed .what .badge {
+    display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px;
+    text-transform: uppercase; letter-spacing: .04em; font-weight: 600;
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--muted);
+    flex-shrink: 0;
+  }
+  ul.feed .what .badge.pageview { background: #1a2230; border-color: #2a3a55; color: #8ab0e0; }
+  ul.feed .what .badge.product_view { background: #1a2230; border-color: #2a3a55; color: #8ab0e0; }
+  ul.feed .what .badge.add_to_cart { background: #2b2618; border-color: #4a3f24; color: var(--accent); }
+  ul.feed .what .badge.cart_view { background: #2b2618; border-color: #4a3f24; color: var(--accent); }
+  ul.feed .what .badge.checkout_start { background: #2b1d2e; border-color: #4a2c4f; color: #d49ee6; }
+  ul.feed .what .badge.payment_redirect { background: #2b1d2e; border-color: #4a2c4f; color: #d49ee6; }
+  ul.feed .what .badge.purchase { background: #16331e; border-color: #2c5d3a; color: var(--good); }
+  ul.feed .what .label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  ul.feed .right { text-align: right; color: var(--muted); font-size: 12px; white-space: nowrap; }
+  ul.feed .right .flag { font-size: 14px; margin-right: 4px; }
+
+  ul.simple { list-style: none; }
+  ul.simple li {
+    display: flex; justify-content: space-between; gap: 8px;
+    padding: 8px 16px; border-bottom: 1px solid var(--border); font-size: 13px;
+  }
+  ul.simple li:last-child { border-bottom: none; }
+  ul.simple li .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  ul.simple li .count {
+    color: var(--muted); font-variant-numeric: tabular-nums; flex-shrink: 0;
+  }
+
+  .empty {
+    padding: 24px 16px; text-align: center; color: var(--muted); font-size: 13px;
+  }
+  .footer-bar {
+    padding: 12px 24px; color: var(--muted); font-size: 11px; text-align: center;
+    border-top: 1px solid var(--border);
+  }
+  .footer-bar a { color: var(--muted); }
+
+  @media (max-width: 900px) {
+    main { grid-template-columns: 1fr 1fr; }
+    .stretch-2, .stretch-4 { grid-column: 1 / -1; }
+  }
+  @media (max-width: 560px) {
+    main { grid-template-columns: 1fr; }
+    .stretch-2, .stretch-4 { grid-column: 1 / -1; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1><span class="dot"></span>Live · MathRelaxing</h1>
+  <div class="meta">
+    <span id="status">connecting…</span>
+    · last update <span id="last-update">—</span>
+    · <a href="/admin/live/history">history →</a>
+    · <a href="/admin/live/logout">logout</a>
+  </div>
+</header>
+
+<main>
+  <div class="kpi good">
+    <div class="label">Visitors right now</div>
+    <div class="value" id="kpi-visitors">—</div>
+    <div class="sub">active in last 5 minutes</div>
+  </div>
+  <div class="kpi accent">
+    <div class="label">Active carts</div>
+    <div class="value" id="kpi-carts">—</div>
+    <div class="sub" id="kpi-carts-value">—</div>
+  </div>
+  <div class="kpi">
+    <div class="label">Active checkouts</div>
+    <div class="value" id="kpi-checkouts">—</div>
+    <div class="sub" id="kpi-checkouts-value">—</div>
+  </div>
+  <div class="kpi good">
+    <div class="label">Sales today</div>
+    <div class="value" id="kpi-sales">—</div>
+    <div class="sub" id="kpi-revenue">—</div>
+  </div>
+
+  <section class="stretch-2">
+    <h2>Live activity</h2>
+    <ul class="feed" id="feed"><li class="empty">Waiting for events…</li></ul>
+  </section>
+
+  <section>
+    <h2>Active carts</h2>
+    <ul class="simple" id="cart-list"><li class="empty">No active carts</li></ul>
+    <h2 style="border-top:1px solid var(--border)">Active checkouts</h2>
+    <ul class="simple" id="checkout-list"><li class="empty">No active checkouts</li></ul>
+  </section>
+
+  <section>
+    <h2>Top pages today</h2>
+    <ul class="simple" id="top-pages"><li class="empty">—</li></ul>
+  </section>
+
+  <section>
+    <h2>Top sources today <span id="paid-badge" style="display:none;color:var(--accent);font-weight:600;">· <span id="paid-count">0</span> paid</span></h2>
+    <ul class="simple" id="top-sources"><li class="empty">—</li></ul>
+  </section>
+
+  <section>
+    <h2>Top campaigns today</h2>
+    <ul class="simple" id="top-campaigns"><li class="empty">No campaigns tagged</li></ul>
+  </section>
+
+  <section>
+    <h2>Top countries today</h2>
+    <ul class="simple" id="top-countries"><li class="empty">—</li></ul>
+  </section>
+
+  <section>
+    <h2>Today totals</h2>
+    <ul class="simple" id="today-totals">
+      <li><span class="name">Pageviews</span><span class="count" id="t-pageviews">—</span></li>
+      <li><span class="name">Sessions</span><span class="count" id="t-sessions">—</span></li>
+      <li><span class="name">Purchases</span><span class="count" id="t-purchases">—</span></li>
+      <li><span class="name">Revenue</span><span class="count" id="t-revenue">—</span></li>
+    </ul>
+  </section>
+</main>
+
+<div class="footer-bar">
+  Self-hosted, no external trackers · events retained 72h · refresh every 2s
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const fmtMoney = (v) => v == null ? '—' : '$' + Number(v).toFixed(2);
+  const fmtAgo = (s) => s < 60 ? s + 's' : (s < 3600 ? Math.floor(s/60) + 'm' : Math.floor(s/3600) + 'h');
+
+  function shortPath(p) {
+    if (!p) return '(unknown)';
+    if (p.length > 50) return p.slice(0, 48) + '…';
+    return p;
+  }
+
+  function renderFeed(events) {
+    const ul = $('feed');
+    if (!events.length) { ul.innerHTML = '<li class="empty">Waiting for events…</li>'; return; }
+    ul.innerHTML = events.map(e => `
+      <li>
+        <span class="ago">${fmtAgo(e.ago_s)} ago</span>
+        <span class="what">
+          <span class="badge ${e.type}">${e.type.replace(/_/g,' ')}</span>
+          <span class="label" title="${e.path||''}">${shortPath(e.path)}</span>
+        </span>
+        <span class="right">
+          ${e.value ? '<b style="color:var(--accent)">'+fmtMoney(e.value)+'</b> · ' : ''}
+          <span title="${e.campaign ? 'Campaign: '+e.campaign : ''}">${e.src_emoji||'🌐'} ${e.src||'Direct'}</span>
+          ${e.is_paid ? ' <span style="background:#2b2618;border:1px solid #4a3f24;color:var(--accent);font-size:9px;padding:1px 4px;border-radius:3px;text-transform:uppercase;letter-spacing:.05em;">paid</span>' : ''}
+          · <span class="flag">${e.flag||'🌐'}</span>${e.country||'??'}
+        </span>
+      </li>
+    `).join('');
+  }
+
+  function renderSessionList(targetId, sessions, emptyMsg) {
+    const ul = $(targetId);
+    if (!sessions.length) { ul.innerHTML = `<li class="empty">${emptyMsg}</li>`; return; }
+    ul.innerHTML = sessions.map(s => `
+      <li>
+        <span class="name">
+          <span class="flag">${s.flag||'🌐'}</span> ${s.city||s.country_name||'?'}
+          <span style="color:var(--muted)"> · ${shortPath(s.path)}</span>
+        </span>
+        <span class="count">${s.value ? fmtMoney(s.value) : ''}</span>
+      </li>
+    `).join('');
+  }
+
+  function renderSimpleList(targetId, items, keyField, labelKey, emptyMsg) {
+    const ul = $(targetId);
+    if (!items.length) { ul.innerHTML = `<li class="empty">${emptyMsg||'—'}</li>`; return; }
+    ul.innerHTML = items.map(it => {
+      const prefix = it.emoji ? '<span class="flag">'+it.emoji+'</span> '
+                   : it.flag  ? '<span class="flag">'+it.flag+'</span> '
+                   : '';
+      return `
+      <li>
+        <span class="name">${prefix}${it[labelKey]||it[keyField]||'—'}</span>
+        <span class="count">${it.count}</span>
+      </li>`;
+    }).join('');
+  }
+
+  function applySnapshot(s) {
+    $('kpi-visitors').textContent = s.active_visitors;
+    $('kpi-carts').textContent = s.active_carts;
+    $('kpi-carts-value').textContent = s.carts_value > 0 ? fmtMoney(s.carts_value) + ' total' : 'no value yet';
+    $('kpi-checkouts').textContent = s.active_checkouts;
+    $('kpi-checkouts-value').textContent = s.checkouts_value > 0 ? fmtMoney(s.checkouts_value) + ' total' : 'no value yet';
+    $('kpi-sales').textContent = s.today.purchases;
+    $('kpi-revenue').textContent = fmtMoney(s.today.revenue);
+    $('t-pageviews').textContent = s.today.pageviews;
+    $('t-sessions').textContent = s.today.sessions;
+    $('t-purchases').textContent = s.today.purchases;
+    $('t-revenue').textContent = fmtMoney(s.today.revenue);
+
+    renderFeed(s.recent_events);
+    renderSessionList('cart-list', s.active_cart_sessions, 'No active carts');
+    renderSessionList('checkout-list', s.active_checkout_sessions, 'No active checkouts');
+    renderSimpleList('top-pages', s.top_pages, 'path', 'path');
+    renderSimpleList('top-sources', s.top_sources, 'src', 'src');
+    renderSimpleList('top-campaigns', s.top_campaigns || [], 'name', 'name', 'No campaigns tagged');
+    renderSimpleList('top-countries', s.top_countries, 'code', 'name');
+    if (s.paid_sessions_today > 0) {
+      $('paid-badge').style.display = 'inline';
+      $('paid-count').textContent = s.paid_sessions_today;
+    } else {
+      $('paid-badge').style.display = 'none';
+    }
+
+    $('last-update').textContent = new Date().toLocaleTimeString();
+    $('status').textContent = 'live';
+  }
+
+  function connect() {
+    $('status').textContent = 'connecting…';
+    const es = new EventSource('/admin/live/stream');
+    es.onmessage = (e) => { try { applySnapshot(JSON.parse(e.data)); } catch(_){} };
+    es.onerror = () => {
+      $('status').textContent = 'reconnecting…';
+      es.close();
+      setTimeout(connect, 3000);
+    };
+  }
+
+  // Initial snapshot for instant load, then SSE for continuous updates
+  fetch('/admin/live/snapshot').then(r => r.json()).then(applySnapshot).catch(()=>{});
+  connect();
+</script>
+</body>
+</html>

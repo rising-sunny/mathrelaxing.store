@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Live · Sign in</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<style>
+  body {
+    background: #0e0e10; color: #e8e6e3; min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    font-family: ui-sans-serif, system-ui, sans-serif; margin: 0;
+  }
+  .card {
+    background: #16161a; border: 1px solid #2a2a30; border-radius: 6px;
+    padding: 28px 32px; width: 100%; max-width: 340px;
+  }
+  h1 { font-size: 16px; margin: 0 0 16px; font-weight: 600; }
+  label { display: block; font-size: 11px; color: #8b8a87; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
+  input {
+    width: 100%; background: #0e0e10; border: 1px solid #2a2a30; color: #e8e6e3;
+    padding: 8px 10px; border-radius: 4px; font-size: 14px; margin-bottom: 14px;
+    font-family: inherit;
+  }
+  input:focus { outline: none; border-color: #c8a96e; }
+  button {
+    width: 100%; background: #c8a96e; color: #0e0e10; border: none;
+    padding: 9px; font-weight: 600; font-size: 14px; border-radius: 4px;
+    cursor: pointer; letter-spacing: .03em;
+  }
+  button:hover { background: #b89a5e; }
+  .error { color: #d96e6e; font-size: 12px; margin-bottom: 12px; }
+</style>
+</head>
+<body>
+<form class="card" method="post" action="/admin/live/login">
+  <h1>Sign in to Live</h1>
+  {% if error %}<div class="error">Invalid credentials.</div>{% endif %}
+  <label for="username">Username</label>
+  <input type="text" id="username" name="username" autocomplete="username" required autofocus>
+  <label for="password">Password</label>
+  <input type="password" id="password" name="password" autocomplete="current-password" required>
+  <button type="submit">Sign in</button>
+</form>
+</body>
+</html>

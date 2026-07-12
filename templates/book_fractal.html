@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Fractal Flora — Coloring Book · $14.99 | MathRelaxing{% endblock %}
+{% block description %}A 54-page perfect-bound coloring book of 50 unique space-filling curves and algorithmic gardens generated using Lindenmayer systems. Printed on demand. Free shipping to the US, UK, Europe and Australia.{% endblock %}
+{% block og_title %}Fractal Flora — A Coloring Book of Curves{% endblock %}
+{% block og_desc %}50 unique mathematical designs to colour. Perfect-bound paperback, printed on demand. $14.99 with free shipping.{% endblock %}
+{% block og_image %}https://mathrelaxing.store/static/img/fractal_flora_cover.png{% endblock %}
+{% block og_type %}product{% endblock %}
+
+{% block product_meta %}
+<meta property="product:price:amount"   content="14.99">
+<meta property="product:price:currency" content="USD">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "name": "Fractal Flora — Coloring Book",
+  "image": "https://mathrelaxing.store/static/img/fractal_flora_cover.png",
+  "description": "A 54-page perfect-bound coloring book of 50 unique mathematical line-art designs.",
+  "brand": {"@type": "Brand", "name": "MathRelaxing"},
+  "offers": {
+    "@type": "Offer",
+    "url": "https://mathrelaxing.store/book/fractal-flora-coloring-book",
+    "priceCurrency": "USD",
+    "price": "14.99",
+    "availability": "https://schema.org/InStock"
+  }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<section class="section-sm">
+  <div class="container">
+    <div class="book-hero">
+      <div class="book-hero-img">
+        <img src="/static/img/fractal_flora_cover.png" alt="Fractal Flora coloring book cover" loading="eager">
+      </div>
+      <div class="book-hero-info">
+        <p class="section-label">Physical coloring book</p>
+        <h1 class="book-title">Fractal Flora</h1>
+        <p class="book-subtitle">A Coloring Book of Curves</p>
+
+        <p class="book-price"><span>$14.99</span><em>Free shipping</em></p>
+
+        <p class="book-pitch">
+          Fifty hand-crafted coloring pages built from real mathematical
+          curves — Lissajous figures, polar roses, spirographs, hypocycloids,
+          lemniscates and cardioids. Each design is rendered as fine line art
+          and filled with intricate tangle patterns, ready for you to colour
+          and relax.
+        </p>
+
+        <button class="btn btn-primary btn-lg" id="buy-book-btn" style="width:100%; justify-content:center;">
+          Buy now — $14.99
+        </button>
+
+        <ul class="book-specs">
+          <li><span>Format</span><span>Perfect-bound paperback</span></li>
+          <li><span>Size</span><span>8.5 × 11 in (US Letter)</span></li>
+          <li><span>Pages</span><span>54 · 50 unique designs</span></li>
+          <li><span>Paper</span><span>60# (90gsm) uncoated white · matte cover</span></li>
+          <li><span>Printing</span><span>Made to order, just for you</span></li>
+        </ul>
+
+        <p class="book-ships">
+          <strong>Ships free to:</strong> United States, United Kingdom, Europe
+          (except Germany) &amp; Australia. Printed and shipped from a local facility.<br>
+          <strong>Estimated delivery (incl. production):</strong>
+          US &amp; UK 6–9 · Europe 7–13 · Australia 8–14 business days.
+        </p>
+      </div>
+    </div>
+
+    <div class="book-samples-block">
+      <h2 class="book-section-h">A look inside</h2>
+      <p class="book-section-sub">Every page is the exact trace of a real mathematical curve.</p>
+      <div class="book-samples">
+        <img src="/static/img/book_samples/page_L03.png" alt="Lissajous figure coloring page" loading="lazy">
+        <img src="/static/img/book_samples/page_R03.png" alt="Polar rose &amp; spirograph coloring page" loading="lazy">
+        <img src="/static/img/book_samples/page_H01.png" alt="Hypocycloid coloring page" loading="lazy">
+        <img src="/static/img/book_samples/page_X01.png" alt="Lemniscate coloring page" loading="lazy">
+      </div>
+    </div>
+
+    <div class="book-cta">
+      <button class="btn btn-primary btn-lg" id="buy-book-btn-2">Buy now — $14.99 · Free shipping</button>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<style>
+  .book-hero { display:grid; grid-template-columns: minmax(0,1fr) minmax(0,1.1fr); gap:3rem; align-items:start; }
+  .book-hero-img img { width:100%; height:auto; border-radius:6px; box-shadow:0 24px 60px rgba(0,0,0,.45); display:block; }
+  .book-title { font-family:var(--font-display); font-weight:400; font-size:2.6rem; line-height:1.05; margin:.4rem 0 .2rem; }
+  .book-subtitle { color:var(--muted); font-size:1.05rem; margin:0 0 1.2rem; }
+  .book-price { display:flex; align-items:baseline; gap:.8rem; margin:0 0 1.2rem; }
+  .book-price span { font-size:1.9rem; font-weight:600; color:var(--fg); }
+  .book-price em { font-style:normal; font-size:.85rem; letter-spacing:.06em; text-transform:uppercase; color:#34d399; border:1px solid rgba(52,211,153,.4); border-radius:99px; padding:.2rem .7rem; }
+  .book-pitch { color:var(--fg); opacity:.85; line-height:1.6; margin:0 0 1.5rem; }
+  .book-specs { list-style:none; padding:0; margin:1.5rem 0; border-top:1px solid var(--border); }
+  .book-specs li { display:flex; justify-content:space-between; gap:1rem; padding:.6rem 0; border-bottom:1px solid var(--border); font-size:13px; }
+  .book-specs li span:first-child { color:var(--muted); letter-spacing:.04em; text-transform:uppercase; font-size:11px; }
+  .book-specs li span:last-child { color:var(--fg); text-align:right; }
+  .book-ships { font-size:12px; color:var(--muted); line-height:1.6; margin-top:1rem; }
+  .book-ships strong { color:var(--fg); }
+  .book-samples-block { margin-top:4rem; }
+  .book-section-h { font-family:var(--font-display); font-weight:300; font-size:1.8rem; text-align:center; margin:0 0 .3rem; }
+  .book-section-sub { text-align:center; color:var(--muted); margin:0 0 2rem; font-size:14px; }
+  .book-samples { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; }
+  .book-samples img { width:100%; height:auto; border-radius:4px; border:1px solid var(--border); background:#fff; }
+  .book-cta { text-align:center; margin:3rem 0 1rem; }
+  @media (max-width:820px){
+    .book-hero { grid-template-columns:1fr; gap:1.8rem; }
+    .book-hero-img { max-width:340px; margin:0 auto; }
+    .book-samples { grid-template-columns:repeat(2,1fr); }
+  }
+</style>
+<script>
+  function buyBook() {
+    localStorage.setItem('mr_cart', JSON.stringify([{
+      slug: 'fractal-flora-coloring-book',
+      name: 'Fractal Flora — Coloring Book',
+      format_id: 'book',
+      format_label: 'Coloring Book (Paperback)',
+      price_usd: 14.99
+    }]));
+    if (window.mrTrack) window.mrTrack('add_to_cart', { product_slug: 'fractal-flora-coloring-book', value: 14.99 });
+    window.location.href = '/checkout';
+  }
+  document.getElementById('buy-book-btn').addEventListener('click', buyBook);
+  document.getElementById('buy-book-btn-2').addEventListener('click', buyBook);
+  // Product-level view (so the book shows in the live dashboard's product funnel,
+  // consistent with the /product/* pages). The base template already fired the
+  // generic pageview.
+  if (window.mrTrack) window.mrTrack('product_view', { product_slug: 'fractal-flora-coloring-book', value: 14.99 });
+</script>
+{% endblock %}

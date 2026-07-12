@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "additionalDirectories": [
+      "/var/www/mathrelaxing.store"
+    ],
+    "allow": [
+      "Bash(rm -f /tmp/mathrelaxing_preview/* /tmp/mathrelaxing_renders/* /tmp/mathrelaxing_print/*)",
+      "Bash(systemctl restart *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8000/collection/complex-plane-geometry)"
+    ]
+  }
+}

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}My Downloads — MathRelaxing{% endblock %}
+{% block description %}Look up your past purchases and resend your download links.{% endblock %}
+{% block robots %}<meta name="robots" content="noindex,nofollow">{% endblock %}
+
+{% block content %}
+<section class="section" style="min-height:70vh; display:flex; align-items:center;">
+  <div class="container" style="max-width:540px; width:100%;">
+    <div class="section-header">
+      <div>
+        <p class="section-label">Account</p>
+        <h1 style="font-size:2rem;">My Downloads</h1>
+      </div>
+    </div>
+    <p style="color:var(--fg2); margin-bottom:2rem;">Enter the email address you used at checkout to retrieve your download links.</p>
+
+    <div id="lookup-form">
+      <label style="font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);">Email address</label>
+      <input type="email" id="lookup-email" placeholder="your@email.com"
+        style="width:100%; margin-top:.5rem; padding:.75rem 1rem; background:var(--bg2); border:1px solid var(--border); color:var(--fg); border-radius:4px; font-size:14px; box-sizing:border-box;">
+      <div id="lookup-error" style="color:#f87171; font-size:12px; margin-top:.5rem; display:none;"></div>
+      <button id="lookup-btn" class="btn btn-primary" style="width:100%; margin-top:1rem; justify-content:center;">
+        Look up my purchases
+      </button>
+    </div>
+
+    <div id="lookup-results" style="display:none; margin-top:2rem;">
+      <h3 id="results-title" style="font-size:1rem; color:var(--fg2); margin-bottom:1rem;"></h3>
+      <div id="results-list"></div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('lookup-btn').addEventListener('click', async () => {
+  const email = document.getElementById('lookup-email').value.trim();
+  const errEl = document.getElementById('lookup-error');
+  errEl.style.display = 'none';
+  if (!email) { errEl.textContent = 'Please enter your email.'; errEl.style.display = 'block'; return; }
+
+  const btn = document.getElementById('lookup-btn');
+  btn.textContent = 'Looking up…'; btn.disabled = true;
+
+  try {
+    const res = await fetch('/api/resend-download', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({email})
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      errEl.textContent = data.detail || 'No purchases found for this email.';
+      errEl.style.display = 'block';
+    } else if (data.found === 0) {
+      errEl.textContent = `No purchases found for ${email}. Double-check the email you used at checkout.`;
+      errEl.style.display = 'block';
+    } else {
+      document.getElementById('lookup-form').querySelector('button').style.display = 'none';
+      const resultsEl = document.getElementById('lookup-results');
+      document.getElementById('results-title').textContent = `Found ${data.found} purchase(s) for ${email}`;
+      const listEl = document.getElementById('results-list');
+      listEl.innerHTML = data.purchases.map(p => `
+        <div style="background:var(--bg2); border:1px solid var(--border); border-radius:4px; padding:1rem; margin-bottom:.75rem;">
+          <div style="font-family:var(--font-display); font-size:.95rem;">${p.product_name.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}</div>
+          <div style="font-size:11px; color:var(--muted); margin:.3rem 0;">Purchased: ${p.purchased_at ? new Date(p.purchased_at).toLocaleDateString() : '—'}</div>
+          ${p.expires_at ? `<div style="font-size:11px; color:var(--muted);">Expires: ${new Date(p.expires_at).toLocaleDateString()}</div>` : ''}
+          <a href="${p.download_url}" class="btn btn-sm btn-outline" style="margin-top:.75rem; font-size:11px;">Download</a>
+        </div>
+      `).join('');
+      resultsEl.style.display = 'block';
+    }
+  } catch(e) {
+    errEl.textContent = 'Network error. Please try again.'; errEl.style.display = 'block';
+  }
+  btn.textContent = 'Look up my purchases'; btn.disabled = false;
+});
+
+document.getElementById('lookup-email').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('lookup-btn').click();
+});
+</script>
+{% endblock %}

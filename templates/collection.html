@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}{{ collection.name }} · {% if slug == 'digital-downloads' %}Printable Coloring Books, iPad Bundles & Digital Downloads{% else %}{{ products | length }} Mathematical Art Prints{% endif %} | MathRelaxing{% endblock %}
+{% block description %}{{ collection.description | truncate(110, true, '…') }} Browse {{ products | length }} {{ collection.name | lower }} {% if slug == 'digital-downloads' %}instant downloads.{% else %}prints — gallery-quality, instant download.{% endif %}{% endblock %}
+{% block og_title %}{{ collection.name }} — {% if slug == 'digital-downloads' %}Printable & iPad Digital Downloads{% else %}{{ products | length }} Mathematical Art Prints{% endif %} · MathRelaxing{% endblock %}
+{% block og_desc %}{{ collection.description | truncate(180, true, '…') }}{% endblock %}
+{% block og_image %}{% if products %}https://mathrelaxing.store/api/render/preview?v=22&product={{ products[0].slug }}{% else %}https://mathrelaxing.store/static/img/og-default.jpg{% endif %}{% endblock %}
+
+{% block content %}
+
+<div class="collection-hero">
+  <div class="container">
+    <p class="collection-hero-meta">Collection · {{ products | length }} products</p>
+    <h1>{{ collection.name }}</h1>
+    <p style="max-width:600px; margin-top:1rem;">{{ collection.description }}</p>
+    <p class="collection-equation">{{ collection.equation }}</p>
+    {% set _col_articles = {
+      'radial-symmetry': ('what-is-radial-symmetry-in-art', 'What is radial symmetry in art?'),
+      'chladni-figures': ('chladni-figures-geometry-of-sound', 'Chladni figures: the geometry of sound'),
+      'voronoi-organics': ('voronoi-patterns-in-nature', 'Voronoi patterns in nature')
+    } %}
+    {% if slug in _col_articles %}
+    <p style="margin-top:1.4rem;">
+      <a href="/blog/{{ _col_articles[slug][0] }}" style="color:var(--accent,#c8a96e); font-size:.95rem; text-decoration:none;">
+        📖 Read: {{ _col_articles[slug][1] }} →
+      </a>
+    </p>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+  .delivery-badge{display:inline-flex;align-items:center;gap:.3em;font-size:11px;font-weight:600;
+    letter-spacing:.02em;padding:.22em .6em;border-radius:999px;margin-bottom:.55rem;line-height:1;}
+  .delivery-badge.digital{background:rgba(78,201,176,.14);color:#4EC9B0;border:1px solid rgba(78,201,176,.35);}
+  .delivery-badge.physical{background:rgba(200,169,110,.14);color:#C8A96E;border:1px solid rgba(200,169,110,.35);}
+  .collection-section-title{font-size:1.15rem;margin:0 0 1.2rem;color:var(--fg);}
+  .collection-section + .collection-section{margin-top:3rem;}
+</style>
+
+{% macro product_card(p, eager=False) %}
+<a href="{{ p.url }}" class="product-card">
+  <div class="product-card-image">
+    {% if p.collection == 'notebooks' %}
+    <img class="product-card-canvas" src="/api/render/mockup?product={{ p.slug }}&format=spiral_notebook"
+         alt="{{ p.name }} — {{ collection.name }} mathematical art" width="400" height="500"
+         {% if eager %}fetchpriority="high"{% else %}loading="lazy"{% endif %}
+         decoding="async" style="object-fit: contain; padding: 1rem;">
+    {% elif p.collection == 'desk-mats' %}
+    <img class="product-card-canvas" src="/api/render/mockup?product={{ p.slug }}&format=gaming_mouse_pad"
+         alt="{{ p.name }} — {{ collection.name }} mathematical art" width="400" height="500"
+         {% if eager %}fetchpriority="high"{% else %}loading="lazy"{% endif %}
+         decoding="async" style="object-fit: contain; padding: 1rem;">
+    {% elif p.collection == 'apparel' %}
+    <img class="product-card-canvas" src="/api/render/mockup?product={{ p.slug }}&format={{ p.card_format or 'unisex_tshirt' }}"
+         alt="{{ p.name }} — mathematical art apparel" width="400" height="500"
+         {% if eager %}fetchpriority="high"{% else %}loading="lazy"{% endif %}
+         decoding="async" style="object-fit: contain;">
+    {% else %}
+    <img class="product-card-canvas" src="/api/render/preview?v=22&product={{ p.slug }}"
+         alt="{{ p.name }} — {{ collection.name }} mathematical art" width="400" height="500"
+         {% if eager %}fetchpriority="high"{% else %}loading="lazy"{% endif %} decoding="async">
+    {% endif %}
+  </div>
+  <div class="product-card-body">
+    <span class="delivery-badge {{ p.kind }}">
+      {%- if p.kind == 'digital' %}⚡ {{ p.delivery }}{% else %}📦 {{ p.delivery }}{% endif -%}
+    </span>
+    <div class="product-card-collection">{{ p.type_label }}</div>
+    <div class="product-card-name">{{ p.name }}</div>
+    <div class="product-card-footer">
+      <div class="product-price">
+        <span class="product-price-from">{{ p.price_prefix }}</span>
+        ${{ "%.2f" | format(p.price_usd) }}
+      </div>
+      <span class="btn btn-sm btn-outline">View →</span>
+    </div>
+  </div>
+</a>
+{% endmacro %}
+
+<section class="section">
+  <div class="container">
+    {% if products %}
+      {% for g in groups %}
+      <div class="collection-section">
+        {% if groups | length > 1 %}
+        <h2 class="collection-section-title">{{ g.title }} <span style="color:var(--muted);font-weight:400;font-size:.85em;">· {{ g.cards | length }}</span></h2>
+        {% endif %}
+        <div class="products-grid">
+          {% for p in g.cards %}
+            {{ product_card(p, eager=(loop.first and g.title == groups[0].title)) }}
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+    <p style="color:var(--muted); text-align:center; padding: 4rem 0;">No products in this collection yet.</p>
+    {% endif %}
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}{% endblock %}

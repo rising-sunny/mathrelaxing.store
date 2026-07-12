@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} · Instant Digital Download · ${{ "%.2f" | format(product.price_usd) }} | MathRelaxing{% endblock %}
+{% block description %}{{ product.description[:150] }}{% endblock %}
+{% block og_image %}https://mathrelaxing.store{{ product.cover_image }}{% endblock %}
+{% block og_type %}product{% endblock %}
+{% block product_meta %}
+  <meta property="product:price:amount"   content="{{ "%.2f" | format(product.price_usd) }}">
+  <meta property="product:price:currency" content="USD">
+{% endblock %}
+
+{% block head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "name": {{ product.name | tojson }},
+  "image": "https://mathrelaxing.store{{ product.cover_image }}",
+  "description": {{ (product.description or product.name) | tojson }},
+  "brand": { "@type": "Brand", "name": "MathRelaxing" },
+  "category": "Digital Download",
+  "offers": {
+    "@type": "Offer",
+    "url": "https://mathrelaxing.store/bundle/{{ product.slug }}",
+    "priceCurrency": "USD",
+    "price": "{{ "%.2f" | format(product.price_usd) }}",
+    "availability": "https://schema.org/InStock",
+    "itemCondition": "https://schema.org/NewCondition"
+  }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div style="max-width:1100px; margin:0 auto; padding:2rem 1.25rem 5rem;">
+  <p style="font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:1.5rem;">
+    <a href="/collection/digital-downloads" style="color:var(--muted); text-decoration:none;">← Digital Downloads</a>
+  </p>
+
+  <div class="dl-grid" style="display:grid; grid-template-columns:1.1fr .9fr; gap:2.5rem; align-items:start;">
+    <!-- Gallery -->
+    <div>
+      <div id="dl-hero-wrap" style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; overflow:hidden;">
+        {% set ns = namespace(video_src='') %}
+        {% for g in gallery %}{% if g.endswith('.mp4') and not ns.video_src %}{% set ns.video_src = g %}{% endif %}{% endfor %}
+        {% if ns.video_src %}
+        <video id="dl-hero-video" src="{{ ns.video_src }}" autoplay loop muted playsinline controls
+               style="width:100%; display:block; aspect-ratio:1/1; object-fit:contain; background:#0d0d0d;"></video>
+        <img id="dl-hero" src="" alt="{{ product.name }}" style="width:100%; display:none; aspect-ratio:1/1; object-fit:contain; background:#0d0d0d;">
+        {% else %}
+        <img id="dl-hero" src="{{ gallery[0] if gallery else product.cover_image }}"
+             alt="{{ product.name }}" style="width:100%; display:block; aspect-ratio:1/1; object-fit:contain; background:#0d0d0d;">
+        {% endif %}
+      </div>
+      {% if gallery and gallery|length > 1 %}
+      <div style="display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.75rem;">
+        {% for item in gallery %}
+        {% if item.endswith('.mp4') %}
+        <button type="button" onclick="showVideo('{{ item }}')"
+                style="border:1px solid var(--border); border-radius:6px; overflow:hidden; padding:0; background:#0d0d0d; cursor:pointer; width:64px; height:64px; display:flex; align-items:center; justify-content:center;">
+          <span style="font-size:24px; color:var(--accent);">▶</span>
+        </button>
+        {% else %}
+        <button type="button" onclick="showImage('{{ item }}')"
+                style="border:1px solid var(--border); border-radius:6px; overflow:hidden; padding:0; background:none; cursor:pointer; width:64px; height:64px;">
+          <img src="{{ item }}" alt="" style="width:100%; height:100%; object-fit:cover;">
+        </button>
+        {% endif %}
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Info / buy -->
+    <div>
+      <span class="delivery-badge" style="display:inline-block; font-size:11px; padding:.25rem .6rem; border-radius:4px; background:rgba(78,201,176,.14); color:#4EC9B0; border:1px solid rgba(78,201,176,.35); margin-bottom:1rem;">⚡ Instant download</span>
+      <h1 style="font-family:var(--font-display); font-weight:300; font-size:clamp(1.6rem,3.5vw,2.4rem); line-height:1.15; margin:0 0 1rem;">{{ product.name }}</h1>
+
+      <p style="font-size:13px; line-height:1.8; color:var(--muted); white-space:pre-line; margin-bottom:1.75rem;">{{ product.description }}</p>
+
+      {% if contents %}
+      <div style="border-top:1px solid var(--border); padding-top:1.25rem; margin-bottom:1.5rem;">
+        <p style="font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem;">What you get</p>
+        <ul style="list-style:none; padding:0; margin:0;">
+          {% for c in contents %}
+          <li style="font-size:13px; color:var(--fg); padding:.3rem 0; display:flex; gap:.5rem;">
+            <span style="color:var(--accent);">›</span>
+            <span>{{ c.title }}{% if c.size %} <span style="color:var(--muted);">· {{ c.size }}</span>{% endif %}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <div style="display:flex; align-items:baseline; gap:.6rem; margin-bottom:1rem;">
+        <span style="font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted);">Price</span>
+        <span style="font-family:var(--font-display); font-size:1.8rem;">${{ "%.2f" | format(product.price_usd) }}</span>
+      </div>
+
+      <button class="btn btn-primary btn-lg" id="btn-buynow" style="width:100%; justify-content:center;" onclick="buyNow()">
+        Buy Now — ${{ "%.2f" | format(product.price_usd) }}
+      </button>
+      <p style="font-size:11px; color:var(--muted); text-align:center; margin-top:.75rem;">
+        Secure checkout with PayPal · {{ product.license_type|default('personal') }} license · delivered instantly after payment
+      </p>
+    </div>
+  </div>
+
+  {% if related %}
+  <div style="margin-top:4rem; border-top:1px solid var(--border); padding-top:2rem;">
+    <p style="font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-bottom:1rem;">More digital downloads</p>
+    <div style="display:flex; flex-wrap:wrap; gap:1rem;">
+      {% for r in related %}
+      <a href="/bundle/{{ r.slug }}" style="text-decoration:none; color:var(--fg); font-size:13px; border:1px solid var(--border); border-radius:6px; padding:.6rem .9rem;">
+        {{ r.name }} <span style="color:var(--accent);">${{ "%.2f" | format(r.price_usd) }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<style>
+@media (max-width: 760px){ .dl-grid{ grid-template-columns:1fr !important; } }
+</style>
+
+<script>
+  function showVideo(src) {
+    var vid = document.getElementById('dl-hero-video');
+    var img = document.getElementById('dl-hero');
+    if (vid) { vid.src = src; vid.style.display = 'block'; vid.play(); }
+    if (img) img.style.display = 'none';
+  }
+  function showImage(src) {
+    var vid = document.getElementById('dl-hero-video');
+    var img = document.getElementById('dl-hero');
+    if (vid) { vid.pause(); vid.style.display = 'none'; }
+    if (img) { img.src = src; img.style.display = 'block'; }
+  }
+</script>
+
+<script>
+  const PRODUCT = { slug: '{{ product.slug }}', price_usd: {{ product.price_usd }} };
+  if (window.mrTrack) window.mrTrack('product_view', { product_slug: PRODUCT.slug, value: PRODUCT.price_usd });
+
+  async function buyNow() {
+    if (window.mrTrack) window.mrTrack('checkout_start', { product_slug: PRODUCT.slug, value: PRODUCT.price_usd });
+    const btn = document.getElementById('btn-buynow');
+    const original = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Redirecting to PayPal…';
+    try {
+      const resp = await fetch('/api/purchases/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_slug: PRODUCT.slug, ref_source: 'direct' }),
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data.checkout_url) throw new Error(data.detail || 'Could not start checkout');
+      if (window.mrTrack) window.mrTrack('payment_redirect', { product_slug: PRODUCT.slug, value: PRODUCT.price_usd });
+      window.location.href = data.checkout_url;
+    } catch (err) {
+      btn.disabled = false; btn.textContent = original;
+      alert('Something went wrong: ' + (err.message || 'Please try again.'));
+    }
+  }
+</script>
+{% endblock %}

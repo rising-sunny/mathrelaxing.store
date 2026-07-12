@@ -1,0 +1,1072 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} · {{ product.collection | replace('-', ' ') | title }} {{ 'Notebook' if product.collection == 'notebooks' else ('Desk Mat' if product.collection == 'desk-mats' else 'Physical Art') }} · ${{ "%.2f" | format(formats[0].price_usd) }}+ | MathRelaxing{% endblock %}
+{% block description %}{{ product.description | truncate(110, true, '…') }} {{ 'Mathematical notebooks' if product.collection == 'notebooks' else ('Mathematical desk mats and mouse pads' if product.collection == 'desk-mats' else 'Mathematical art prints') }} · from ${{ "%.2f" | format((formats | last).price_usd) }}.{% endblock %}
+{% block og_title %}{{ product.name }} — Mathematical {{ 'Notebook' if product.collection == 'notebooks' else ('Desk Mat' if product.collection == 'desk-mats' else 'Physical Art') }} · MathRelaxing{% endblock %}
+{% block og_desc %}{{ product.description | truncate(180, true, '…') }}{% endblock %}
+{% block og_image %}https://mathrelaxing.store/api/render/mockup?product={{ product.slug }}&v={{ mockup_v }}&format={{ formats[0].id }}{% endblock %}
+{% block og_type %}product{% endblock %}
+{% block product_meta %}
+  <meta property="product:price:amount"   content="{{ "%.2f" | format((formats | last).price_usd) }}">
+  <meta property="product:price:currency" content="USD">
+  <meta property="product:availability"   content="in stock">
+  <meta property="product:condition"      content="new">
+  <meta property="product:retailer_item_id" content="{{ product.slug }}">
+  <meta property="product:brand"          content="MathRelaxing">
+  <meta property="product:category"       content="{{ 'Office & Desk Accessories' if product.collection in ('desk-mats', 'notebooks') else 'Art & Collectibles' }}">
+{% endblock %}
+
+{% block head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "{{ product.name }}",
+  "description": "{{ product.description }}",
+  "url": "https://mathrelaxing.store/product/{{ product.slug }}",
+  "sku": "{{ product.slug }}",
+  "image": "https://mathrelaxing.store/api/render/mockup?product={{ product.slug }}&v={{ mockup_v }}&format={{ formats[0].id }}",
+  "brand": { "@type": "Brand", "name": "MathRelaxing" },
+  "offers": {
+    "@type": "AggregateOffer",
+    "priceCurrency": "USD",
+    "lowPrice": "{{ "%.2f" | format((formats | last).price_usd) }}",
+    "highPrice": "{{ "%.2f" | format(formats[0].price_usd) }}",
+    "offerCount": "{{ formats | length }}",
+    "availability": "https://schema.org/InStock",
+    "seller": { "@type": "Organization", "name": "MathRelaxing" }
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home",
+      "item": "https://mathrelaxing.store" },
+    { "@type": "ListItem", "position": 2,
+      "name": "{{ collection.name if collection else product.collection | replace('-',' ') | title }}",
+      "item": "https://mathrelaxing.store/collection/{{ product.collection }}" },
+    { "@type": "ListItem", "position": 3, "name": "{{ product.name }}",
+      "item": "https://mathrelaxing.store/product/{{ product.slug }}" }
+  ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="product-hero">
+  <div class="product-canvas-panel">
+    <div class="artwork-panel" style="position:relative;">
+      <img
+        id="preview-img"
+        src="/api/render/mockup?product={{ product.slug }}&v={{ mockup_v }}&format={{ formats[0].id }}"
+        data-preview="/api/render/preview?product={{ product.slug }}"
+        alt="{{ product.name }} — {{ collection.name if collection }} mathematical physical art"
+        width="800" height="1000"
+        fetchpriority="high"
+        decoding="async"
+        style="width:100%; border-radius:4px; display:block; max-height:560px; object-fit:contain; transition:opacity 0.3s ease;"
+      >
+      <div id="mockup-loader" class="mockup-loader">
+        <div class="mockup-spinner"></div>
+      </div>
+      <div id="zoom-lens" class="zoom-lens"></div>
+    </div>
+    <div class="scene-picker" id="scene-picker" {% if formats[0].id != 'poster' %}style="display:none;"{% endif %}>
+      <button class="scene-btn active" data-format="poster" type="button">Art</button>
+      <button class="scene-btn" data-format="poster-lifestyle" type="button">Room</button>
+    </div>
+
+    {# ─── Desk-mat scene gallery: shows all Printful lifestyle scenes for this format ─── #}
+    {% if product.collection == 'desk-mats' %}
+    {% set _base_fmt = formats[0].id %}
+    {% set _scene_count = 7 if _base_fmt == 'gaming_mouse_pad' else (2 if _base_fmt == 'mouse_pad' else 0) %}
+    {% if _scene_count > 0 %}
+    <div class="deskmat-gallery" id="deskmat-gallery"
+         style="display:grid; grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); gap:0.5rem; margin-top:0.75rem; width:100%; box-sizing:border-box;">
+      {% for i in range(1, _scene_count + 1) %}
+      <button
+        class="dm-thumb {% if i == 1 %}active{% endif %}"
+        data-mockup-format="{{ _base_fmt }}-{{ i }}"
+        data-mockup-label="Scene {{ i }}"
+        type="button"
+        title="Lifestyle scene {{ i }}"
+        style="padding:0; border:2px solid {% if i == 1 %}var(--accent, #c8a96e){% else %}var(--border, #2a2a2a){% endif %}; border-radius:4px; background:none; cursor:pointer; aspect-ratio:1; overflow:hidden; transition:border-color 0.15s;"
+      >
+        <img
+          src="/api/render/mockup?product={{ product.slug }}&v={{ mockup_v }}&format={{ _base_fmt }}-{{ i }}"
+          alt="{{ product.name }} — lifestyle scene {{ i }}"
+          loading="lazy"
+          decoding="async"
+          style="width:100%; height:100%; object-fit:cover; display:block;"
+        >
+      </button>
+      {% endfor %}
+      <button
+        class="dm-thumb"
+        data-mockup-format="{{ _base_fmt }}-flat"
+        data-mockup-label="Flat studio"
+        type="button"
+        title="Flat studio shot"
+        style="padding:0; border:2px solid var(--border, #2a2a2a); border-radius:4px; background:none; cursor:pointer; aspect-ratio:1; overflow:hidden; transition:border-color 0.15s;"
+      >
+        <img
+          src="/api/render/mockup?product={{ product.slug }}&v={{ mockup_v }}&format={{ _base_fmt }}-flat"
+          alt="{{ product.name }} — flat studio"
+          loading="lazy"
+          decoding="async"
+          style="width:100%; height:100%; object-fit:cover; display:block;"
+        >
+      </button>
+    </div>
+    <p style="font-size:11px; color:var(--muted); margin-top:0.5rem; text-align:center;">
+      Click a thumbnail to view the desk mat in a different scene
+    </p>
+    {% endif %}
+    {% endif %}
+
+    {# ─── Sticker gallery: Printful flat + self-generated lifestyle scenes ─── #}
+    {% if product.collection == 'stickers' %}
+    <div class="deskmat-gallery" id="sticker-gallery"
+         style="display:grid; grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); gap:0.5rem; margin-top:0.75rem; width:100%; box-sizing:border-box;">
+      {% for fmt_id, label in [['sticker_kiss_3in','Sticker'], ['sticker_kiss_3in-laptop','On laptop']] %}
+      <button
+        class="dm-thumb {% if loop.first %}active{% endif %}"
+        data-mockup-format="{{ fmt_id }}"
+        data-mockup-label="{{ label }}"
+        type="button"
+        title="{{ label }}"
+        style="padding:0; border:2px solid {% if loop.first %}var(--accent, #c8a96e){% else %}var(--border, #2a2a2a){% endif %}; border-radius:4px; background:none; cursor:pointer; aspect-ratio:1; overflow:hidden; transition:border-color 0.15s;"
+      >
+        <img
+          src="/api/render/mockup?product={{ product.slug }}&v={{ mockup_v }}&format={{ fmt_id }}"
+          alt="{{ product.name }} — {{ label }}"
+          loading="lazy"
+          decoding="async"
+          style="width:100%; height:100%; object-fit:cover; display:block;"
+        >
+      </button>
+      {% endfor %}
+    </div>
+    <p style="font-size:11px; color:var(--muted); margin-top:0.5rem; text-align:center;">
+      Click a thumbnail to view the sticker in a different scene
+    </p>
+    {% endif %}
+
+    {# ─── Notebook gallery: AI studio scene + Printful flat ─── #}
+    {% if product.collection == 'notebooks' %}
+    <div class="deskmat-gallery" id="notebook-gallery"
+         style="display:grid; grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); gap:0.5rem; margin-top:0.75rem; width:100%; box-sizing:border-box;">
+      <button
+        class="dm-thumb active"
+        data-mockup-format="spiral_notebook"
+        data-mockup-label="Studio Scene"
+        type="button"
+        title="Studio Scene"
+        style="padding:0; border:2px solid var(--accent, #c8a96e); border-radius:4px; background:none; cursor:pointer; aspect-ratio:1; overflow:hidden; transition:border-color 0.15s;"
+      >
+        <img
+          src="/api/render/mockup?product={{ product.slug }}&v={{ mockup_v }}&format=spiral_notebook"
+          alt="{{ product.name }} — studio scene"
+          loading="lazy"
+          decoding="async"
+          style="width:100%; height:100%; object-fit:cover; display:block;"
+        >
+      </button>
+      <button
+        class="dm-thumb"
+        data-mockup-format="spiral_notebook-flat"
+        data-mockup-label="Product Shot"
+        type="button"
+        title="Product Shot"
+        style="padding:0; border:2px solid var(--border, #2a2a2a); border-radius:4px; background:none; cursor:pointer; aspect-ratio:1; overflow:hidden; transition:border-color 0.15s;"
+      >
+        <img
+          src="/api/render/mockup?product={{ product.slug }}&v={{ mockup_v }}&format=spiral_notebook-flat"
+          alt="{{ product.name }} — product shot"
+          loading="lazy"
+          decoding="async"
+          style="width:100%; height:100%; object-fit:cover; display:block;"
+        >
+      </button>
+    </div>
+    <p style="font-size:11px; color:var(--muted); margin-top:0.5rem; text-align:center;">
+      Click a thumbnail to view the notebook in a different style
+    </p>
+    {% endif %}
+
+    {# ─── Apparel gallery: shows Printful scenes ─── #}
+    {% if product.collection == 'apparel' %}
+    <div class="deskmat-gallery" id="apparel-gallery"
+         style="display:grid; grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); gap:0.5rem; margin-top:0.75rem; width:100%; box-sizing:border-box;">
+      {% set _ap_labels = ['Front', 'Back'] %}
+      {% set _ap_fmt = formats[0].id %}
+      {% for i in range(1, 3) %}
+      <button
+        class="dm-thumb {% if i == 1 %}active{% endif %}"
+        data-mockup-format="{{ _ap_fmt }}-{{ i }}"
+        data-mockup-label="{{ _ap_labels[i-1] }}"
+        type="button"
+        title="{{ _ap_labels[i-1] }} view"
+        style="padding:0; border:2px solid {% if i == 1 %}var(--accent, #c8a96e){% else %}var(--border, #2a2a2a){% endif %}; border-radius:4px; background:none; cursor:pointer; aspect-ratio:1; overflow:hidden; transition:border-color 0.15s;"
+      >
+        <img
+          src="/api/render/mockup?product={{ product.slug }}&v={{ mockup_v }}&format={{ _ap_fmt }}-{{ i }}"
+          alt="{{ product.name }} — scene {{ i }}"
+          loading="lazy"
+          decoding="async"
+          style="width:100%; height:100%; object-fit:cover; display:block;"
+        >
+      </button>
+      {% endfor %}
+    </div>
+    <p style="font-size:11px; color:var(--muted); margin-top:0.5rem; text-align:center;">
+      Click a thumbnail to view the apparel in a different style
+    </p>
+    {% endif %}
+  </div>
+
+  <div class="product-detail-panel">
+    <p class="product-breadcrumb">
+      <a href="/">Home</a> &nbsp;/&nbsp;
+      <a href="/collection/{{ product.collection }}">{{ collection.name if collection else product.collection }}</a> &nbsp;/&nbsp;
+      {{ product.name }}
+    </p>
+
+    <h1 class="product-name">{{ product.name }}</h1>
+    <p class="product-collection-tag">{{ product.collection | replace('-', ' ') | title }}</p>
+    <p class="product-description">{{ product.description }}</p>
+
+    <div class="product-price-block">
+      <p class="product-price-label">Price</p>
+      <p class="product-price-value" id="displayed-price">${{ "%.2f" | format(formats[0].price_usd) }}</p>
+      <p style="font-size:11px; color:var(--accent); margin-top:0.25rem; font-weight:600;">&#10003; Free worldwide shipping</p>
+    </div>
+
+    {% if formats | length > 1 %}
+    <div class="format-selector">
+      <p class="format-selector-label">Choose format</p>
+      <div class="format-options">
+        {% for fmt in formats %}
+        <button
+          class="format-btn {% if loop.first %}active{% endif %}"
+          type="button"
+          data-format-id="{{ fmt.id }}"
+          data-label="{{ fmt.label }}"
+          data-size="{{ fmt.size }}"
+          data-material="{{ fmt.material }}"
+          data-price="{{ fmt.price_usd }}"
+          data-width="{{ fmt.print_specs.width_px }}"
+          data-height="{{ fmt.print_specs.height_px }}"
+          data-dpi="{{ fmt.print_specs.dpi }}"
+        >
+          <span class="format-btn-info">
+            <span class="format-btn-name">{{ fmt.label }} · {{ fmt.size }}</span>
+            <span class="format-btn-material">{{ fmt.material }}</span>
+          </span>
+          <span class="format-btn-price">${{ "%.2f" | format(fmt.price_usd) }}</span>
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="size-selector" id="size-selector" style="display:none; margin: 1.5rem 0 0;">
+      <p class="format-selector-label">Choose Size</p>
+      <div class="size-options" style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+        {% for sz in formats[0].get('printful_variants', {}).keys() %}
+        <button class="scene-btn {% if sz == 'L' %}active{% endif %}" type="button" data-size="{{ sz }}">{{ sz }}</button>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="product-specs">
+      <div class="spec-row">
+        <span class="spec-label">Format</span>
+        <span class="spec-value" id="spec-format">{{ formats[0].label }}</span>
+      </div>
+      <div class="spec-row">
+        <span class="spec-label">Size</span>
+        <span class="spec-value" id="spec-size">{{ formats[0].size }}</span>
+      </div>
+      <div class="spec-row">
+        <span class="spec-label">Material</span>
+        <span class="spec-value" id="spec-material">{{ formats[0].material }}</span>
+      </div>
+      <div class="spec-row">
+        <span class="spec-label">Resolution</span>
+        <span class="spec-value" id="spec-resolution">{{ formats[0].print_specs.dpi }} DPI · rendered at {{ formats[0].print_specs.width_px }} × {{ formats[0].print_specs.height_px }} px</span>
+      </div>
+      <div class="spec-row">
+        <span class="spec-label">Production</span>
+        <span class="spec-value">Professional print-on-demand · ships from nearest facility</span>
+      </div>
+      <div class="spec-row">
+        <span class="spec-label">Shipping</span>
+        <span class="spec-value">Free worldwide shipping · included in price</span>
+      </div>
+    </div>
+
+    {% set _f = formats[0] %}
+    {% if _f.size_chart or _f.care or _f.fit %}
+    <details class="shipping-details" open>
+      <summary class="shipping-summary">
+        <span>Product details, size &amp; care</span>
+        <span class="shipping-chevron">&#8964;</span>
+      </summary>
+      {% if _f.fit %}
+      <p class="shipping-note" style="margin-bottom:.6rem;"><strong style="color:var(--fg);">Fit.</strong> {{ _f.fit }}</p>
+      {% endif %}
+      {% if _f.size_chart %}
+      <p style="font-size:11px; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); margin:.4rem 0;">{{ _f.size_chart.caption }}</p>
+      <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:12px; color:var(--fg); margin-bottom:.5rem;">
+          <thead>
+            <tr>
+              <th style="text-align:left; padding:.4rem .5rem; border-bottom:1px solid var(--border); color:var(--muted); font-weight:600;">Size</th>
+              {% for h in _f.size_chart.headers %}
+              <th style="text-align:center; padding:.4rem .5rem; border-bottom:1px solid var(--border); font-weight:600;">{{ h }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in _f.size_chart.rows %}
+            <tr>
+              <td style="text-align:left; padding:.4rem .5rem; border-bottom:1px solid var(--border); color:var(--muted);">{{ row[0] }}</td>
+              {% for v in row[1] %}
+              <td style="text-align:center; padding:.4rem .5rem; border-bottom:1px solid var(--border);">{{ v }}</td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+      {% if _f.care %}
+      <p style="font-size:11px; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); margin:.6rem 0 .3rem;">Care</p>
+      <ul style="margin:0; padding-left:1.1rem; font-size:12px; color:var(--fg); line-height:1.7;">
+        {% for c in _f.care %}<li>{{ c }}</li>{% endfor %}
+      </ul>
+      {% endif %}
+    </details>
+    {% endif %}
+
+    <details class="shipping-details">
+      <summary class="shipping-summary">
+        <span>Shipping &amp; Delivery</span>
+        <span class="shipping-chevron">&#8964;</span>
+      </summary>
+      <p class="shipping-note">
+        Each print is produced and shipped from the nearest facility in our global print network.
+        Production normally takes 2–5 business days, then shipping follows Printful's live estimate for the destination.
+        The ranges below are current standard-rate estimates and can vary by exact address, product, and carrier availability.
+      </p>
+
+      <div class="shipping-methods">
+        <div class="shipping-method">
+          <span class="method-name">Standard</span>
+          <span class="method-desc">US 3–6 days · EU 3–15 days · Asia/Pacific 2–17 days · LatAm 5–25 days</span>
+        </div>
+        <div class="shipping-method">
+          <span class="method-name">Express</span>
+          <span class="method-desc">Availability varies by product and destination</span>
+        </div>
+      </div>
+
+      <table class="shipping-table">
+        <thead>
+          <tr><th>Region</th><th>Countries</th><th>Est. delivery</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>United States</td>
+            <td>All 50 states + territories</td>
+            <td>3 – 6 business days</td>
+          </tr>
+          <tr>
+            <td>United Kingdom</td>
+            <td>UK</td>
+            <td>2 – 11 business days</td>
+          </tr>
+          <tr>
+            <td>Canada</td>
+            <td>Canada</td>
+            <td>2 – 10 business days</td>
+          </tr>
+          <tr>
+            <td>Australia</td>
+            <td>Australia, New Zealand</td>
+            <td>3 – 17 business days</td>
+          </tr>
+          <tr>
+            <td>European Union</td>
+            <td>Germany, France, Spain, Italy, Netherlands, Belgium, Austria, Sweden, Poland, Denmark, Finland, Ireland, Portugal, Czech Republic, Romania, Greece + more</td>
+            <td>3 – 15 business days</td>
+          </tr>
+          <tr>
+            <td>Norway &amp; Switzerland</td>
+            <td>NO, CH</td>
+            <td>3 – 15 business days</td>
+          </tr>
+          <tr>
+            <td>Latin America</td>
+            <td>Brazil, Mexico, Chile, Colombia, Argentina, Peru + more</td>
+            <td>5 – 25 business days</td>
+          </tr>
+          <tr>
+            <td>Asia Pacific</td>
+            <td>Japan, South Korea, Singapore, India, China, Hong Kong, Taiwan, Malaysia, Thailand, Philippines + more</td>
+            <td>2 – 20 business days</td>
+          </tr>
+          <tr>
+            <td>Middle East</td>
+            <td>UAE, Saudi Arabia, Israel</td>
+            <td>5 – 20 business days</td>
+          </tr>
+          <tr>
+            <td>Rest of world</td>
+            <td>Most supported countries and territories</td>
+            <td>5 – 25 business days</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="shipping-note" style="margin-top:0.75rem;">
+        <strong>Note:</strong> Shipping is <strong>free worldwide</strong> — already included in the price, with nothing added at checkout. Delivery times are estimates and not guaranteed. Shipping is unavailable for Russia, Belarus, Cuba, Iran, North Korea, and Syria.
+      </p>
+    </details>
+
+    <div id="unavailable-notice" style="display:none; margin-top:1.5rem; padding:1rem 1.25rem; border:1px solid rgba(180,80,80,0.35); border-radius:4px; background:rgba(180,60,60,0.06);">
+      <p style="font-size:12px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#c07070; margin:0 0 0.35rem;">Not Available in Your Region</p>
+      <p style="font-size:11px; color:var(--muted); margin:0; line-height:1.6;">Unfortunately, we are unable to ship this physical product to your country at this time due to shipping restrictions.</p>
+    </div>
+
+    <button class="btn btn-primary btn-lg" id="add-to-cart" style="width:100%; justify-content:center; margin-top:1.5rem;">
+      Add to Cart — ${{ "%.2f" | format(formats[0].price_usd) }}
+    </button>
+    <p id="ships-worldwide-note" style="font-size:11px; color:var(--muted); margin-top:0.75rem; text-align:center;">
+      Shipped worldwide · professionally printed and fulfilled
+    </p>
+  </div>
+</div>
+
+{# ── About the mathematics: per-equation + per-collection unique content ── #}
+{% if product_math or collection_math %}
+<section class="section-sm" style="border-top:1px solid var(--border);">
+  <div class="container" style="max-width:760px;">
+    {% if product_math %}
+    <div class="section-header" style="margin-bottom:1.25rem;">
+      <div>
+        <p class="section-label">The mathematics</p>
+        <h2>About this system</h2>
+      </div>
+    </div>
+    <div style="font-size:14px; line-height:1.75; color:var(--fg); opacity:.9;">
+      <p>{{ product_math }}</p>
+    </div>
+    {% endif %}
+
+    {% if collection_math and product.collection != 'desk-mats' %}
+    <div style="margin-top:2.5rem;">
+      <p class="section-label" style="opacity:.7; margin-bottom:0.75rem;">In the {{ collection.name if collection.name else product.collection | replace('-', ' ') | title }} collection</p>
+      <div style="font-size:13px; line-height:1.7; color:var(--fg2); opacity:.85;">
+        <p>{{ collection_math }}</p>
+        {% if collection.equation %}
+        <p style="margin-top:1rem; padding:0.9rem 1.15rem; background:var(--bg2); border:1px solid var(--border); border-radius:6px; font-family:var(--font-mono, monospace); font-size:12px; color:var(--accent); overflow-x:auto;">
+          {{ collection.equation }}
+        </p>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<style>
+  .artwork-panel {
+    border: 1px solid var(--border, #2a2a2a);
+    border-radius: 4px;
+    padding: 0.5rem;
+    background: var(--bg, #080808);
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #preview-img {
+    width: 100%;
+    border-radius: 4px;
+    display: block;
+    max-height: 560px;
+    object-fit: contain;
+  }
+  .format-selector { margin: 1.5rem 0 0; }
+  .format-selector-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted, #888);
+    margin-bottom: 0.6rem;
+  }
+  .format-options { display: flex; flex-direction: column; gap: 0.45rem; }
+  .format-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.7rem 0.9rem;
+    background: transparent;
+    border: 1px solid var(--border, #2a2a2a);
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.15s, background 0.15s;
+    width: 100%;
+  }
+  .format-btn:hover { border-color: var(--fg, #e8e4dc); }
+  .format-btn.active {
+    border-color: var(--accent, #c8a96e);
+    background: rgba(200, 169, 110, 0.07);
+  }
+  .format-btn-info { display: flex; flex-direction: column; gap: 0.15rem; }
+  .format-btn-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--fg, #e8e4dc);
+    letter-spacing: 0.04em;
+  }
+  .format-btn-material {
+    font-size: 10px;
+    color: var(--muted, #888);
+    letter-spacing: 0.04em;
+  }
+  .format-btn-price {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent, #c8a96e);
+    white-space: nowrap;
+    font-family: var(--font-mono, monospace);
+  }
+  .product-specs {
+    margin: 1.5rem 0 0;
+    border-top: 1px solid var(--border, #2a2a2a);
+    border-bottom: 1px solid var(--border, #2a2a2a);
+  }
+  .spec-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--border, #2a2a2a);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
+  .spec-row:last-child { border-bottom: none; }
+  .spec-label {
+    color: var(--muted, #888);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .spec-value {
+    color: var(--fg, #e8e4dc);
+    text-align: right;
+  }
+  .shipping-details {
+    margin-top: 1.25rem;
+    border-top: 1px solid var(--border, #2a2a2a);
+    border-bottom: 1px solid var(--border, #2a2a2a);
+  }
+  .shipping-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.65rem 0;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted, #888);
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+  }
+  .shipping-summary::-webkit-details-marker { display: none; }
+  .shipping-chevron {
+    font-size: 16px;
+    transition: transform 0.2s;
+    line-height: 1;
+  }
+  .shipping-details[open] .shipping-chevron { transform: rotate(180deg); }
+  .shipping-note {
+    font-size: 11px;
+    color: var(--muted, #888);
+    line-height: 1.6;
+    margin: 0.5rem 0 0.75rem;
+  }
+  .shipping-note a {
+    color: var(--accent, #c8a96e);
+    text-decoration: underline;
+  }
+  .shipping-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 0.75rem 0;
+    padding: 0.75rem;
+    background: rgba(200, 169, 110, 0.05);
+    border: 1px solid var(--border, #2a2a2a);
+    border-radius: 4px;
+  }
+  .shipping-method {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+  }
+  .method-name {
+    font-weight: 600;
+    color: var(--fg, #e8e4dc);
+  }
+  .method-desc {
+    color: var(--muted, #888);
+    text-align: right;
+  }
+  .shipping-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    margin-bottom: 0.25rem;
+  }
+  .shipping-table th {
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 10px;
+    color: var(--muted, #888);
+    padding: 0.3rem 0.5rem 0.3rem 0;
+    border-bottom: 1px solid var(--border, #2a2a2a);
+  }
+  .shipping-table td {
+    padding: 0.45rem 0.5rem 0.45rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    color: var(--fg, #e8e4dc);
+    vertical-align: top;
+    line-height: 1.4;
+  }
+  .shipping-table td:first-child { white-space: nowrap; font-weight: 500; }
+  .shipping-table td:nth-child(2) { color: var(--muted, #888); font-size: 10px; }
+  .shipping-table td:last-child { white-space: nowrap; text-align: right; }
+  .shipping-table tr:last-child td { border-bottom: none; }
+  .zoom-lens {
+    position: absolute;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.12);
+    background-repeat: no-repeat;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.04);
+    z-index: 20;
+    background-color: rgba(8,8,8,0.3);
+    backdrop-filter: blur(1px);
+  }
+  .scene-picker {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+  }
+  .scene-btn {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.65rem;
+    background: transparent;
+    border: 1px solid var(--border, #2a2a2a);
+    border-radius: 3px;
+    color: var(--muted, #888);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .scene-btn:hover { border-color: var(--fg, #e8e4dc); color: var(--fg, #e8e4dc); }
+  .scene-btn.active { border-color: var(--accent, #c8a96e); color: var(--accent, #c8a96e); }
+  .mockup-loader {
+    position: absolute;
+    bottom: 0.6rem;
+    right: 0.6rem;
+    display: flex;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+    border-radius: 50%;
+  }
+  .mockup-loader.active { opacity: 1; }
+  .mockup-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(200, 169, 110, 0.2);
+    border-top-color: var(--accent, #c8a96e);
+    border-radius: 50%;
+    animation: mockup-spin 0.8s linear infinite;
+  }
+  @keyframes mockup-spin {
+    to { transform: rotate(360deg); }
+  }
+</style>
+<script>
+  const PRODUCT = {
+    slug: '{{ product.slug }}',
+    name: '{{ product.name }}',
+    collection: '{{ product.collection }}',
+    equation_type: '{{ product.equation_type }}',
+    format_id: '{{ formats[0].id }}',
+    format_label: '{{ formats[0].label }}',
+    price_usd: {{ formats[0].price_usd }},
+    params: {{ params | tojson }},
+  };
+  const FORMATS = {{ formats | tojson }};
+  // Same cache-buster as the server-side mockup cache_key — keeps JS-built mockup
+  // URLs in lock-step with the <img> tags so returning visitors never get a
+  // stale (e.g. watermarked) image from their browser cache.
+  const MOCKUP_V = '{{ mockup_v }}';
+  let selectedFormat = FORMATS[0];
+  let selectedSize = 'L';
+  const PRODUCT_TYPE = PRODUCT.collection === 'desk-mats' ? 'desk_mat' : 'art_print';
+
+  const EXCLUDED_COUNTRIES = {{ excluded_countries | tojson }};
+  if (EXCLUDED_COUNTRIES.length > 0) {
+    fetch('https://ipapi.co/country/', { signal: AbortSignal.timeout(4000) })
+      .then(r => r.text())
+      .then(code => {
+        if (EXCLUDED_COUNTRIES.includes(code.trim().toUpperCase())) {
+          document.getElementById('unavailable-notice').style.display = 'block';
+          document.getElementById('add-to-cart').style.display = 'none';
+          document.getElementById('ships-worldwide-note').style.display = 'none';
+        }
+      })
+      .catch(() => {});
+  }
+
+  function getFixedParams() {
+    const snapshot = {};
+    for (const [key, cfg] of Object.entries(PRODUCT.params || {})) {
+      snapshot[key] = typeof cfg === 'object' && cfg !== null && 'value' in cfg ? cfg.value : cfg;
+    }
+    return snapshot;
+  }
+
+  if (window.mrTrack) {
+    window.mrTrack('product_view', { product_slug: '{{ product.slug }}', value: PRODUCT.price_usd });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const img = document.getElementById('preview-img');
+    const loader = document.getElementById('mockup-loader');
+    const scenePicker = document.getElementById('scene-picker');
+    const addToCartBtn = document.getElementById('add-to-cart');
+
+    function handleMockupError() {
+      const previewSrc = img.dataset.preview;
+      if (previewSrc && !img.src.includes('preview')) img.src = previewSrc;
+      loader.classList.remove('active');
+    }
+
+    if (img.complete && img.naturalWidth === 0) {
+      handleMockupError();
+    } else {
+      img.onerror = handleMockupError;
+      if (img.complete) loader.classList.remove('active');
+      else img.onload = () => loader.classList.remove('active');
+    }
+
+    function formatPrice(value) {
+      return `$${Number(value).toFixed(0)}`;
+    }
+
+    function loadMockup(formatId, onError) {
+      const src = `/api/render/mockup?product=${PRODUCT.slug}&v=${MOCKUP_V}&format=${formatId}`;
+      loader.classList.add('active');
+      const tmp = new Image();
+      tmp.onload = () => {
+        img.style.opacity = '0';
+        requestAnimationFrame(() => {
+          img.src = src;
+          img.style.opacity = '1';
+          loader.classList.remove('active');
+        });
+      };
+      tmp.onerror = () => {
+        loader.classList.remove('active');
+        if (onError) onError();
+      };
+      tmp.src = src;
+    }
+
+    function setSelectedFormat(formatId) {
+      const fmt = FORMATS.find(item => item.id === formatId) || FORMATS[0];
+      selectedFormat = fmt;
+      PRODUCT.format_id = fmt.id;
+      PRODUCT.format_label = fmt.label;
+      PRODUCT.price_usd = Number(fmt.price_usd);
+
+      document.querySelectorAll('.format-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.formatId === fmt.id);
+      });
+      document.getElementById('displayed-price').textContent = formatPrice(fmt.price_usd);
+      addToCartBtn.textContent = `Add to Cart — ${formatPrice(fmt.price_usd)}`;
+      document.getElementById('spec-format').textContent = fmt.label;
+      
+      if ((fmt.id.includes('tshirt') || fmt.id.includes('hoodie') || fmt.id.includes('aop'))) {
+        document.getElementById('size-selector').style.display = 'block';
+        document.getElementById('spec-size').textContent = selectedSize;
+      } else {
+        document.getElementById('size-selector').style.display = 'none';
+        document.getElementById('spec-size').textContent = fmt.size;
+      }
+
+      document.getElementById('spec-material').textContent = fmt.material;
+      document.getElementById('spec-resolution').textContent =
+        `${fmt.print_specs.dpi} DPI · rendered at ${fmt.print_specs.width_px} × ${fmt.print_specs.height_px} px`;
+
+      if (fmt.id === 'poster') {
+        scenePicker.style.display = 'flex';
+        activeFormat = 'poster';
+        document.querySelectorAll('.scene-btn').forEach(b => b.classList.toggle('active', b.dataset.format === 'poster'));
+        loadMockup('poster');
+      } else {
+        scenePicker.style.display = 'none';
+        activeFormat = fmt.id;
+        loadMockup(fmt.id);
+      }
+    }
+
+    document.querySelectorAll('.size-options .scene-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.size-options .scene-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedSize = btn.dataset.size;
+        document.getElementById('spec-size').textContent = selectedSize;
+      });
+    });
+
+    document.querySelectorAll('.format-btn').forEach(btn => {
+      btn.addEventListener('click', () => setSelectedFormat(btn.dataset.formatId));
+    });
+
+    // Apparel has a single format, so setSelectedFormat never fires on load —
+    // reveal the size picker up front so shoppers can choose a size.
+    if ((PRODUCT.format_id.includes('tshirt') || PRODUCT.format_id.includes('hoodie') || PRODUCT.format_id.includes('aop'))) {
+      document.getElementById('size-selector').style.display = 'block';
+      document.getElementById('spec-size').textContent = selectedSize;
+    }
+
+    // Scene toggle: Art (flat poster) / Room (lifestyle)
+    let activeFormat = selectedFormat.id === 'poster' ? 'poster' : selectedFormat.id;
+    if (selectedFormat.id !== 'poster') {
+      scenePicker.style.display = 'none';
+    }
+    document.querySelectorAll('.scene-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const fmt = btn.dataset.format;
+        if (activeFormat === fmt) return;
+        document.querySelectorAll('.scene-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        loadMockup(fmt, () => {
+          document.querySelectorAll('.scene-btn').forEach(b => b.classList.remove('active'));
+          const activeBtn = document.querySelector(`.scene-btn[data-format="${activeFormat}"]`);
+          if (activeBtn) activeBtn.classList.add('active');
+        });
+        activeFormat = fmt;
+      });
+    });
+
+    // Desk-mat and Apparel scene gallery: thumbnails swap the main mockup
+    document.querySelectorAll('.dm-thumb').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const fmt = btn.dataset.mockupFormat;
+        const label = btn.dataset.mockupLabel || '';
+        document.querySelectorAll('.dm-thumb').forEach(b => {
+          b.classList.remove('active');
+          b.style.borderColor = 'var(--border, #2a2a2a)';
+        });
+        btn.classList.add('active');
+        btn.style.borderColor = 'var(--accent, #c8a96e)';
+
+        const img = document.getElementById('preview-img');
+        const loader = document.getElementById('mockup-loader');
+        if (img) {
+          const newSrc = `/api/render/mockup?product=${PRODUCT.slug}&v=${MOCKUP_V}&format=${encodeURIComponent(fmt)}`;
+          if (loader) loader.classList.add('active');
+          img.style.opacity = '0.5';
+          const tmp = new Image();
+          tmp.onload = () => {
+            img.src = newSrc;
+            img.style.opacity = '1';
+            if (loader) loader.classList.remove('active');
+          };
+          tmp.onerror = () => {
+            if (loader) loader.classList.remove('active');
+            img.style.opacity = '1';
+          };
+          tmp.src = newSrc;
+        }
+      });
+    });
+
+    document.getElementById('add-to-cart').addEventListener('click', () => {
+      if (window.mrTrack) window.mrTrack('add_to_cart', { product_slug: PRODUCT.slug, value: PRODUCT.price_usd });
+      const cart = JSON.parse(localStorage.getItem('mr_cart') || '[]');
+      cart.push({
+        slug: PRODUCT.slug,
+        name: PRODUCT.name,
+        collection: PRODUCT.collection,
+        equation_type: PRODUCT.equation_type,
+        format_id: PRODUCT.format_id,
+        format_label: PRODUCT.format_label,
+        size: (PRODUCT.format_id.includes('tshirt') || PRODUCT.format_id.includes('hoodie') || PRODUCT.format_id.includes('aop')) ? selectedSize : null,
+        price_usd: PRODUCT.price_usd,
+        product_type: 'physical',
+        params: getFixedParams(),
+        added_at: Date.now(),
+      });
+      localStorage.setItem('mr_cart', JSON.stringify(cart));
+      window.dispatchEvent(new Event('storage'));
+
+      const btn = document.getElementById('add-to-cart');
+      btn.textContent = 'Added to Cart ✓';
+      btn.style.background = 'var(--accent2)';
+      btn.style.borderColor = 'var(--accent2)';
+      btn.style.color = 'var(--bg)';
+      setTimeout(() => {
+        btn.textContent = `Add to Cart — ${formatPrice(PRODUCT.price_usd)}`;
+        btn.style.background = '';
+        btn.style.borderColor = '';
+        btn.style.color = '';
+      }, 2500);
+    });
+
+    /*
+    tmp.onload = () => {
+          activeFormat = fmt;
+          img.style.opacity = '0';
+          requestAnimationFrame(() => { img.src = src; img.style.opacity = '1'; loader.classList.remove('active'); });
+        };
+        tmp.onerror = () => {
+          document.querySelectorAll('.scene-btn').forEach(b => b.classList.remove('active'));
+          document.querySelector(`.scene-btn[data-format="${activeFormat}"]`).classList.add('active');
+          loader.classList.remove('active');
+        };
+        tmp.src = src;
+      });
+    });
+
+    document.getElementById('add-to-cart').addEventListener('click', () => {
+      const cart = JSON.parse(localStorage.getItem('mr_cart') || '[]');
+      cart.push({
+        slug: PRODUCT.slug,
+        name: PRODUCT.name,
+        collection: PRODUCT.collection,
+        equation_type: PRODUCT.equation_type,
+        format_id: PRODUCT.format_id,
+        format_label: PRODUCT.format_label,
+        price_usd: PRODUCT.price_usd,
+        params: getFixedParams(),
+        added_at: Date.now(),
+      });
+      localStorage.setItem('mr_cart', JSON.stringify(cart));
+      window.dispatchEvent(new Event('storage'));
+
+      const btn = document.getElementById('add-to-cart');
+      btn.textContent = 'Added to Cart ✓';
+      btn.style.background = 'var(--accent2)';
+      btn.style.borderColor = 'var(--accent2)';
+      btn.style.color = 'var(--bg)';
+      setTimeout(() => {
+        btn.textContent = 'Add to Cart — ${{ "%.2f" | format(formats[0].price_usd) }}';
+        btn.style.background = '';
+        btn.style.borderColor = '';
+        btn.style.color = '';
+      }, 2500);
+    });
+    */
+
+    // Zoom lens — desktop only (skip on touch devices)
+    (function initZoomLens() {
+      if (window.matchMedia('(hover: none)').matches) return;
+      const img = document.getElementById('preview-img');
+      const lens = document.getElementById('zoom-lens');
+      const panel = document.querySelector('.artwork-panel');
+      if (!img || !lens || !panel) return;
+
+      const ZOOM = 4.0;
+      const LENS_SIZE = 220;
+
+      function updateLensBg() {
+        lens.style.backgroundImage = 'url(' + img.src + ')';
+      }
+
+      img.addEventListener('load', updateLensBg);
+      updateLensBg();
+
+      panel.addEventListener('mouseenter', function() { lens.style.opacity = '1'; });
+      panel.addEventListener('mouseleave', function() { lens.style.opacity = '0'; });
+
+      panel.addEventListener('mousemove', function(e) {
+        const rect = img.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        if (x < 0 || x > rect.width || y < 0 || y > rect.height) {
+          lens.style.opacity = '0';
+          return;
+        }
+        lens.style.opacity = '1';
+
+        const panelRect = panel.getBoundingClientRect();
+        const lensX = e.clientX - panelRect.left - LENS_SIZE / 2;
+        const lensY = e.clientY - panelRect.top - LENS_SIZE / 2;
+        lens.style.left = lensX + 'px';
+        lens.style.top = lensY + 'px';
+
+        lens.style.backgroundSize = (rect.width * ZOOM) + 'px ' + (rect.height * ZOOM) + 'px';
+        lens.style.backgroundPosition = '-' + (x * ZOOM - LENS_SIZE / 2) + 'px -' + (y * ZOOM - LENS_SIZE / 2) + 'px';
+      });
+    })();
+  });
+</script>
+<script>
+  // Background-preload every mockup variant of this product so switching
+  // scenes/formats is instant. Uncached variants trigger a Printful render
+  // (~7s server-side, then cached on disk forever), so requests are staggered
+  // to avoid stampeding the API while the visitor is still reading the page.
+  window.addEventListener('load', function () {
+    var slug = decodeURIComponent(location.pathname.split('/').pop() || '');
+    if (!slug) return;
+    var fmts = [];
+    var seen = {};
+    function addFmt(f) { if (f && !seen[f]) { seen[f] = 1; fmts.push(f); } }
+    document.querySelectorAll('.format-btn[data-format-id]').forEach(function (b) { addFmt(b.dataset.formatId); });
+    document.querySelectorAll('.scene-btn[data-format]').forEach(function (b) { addFmt(b.dataset.format); });
+    document.querySelectorAll('.dm-thumb[data-mockup-format]').forEach(function (b) { addFmt(b.dataset.mockupFormat); });
+    var delay = 1500;
+    fmts.forEach(function (f) {
+      setTimeout(function () {
+        var im = new Image();
+        im.src = '/api/render/mockup?product=' + encodeURIComponent(slug) + '&v={{ mockup_v }}&format=' + encodeURIComponent(f);
+      }, delay);
+      delay += 800;
+    });
+  });
+</script>
+{% endblock %}

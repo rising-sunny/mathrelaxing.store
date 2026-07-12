@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>MathRelaxing Pinterest Publisher</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #14120f;
+      --muted: #6d6860;
+      --paper: #f7f2ea;
+      --panel: #fffaf2;
+      --line: #d9cfc1;
+      --accent: #b42032;
+      --accent-dark: #7d1827;
+      --blue: #245f73;
+      --green: #287052;
+      --shadow: 0 20px 60px rgba(44, 31, 16, 0.14);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background:
+        linear-gradient(120deg, rgba(180, 32, 50, 0.08), transparent 38%),
+        radial-gradient(circle at top right, rgba(36, 95, 115, 0.14), transparent 35%),
+        var(--paper);
+      color: var(--ink);
+      font-family: Georgia, "Times New Roman", serif;
+      min-height: 100vh;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    .shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 48px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 6vw, 4.7rem);
+      line-height: 0.92;
+      letter-spacing: 0;
+      max-width: 740px;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font: 700 12px/1.2 ui-monospace, "SFMono-Regular", Consolas, monospace;
+      text-transform: uppercase;
+    }
+
+    .status {
+      display: grid;
+      gap: 8px;
+      min-width: 260px;
+      color: var(--muted);
+      font-size: 14px;
+      text-align: right;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 7px 11px;
+      border: 1px solid var(--line);
+      background: rgba(255, 250, 242, 0.76);
+      border-radius: 999px;
+      color: var(--ink);
+      font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .pill.good { border-color: rgba(40, 112, 82, 0.35); color: var(--green); }
+    .pill.warn { border-color: rgba(180, 32, 50, 0.35); color: var(--accent); }
+    .pill.mode { border-color: rgba(36, 95, 115, 0.32); color: var(--blue); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(340px, 0.95fr);
+      gap: 22px;
+      align-items: start;
+      margin-top: 26px;
+    }
+
+    .panel {
+      background: rgba(255, 250, 242, 0.88);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .panel-body { padding: 20px; }
+
+    .connect-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      appearance: none;
+      border: 1px solid transparent;
+      background: var(--ink);
+      color: white;
+      min-height: 42px;
+      padding: 10px 15px;
+      border-radius: 7px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 150ms ease, background 150ms ease, border-color 150ms ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn.primary { background: var(--accent); }
+    .btn.primary:hover { background: var(--accent-dark); }
+    .btn.secondary {
+      background: transparent;
+      color: var(--ink);
+      border-color: var(--line);
+    }
+    .btn:disabled {
+      opacity: 0.56;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 15px;
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .field-with-action {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 10px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #fffdf8;
+      color: var(--ink);
+      border-radius: 7px;
+      padding: 11px 12px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 132px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: rgba(36, 95, 115, 0.6);
+      box-shadow: 0 0 0 3px rgba(36, 95, 115, 0.12);
+    }
+
+    .preview {
+      display: grid;
+      gap: 14px;
+    }
+
+    .preview-frame {
+      background: #201d19;
+      border: 1px solid #2f2a24;
+      border-radius: 8px;
+      overflow: hidden;
+      aspect-ratio: 4 / 5;
+      display: grid;
+      place-items: center;
+    }
+
+    .preview-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .product-meta {
+      display: grid;
+      gap: 7px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.42);
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .product-meta strong {
+      color: var(--ink);
+      font-size: 18px;
+    }
+
+    .result {
+      display: none;
+      margin-top: 16px;
+      border: 1px solid rgba(40, 112, 82, 0.28);
+      background: rgba(40, 112, 82, 0.08);
+      color: var(--green);
+      border-radius: 8px;
+      padding: 13px;
+      font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .result.error {
+      border-color: rgba(180, 32, 50, 0.32);
+      background: rgba(180, 32, 50, 0.08);
+      color: var(--accent);
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      margin: 0;
+    }
+
+    @media (max-width: 860px) {
+      .topbar {
+        display: grid;
+        align-items: start;
+      }
+      .status { text-align: left; }
+      .grid { grid-template-columns: 1fr; }
+      .field-with-action { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="topbar">
+      <div>
+        <p class="eyebrow">MathRelaxing internal tool</p>
+        <h1>Pinterest Publisher</h1>
+      </div>
+      <div class="status">
+        <span id="configured-pill" class="pill warn">Checking app config</span>
+        <span id="connected-pill" class="pill warn">Pinterest not connected</span>
+        <span id="api-pill" class="pill mode">Checking API mode</span>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Publish a Product Pin</h2>
+          <button id="refresh-btn" class="btn secondary" type="button">Refresh</button>
+        </div>
+        <div class="panel-body">
+          <div class="form-grid">
+            <div class="connect-row">
+              <a id="connect-link" class="btn primary" href="/api/pinterest/oauth/start">Connect Pinterest</a>
+              <p id="account-line" class="small">Connect the MathRelaxing Pinterest account before publishing.</p>
+            </div>
+
+            <div class="field-with-action">
+              <label>
+                Board
+                <select id="board-select"></select>
+              </label>
+              <button id="create-board-btn" class="btn secondary" type="button">Create Demo Board</button>
+            </div>
+
+            <label>
+              Product
+              <select id="product-select"></select>
+            </label>
+
+            <label>
+              Pin title
+              <input id="pin-title" maxlength="100" placeholder="Math art product title">
+            </label>
+
+            <label>
+              Description
+              <textarea id="pin-description" maxlength="800"></textarea>
+            </label>
+
+            <label>
+              Destination link
+              <input id="pin-link" placeholder="https://mathrelaxing.store/bundle/...">
+            </label>
+
+            <label>
+              Image URL
+              <input id="pin-image" placeholder="https://mathrelaxing.store/api/render/preview?...">
+            </label>
+
+            <button id="publish-btn" class="btn primary" type="button">Publish Pin</button>
+            <div id="result" class="result"></div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="panel">
+        <div class="panel-head">
+          <h2>Pin Preview</h2>
+          <span class="pill">Organic Pin</span>
+        </div>
+        <div class="panel-body preview">
+          <div class="preview-frame">
+            <img id="preview-img" alt="Selected MathRelaxing product preview">
+          </div>
+          <div class="product-meta">
+            <strong id="preview-title">Select a product</strong>
+            <span id="preview-type">Product metadata will appear here.</span>
+            <span id="preview-link"></span>
+          </div>
+          <p class="small">
+            The demo should show OAuth, board selection, product selection, and the API response after creating the Pin.
+          </p>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const state = {
+      products: [],
+      boards: [],
+      connected: false,
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function setResult(message, isError = false) {
+      const box = $('result');
+      box.textContent = typeof message === 'string' ? message : JSON.stringify(message, null, 2);
+      box.classList.toggle('error', isError);
+      box.style.display = 'block';
+    }
+
+    async function api(path, options = {}) {
+      const resp = await fetch(path, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(options.headers || {}),
+        },
+      });
+      const text = await resp.text();
+      let data = {};
+      try { data = text ? JSON.parse(text) : {}; }
+      catch (_) { data = { raw: text }; }
+      if (!resp.ok) throw new Error(data.detail || text || `Request failed: ${resp.status}`);
+      return data;
+    }
+
+    function boardItems(data) {
+      if (Array.isArray(data.items)) return data.items;
+      if (Array.isArray(data)) return data;
+      return [];
+    }
+
+    function renderStatus(status) {
+      $('configured-pill').textContent = status.configured ? 'Pinterest app configured' : 'Pinterest app missing config';
+      $('configured-pill').className = `pill ${status.configured ? 'good' : 'warn'}`;
+      $('connected-pill').textContent = status.connected ? 'Pinterest connected' : 'Pinterest not connected';
+      $('connected-pill').className = `pill ${status.connected ? 'good' : 'warn'}`;
+      $('api-pill').textContent = status.environment === 'sandbox' ? 'Sandbox API' : 'Production API';
+      $('api-pill').className = `pill ${status.environment === 'sandbox' ? 'mode' : 'good'}`;
+      state.connected = status.connected;
+
+      const account = status.account || {};
+      const accountName = account.username || account.business_name || account.account_type;
+      const apiLine = status.api_base ? ` API: ${status.api_base}` : '';
+      $('account-line').textContent = accountName
+        ? `Connected as ${accountName}. Redirect URI: ${status.redirect_uri}.${apiLine}`
+        : `Redirect URI: ${status.redirect_uri}.${apiLine}`;
+    }
+
+    function renderProducts() {
+      const select = $('product-select');
+      select.innerHTML = '';
+      state.products.forEach((product) => {
+        const option = document.createElement('option');
+        option.value = product.slug;
+        option.textContent = `${product.name} (${product.product_type.replaceAll('_', ' ')})`;
+        select.appendChild(option);
+      });
+      if (state.products.length) select.value = state.products[0].slug;
+      applyProduct();
+    }
+
+    function renderBoards() {
+      const select = $('board-select');
+      select.innerHTML = '';
+      if (!state.boards.length) {
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = state.connected ? 'No boards returned by Pinterest' : 'Connect Pinterest first';
+        select.appendChild(option);
+        $('create-board-btn').disabled = !state.connected;
+        return;
+      }
+      state.boards.forEach((board) => {
+        const option = document.createElement('option');
+        option.value = board.id;
+        option.textContent = board.name || board.id;
+        select.appendChild(option);
+      });
+      $('create-board-btn').disabled = !state.connected;
+    }
+
+    function selectedProduct() {
+      return state.products.find((product) => product.slug === $('product-select').value);
+    }
+
+    function applyProduct() {
+      const product = selectedProduct();
+      if (!product) return;
+      $('pin-title').value = product.title;
+      $('pin-description').value = product.description;
+      $('pin-link').value = product.link;
+      $('pin-image').value = product.image_url;
+      $('preview-img').src = product.image_url;
+      $('preview-title').textContent = product.name;
+      $('preview-type').textContent = `${product.product_type.replaceAll('_', ' ')} | $${Math.round(product.price_usd)}`;
+      $('preview-link').textContent = product.link;
+    }
+
+    async function loadAll() {
+      $('result').style.display = 'none';
+      const status = await api('/api/pinterest/status');
+      renderStatus(status);
+
+      const products = await api('/api/pinterest/products');
+      state.products = products.items || [];
+      renderProducts();
+
+      if (status.connected) {
+        const boards = await api('/api/pinterest/boards');
+        state.boards = boardItems(boards);
+      } else {
+        state.boards = [];
+      }
+      renderBoards();
+    }
+
+    async function publishPin() {
+      const payload = {
+        board_id: $('board-select').value,
+        product_slug: $('product-select').value,
+        title: $('pin-title').value.trim(),
+        description: $('pin-description').value.trim(),
+        link: $('pin-link').value.trim(),
+        image_url: $('pin-image').value.trim(),
+      };
+      if (!payload.board_id) {
+        setResult('Select a Pinterest board before publishing.', true);
+        return;
+      }
+      const btn = $('publish-btn');
+      btn.disabled = true;
+      btn.textContent = 'Publishing...';
+      try {
+        const result = await api('/api/pinterest/pins', {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        });
+        setResult(result);
+      } catch (err) {
+        setResult(err.message, true);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Publish Pin';
+      }
+    }
+
+    async function createDemoBoard() {
+      if (!state.connected) {
+        setResult('Connect Pinterest before creating a board.', true);
+        return;
+      }
+      const btn = $('create-board-btn');
+      btn.disabled = true;
+      btn.textContent = 'Creating...';
+      try {
+        const result = await api('/api/pinterest/boards', {
+          method: 'POST',
+          body: JSON.stringify({
+            name: 'MathRelaxing Demo Board',
+            description: 'Sandbox board used to demonstrate Pinterest API publishing from MathRelaxing.',
+          }),
+        });
+        setResult(result);
+        const boards = await api('/api/pinterest/boards');
+        state.boards = boardItems(boards);
+        renderBoards();
+        if (result.board && result.board.id) $('board-select').value = result.board.id;
+      } catch (err) {
+        setResult(err.message, true);
+      } finally {
+        btn.disabled = !state.connected;
+        btn.textContent = 'Create Demo Board';
+      }
+    }
+
+    $('refresh-btn').addEventListener('click', () => loadAll().catch((err) => setResult(err.message, true)));
+    $('product-select').addEventListener('change', applyProduct);
+    $('publish-btn').addEventListener('click', publishPin);
+    $('create-board-btn').addEventListener('click', createDemoBoard);
+
+    loadAll().catch((err) => setResult(err.message, true));
+  </script>
+</body>
+</html>

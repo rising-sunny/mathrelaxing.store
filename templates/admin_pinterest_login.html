@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>MathRelaxing Pinterest Login</title>
+  <style>
+    :root {
+      --ink: #17130f;
+      --muted: #70685e;
+      --paper: #f7f0e6;
+      --panel: #fffaf2;
+      --line: #d8ccbc;
+      --accent: #b92035;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      background:
+        linear-gradient(135deg, rgba(185, 32, 53, 0.1), transparent 42%),
+        radial-gradient(circle at 80% 10%, rgba(30, 96, 116, 0.16), transparent 32%),
+        var(--paper);
+      color: var(--ink);
+      font-family: Georgia, "Times New Roman", serif;
+      padding: 24px;
+    }
+
+    .card {
+      width: min(460px, 100%);
+      background: rgba(255, 250, 242, 0.92);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 24px 70px rgba(40, 29, 18, 0.16);
+      padding: 28px;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font: 700 12px/1.2 ui-monospace, "SFMono-Regular", Consolas, monospace;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: 42px;
+      line-height: 0.95;
+      letter-spacing: 0;
+    }
+
+    p {
+      color: var(--muted);
+      line-height: 1.45;
+      margin: 0 0 22px;
+    }
+
+    form {
+      display: grid;
+      gap: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    input {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #fffdf8;
+      color: var(--ink);
+      border-radius: 7px;
+      padding: 12px;
+      font: inherit;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: rgba(30, 96, 116, 0.62);
+      box-shadow: 0 0 0 3px rgba(30, 96, 116, 0.12);
+    }
+
+    button {
+      min-height: 44px;
+      border: 0;
+      border-radius: 7px;
+      background: var(--accent);
+      color: white;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .error {
+      color: var(--accent);
+      border: 1px solid rgba(185, 32, 53, 0.25);
+      background: rgba(185, 32, 53, 0.08);
+      border-radius: 7px;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <p class="eyebrow">MathRelaxing internal tool</p>
+    <h1>Pinterest Login</h1>
+    <p>Sign in to connect Pinterest and publish product Pins from MathRelaxing.</p>
+
+    {% if error %}
+      <div class="error">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" action="/admin/pinterest/login">
+      <label>
+        Username
+        <input name="username" autocomplete="username" required autofocus>
+      </label>
+      <label>
+        Password
+        <input name="password" type="password" autocomplete="current-password" required>
+      </label>
+      <button type="submit">Open Pinterest Publisher</button>
+    </form>
+  </main>
+</body>
+</html>

@@ -1,0 +1,384 @@
+{% extends "base.html" %}
+
+{% block title %}MathRelaxing{% endblock %}
+{% block description %}Digital mathematical art bundles, 4K loops, creator assets, and art prints generated from real equations. Instant downloads from MathRelaxing.{% endblock %}
+
+{% block head %}
+<style>
+  .hero-reassure{margin-top:1.1rem;font-size:.8rem;color:var(--muted,#9a978f);letter-spacing:.01em;}
+  @media(max-width:560px){
+    .hero-reassure{font-size:.72rem;}
+    .hero-cta{flex-wrap:wrap;gap:.6rem;}
+    .hero-cta .btn-lg{width:100%;text-align:center;justify-content:center;}
+  }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "MathRelaxing",
+  "url": "https://mathrelaxing.store",
+  "logo": "https://mathrelaxing.store/static/img/logo-sm.png",
+  "description": "Digital mathematical art bundles. 4K images, animations, and creator assets generated from real equations. Instant download.",
+  "sameAs": ["https://www.youtube.com/@MathRelaxing"]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── 1. Hero ─────────────────────────────────────────────────────────── -->
+<section class="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-content">
+    <p class="hero-tag">Mathematical Art · Prints &amp; Digital</p>
+    <h1>Art Born<br> from Equations</h1>
+    <p>Premium apparel and coloring books featuring art generated from real mathematics.</p>
+    <div class="hero-cta">
+      <a href="/collection/apparel" class="btn btn-primary btn-lg">Shop Apparel</a>
+      <a href="/#coloring-books" class="btn btn-outline btn-lg">Coloring Books</a>
+    </div>
+    <p class="hero-reassure">🔒 Secure PayPal checkout · ✓ Worldwide shipping</p>
+  </div>
+  <div class="scroll-indicator">
+    <span></span>
+    Scroll
+  </div>
+</section>
+
+<!-- ── 2. Marquee ─────────────────────────────────────────────────────── -->
+<div class="marquee-wrap">
+  <div class="marquee-track" id="marquee-track">
+    <span class="marquee-item"><span>✦</span>Premium T-Shirts</span>
+    <span class="marquee-item"><span>✦</span>Soft Hoodies</span>
+    <span class="marquee-item"><span>✦</span>Coloring Books</span>
+    <span class="marquee-item"><span>✦</span>Mathematical Art</span>
+    <span class="marquee-item"><span>✦</span>Premium T-Shirts</span>
+    <span class="marquee-item"><span>✦</span>Soft Hoodies</span>
+    <span class="marquee-item"><span>✦</span>Coloring Books</span>
+    <span class="marquee-item"><span>✦</span>Mathematical Art</span>
+    <span class="marquee-item"><span>✦</span>Premium T-Shirts</span>
+    <span class="marquee-item"><span>✦</span>Soft Hoodies</span>
+    <span class="marquee-item"><span>✦</span>Coloring Books</span>
+    <span class="marquee-item"><span>✦</span>Mathematical Art</span>
+    <span class="marquee-item"><span>✦</span>Premium T-Shirts</span>
+    <span class="marquee-item"><span>✦</span>Soft Hoodies</span>
+    <!-- duplicated for infinite scroll -->
+    <span class="marquee-item"><span>✦</span>Premium T-Shirts</span>
+    <span class="marquee-item"><span>✦</span>Soft Hoodies</span>
+    <span class="marquee-item"><span>✦</span>Coloring Books</span>
+    <span class="marquee-item"><span>✦</span>Mathematical Art</span>
+    <span class="marquee-item"><span>✦</span>Premium T-Shirts</span>
+    <span class="marquee-item"><span>✦</span>Soft Hoodies</span>
+    <span class="marquee-item"><span>✦</span>Coloring Books</span>
+    <span class="marquee-item"><span>✦</span>Mathematical Art</span>
+    <span class="marquee-item"><span>✦</span>Premium T-Shirts</span>
+    <span class="marquee-item"><span>✦</span>Soft Hoodies</span>
+    <span class="marquee-item"><span>✦</span>Coloring Books</span>
+    <span class="marquee-item"><span>✦</span>Mathematical Art</span>
+    <span class="marquee-item"><span>✦</span>Premium T-Shirts</span>
+  </div>
+</div>
+
+
+
+<!-- ── Printed Coloring Books (physical · drop-ship) ───────────────────── -->
+<section class="section book-promo" id="coloring-books">
+  <div class="container">
+    <div style="text-align:center; margin-bottom: 3rem;">
+      <p class="section-label book-promo-label" style="margin-bottom:0.5rem;">Physical Books</p>
+      <h2 style="color:#fff;">Printed Coloring Books</h2>
+    </div>
+
+    <!-- Fractal Flora -->
+    <div class="book-promo-grid" style="margin-bottom: 4rem;">
+      <div class="book-promo-text">
+        <p class="section-label book-promo-label">New · Printed Book</p>
+        <h2>Fractal Flora</h2>
+        <p class="book-promo-lead">Step into the forest of mathematics. 50 unique space-filling curves and algorithmic gardens generated using Lindenmayer systems. A 54-page perfect-bound paperback, printed to order and shipped to your door.</p>
+        <ul class="book-promo-feats">
+          <li><span>✦</span> 50 geometric line-art pages to colour</li>
+          <li><span>✦</span> 8.5 × 11 in · matte cover · 90gsm uncoated paper</li>
+          <li><span>✦</span> Free shipping to the US, UK, Europe &amp; Australia</li>
+          <li><span>✦</span> Delivery: US &amp; UK 6–9 · Europe 7–13 · Australia 8–14 business days</li>
+        </ul>
+        <p class="book-promo-price"><strong>$14.99</strong><span>Free shipping</span></p>
+        <a href="/book/fractal-flora-coloring-book" class="btn btn-primary btn-lg">Get the Book &rarr;</a>
+      </div>
+      <a href="/book/fractal-flora-coloring-book" class="book-promo-cover" aria-label="View the Fractal Flora coloring book">
+        <img src="/static/img/fractal_flora_cover.png?v=5"
+             alt="Fractal Flora — printed coloring book cover"
+             loading="lazy" width="460" height="595">
+      </a>
+    </div>
+
+    <!-- Harmonograph Dreams -->
+    <div class="book-promo-grid" style="margin-bottom: 4rem;">
+      <a href="/book/harmonograph-dreams-coloring-book" class="book-promo-cover" aria-label="View the Harmonograph Dreams coloring book">
+        <img src="/static/img/harmonograph_dreams_cover.png"
+             alt="Harmonograph Dreams — printed coloring book cover"
+             loading="lazy" width="460" height="595">
+      </a>
+      <div class="book-promo-text">
+        <p class="section-label book-promo-label">New · Printed Book</p>
+        <h2>Harmonograph Dreams</h2>
+        <p class="book-promo-lead">50 unique designs based on the physical motion of coupled pendulums. A 54-page perfect-bound paperback, printed to order and shipped to your door.</p>
+        <ul class="book-promo-feats">
+          <li><span>✦</span> 50 hand-crafted line-art pages to colour</li>
+          <li><span>✦</span> 8.5 × 11 in · matte cover · 90gsm uncoated paper</li>
+          <li><span>✦</span> Free shipping to the US, UK, Europe &amp; Australia</li>
+          <li><span>✦</span> Delivery: US &amp; UK 6–9 · Europe 7–13 · Australia 8–14 business days</li>
+        </ul>
+        <p class="book-promo-price"><strong>$14.99</strong><span>Free shipping</span></p>
+        <a href="/book/harmonograph-dreams-coloring-book" class="btn btn-primary btn-lg">Get the Book &rarr;</a>
+      </div>
+    </div>
+
+    <!-- Sacred Harmonics -->
+    <div class="book-promo-grid" style="margin-bottom: 4rem;">
+      <a href="/book/sacred-harmonics-coloring-book" class="book-promo-cover" aria-label="View the Sacred Harmonics coloring book">
+        <img src="/static/img/sacred_harmonics_cover.png"
+             alt="Sacred Harmonics — printed coloring book cover"
+             loading="lazy" width="460" height="595">
+      </a>
+      <div class="book-promo-text">
+        <h2>Sacred Harmonics</h2>
+        <p class="book-promo-lead">50 unique designs based on the vibrational patterns of Chladni plates and acoustic resonances. A 54-page perfect-bound paperback, printed to order and shipped to your door.</p>
+        <ul class="book-promo-feats">
+          <li><span>✦</span> 50 hand-crafted line-art pages to colour</li>
+          <li><span>✦</span> 8.5 × 11 in · matte cover · 90gsm uncoated paper</li>
+          <li><span>✦</span> Free shipping to the US, UK, Europe &amp; Australia</li>
+          <li><span>✦</span> Delivery: US &amp; UK 6–9 · Europe 7–13 · Australia 8–14 business days</li>
+        </ul>
+        <p class="book-promo-price"><strong>$14.99</strong><span>Free shipping</span></p>
+        <a href="/book/sacred-harmonics-coloring-book" class="btn btn-primary btn-lg">Get the Book &rarr;</a>
+      </div>
+    </div>
+
+    <!-- Tangle Art -->
+    <div class="book-promo-grid" style="margin-bottom: 4rem;">
+      <div class="book-promo-text">
+        <h2>Mathematical Tangle Art</h2>
+        <p class="book-promo-lead">50 unique designs traced from real mathematics — Lissajous figures, polar roses, spirographs, hypocycloids and more. A 54-page perfect-bound paperback, printed to order and shipped to your door.</p>
+        <ul class="book-promo-feats">
+          <li><span>✦</span> 50 hand-crafted line-art pages to colour</li>
+          <li><span>✦</span> 8.5 × 11 in · matte cover · 90gsm uncoated paper</li>
+          <li><span>✦</span> Free shipping to the US, UK, Europe &amp; Australia</li>
+          <li><span>✦</span> Delivery: US &amp; UK 6–9 · Europe 7–13 · Australia 8–14 business days</li>
+        </ul>
+        <p class="book-promo-price"><strong>$14.99</strong><span>Free shipping</span></p>
+        <a href="/book/mathematical-tangle-art-coloring-book" class="btn btn-primary btn-lg">Get the Book &rarr;</a>
+      </div>
+      <a href="/book/mathematical-tangle-art-coloring-book" class="book-promo-cover" aria-label="View the Mathematical Tangle Art coloring book">
+        <img src="/static/img/book_cover.png"
+             alt="Mathematical Tangle Art — printed coloring book cover"
+             loading="lazy" width="460" height="595">
+      </a>
+    </div>
+
+    <!-- Sacred Geometry & Topology -->
+    <div class="book-promo-grid">
+      <a href="/book/sacred-geometry-coloring-book" class="book-promo-cover" aria-label="View the Sacred Geometry & Topology coloring book">
+        <img src="/static/img/sacred_math_cover.png?v=6"
+             alt="Sacred Geometry & Topology — printed coloring book cover"
+             loading="lazy" width="460" height="595">
+      </a>
+      <div class="book-promo-text">
+        <p class="section-label book-promo-label">New · Printed Book</p>
+        <h2>Sacred Geometry & Topology</h2>
+        <p class="book-promo-lead">50 unique 3D models transformed into geometric colour-by-number masterpieces. Featuring mathematical pre-filling for the ultimate colouring experience. A 54-page perfect-bound paperback, printed to order and shipped to your door.</p>
+        <ul class="book-promo-feats">
+          <li><span>✦</span> 50 hand-crafted low-poly designs to colour</li>
+          <li><span>✦</span> Pre-filled small polygons for comfortable colouring</li>
+          <li><span>✦</span> 8.5 × 11 in · matte cover · 90gsm uncoated paper</li>
+          <li><span>✦</span> Free shipping to the US, UK, Europe &amp; Australia</li>
+        </ul>
+        <p class="book-promo-price"><strong>$14.99</strong><span>Free shipping</span></p>
+        <a href="/book/sacred-geometry-coloring-book" class="btn btn-primary btn-lg">Get the Book &rarr;</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .book-promo {
+    background:
+      radial-gradient(120% 140% at 85% 15%, rgba(77,42,90,.55), transparent 60%),
+      linear-gradient(135deg, #1F1834 0%, #2A1F45 55%, #4D2A5A 120%);
+    border-top: 1px solid rgba(230,184,92,.25);
+    border-bottom: 1px solid rgba(230,184,92,.25);
+  }
+  .book-promo-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: 3.5rem;
+    align-items: center;
+  }
+  .book-promo-cover img {
+    width: 100%; height: auto; display: block;
+    border-radius: 8px;
+    box-shadow: 0 28px 70px rgba(0,0,0,.55);
+    transition: transform .3s ease;
+  }
+  .book-promo-cover:hover img { transform: translateY(-6px) rotate(-.6deg); }
+  .book-promo-label { color: #E6B85C; }
+  .book-promo-text h2 { color: #fff; margin: .3rem 0 1rem; }
+  .book-promo-lead { color: rgba(255,255,255,.82); line-height: 1.65; max-width: 46ch; }
+  .book-promo-feats { list-style: none; padding: 0; margin: 1.4rem 0; }
+  .book-promo-feats li {
+    display: flex; gap: .6rem; align-items: baseline;
+    color: rgba(255,255,255,.82); font-size: 14px; padding: .35rem 0;
+  }
+  .book-promo-feats li span { color: #E6B85C; }
+  .book-promo-price { display: flex; align-items: baseline; gap: .9rem; margin: 1.5rem 0; }
+  .book-promo-price strong { color: #fff; font-size: 2rem; font-weight: 600; }
+  .book-promo-price span {
+    font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: #34d399;
+    border: 1px solid rgba(52,211,153,.45); border-radius: 99px; padding: .2rem .7rem;
+  }
+  @media (max-width: 820px) {
+    .book-promo-grid { grid-template-columns: 1fr; gap: 2rem; }
+    .book-promo-cover { max-width: 320px; margin: 0 auto; }
+    .book-promo-text { text-align: center; }
+    .book-promo-lead { margin-inline: auto; }
+    .book-promo-feats li { justify-content: center; text-align: left; }
+    .book-promo-price { justify-content: center; }
+  }
+</style>
+
+<!-- ── 4. Featured bundles ───────────────────────────────────────────── -->
+<section class="section" id="bundles" style="background: var(--bg2);">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <p class="section-label">Our Apparel</p>
+        <h2>Featured Clothing</h2>
+      </div>
+    </div>
+    <div class="products-grid">
+      {% for p in featured %}
+      <a href="/product/{{ p.slug }}" class="product-card">
+        <div class="product-card-image">
+          {% set fmt = 'unisex_hoodie' if 'hoodie' in p.slug else 'unisex_tshirt' %}
+          <img class="product-card-canvas"
+               src="/api/render/mockup?product={{ p.slug }}&format={{ fmt }}"
+               alt="{{ p.name }} — premium mathematical apparel"
+               loading="lazy"
+               decoding="async">
+        </div>
+        <div class="product-card-body">
+          <div class="product-card-collection">{{ p.collection | replace('-', ' ') | title }}</div>
+          <div class="product-card-name">{{ p.name }}</div>
+          <div class="product-card-footer">
+            <div class="product-price">
+              <span class="product-price-from">From</span>
+              ${{ "%.0f" | format(p.price_usd) }}
+            </div>
+            <span class="btn btn-sm btn-outline">View →</span>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── 5. Stationery & Accessories ─────────────────────────────── -->
+<section class="section" style="background: var(--bg1);">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <p class="section-label">Stationery</p>
+        <h2>Premium Notebooks</h2>
+      </div>
+    </div>
+    <div class="products-grid">
+      {% for nb in notebooks %}
+      <a href="/product/{{ nb.slug }}" class="product-card">
+        <div class="product-card-image">
+          <img class="product-card-canvas"
+               src="/api/render/mockup?product={{ nb.slug }}&format=spiral_notebook"
+               alt="{{ nb.name }} — mathematical notebook"
+               loading="lazy"
+               decoding="async">
+        </div>
+        <div class="product-card-body">
+          <div class="product-card-collection">Notebooks</div>
+          <div class="product-card-name">{{ nb.name }}</div>
+          <div class="product-card-footer">
+            <div class="product-price">
+              <span class="product-price-from"></span>
+              ${{ "%.2f" | format(nb.price_usd) }}
+            </div>
+            <span class="btn btn-sm btn-outline">View →</span>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── 6. About ───────────────────────────────────────────────────────── -->
+<section class="section">
+  <div class="container">
+    <div class="about-grid">
+      <div class="about-canvas-wrap">
+        <canvas id="about-canvas" class="about-canvas" width="600" height="600"></canvas>
+      </div>
+      <div class="about-text">
+        <p class="about-tag">Our Story</p>
+        <h2>Mathematics is<br>the oldest art</h2>
+        <p>Every pattern in this collection emerges from equations — not from brushstrokes or pixels placed by hand. The Lorenz system describes atmospheric convection. The Julia set is the boundary between order and chaos in the complex plane. Lissajous figures are the geometry of resonance made visible.</p>
+        <p>We explore these systems parametrically, curating the most visually striking configurations. We take these intricate forms and bring them to the physical world. Each design is carefully composed for premium apparel and high-quality printed coloring books.</p>
+        <p style="margin-top: 1.5rem;">
+          <a href="/about" class="btn btn-outline">Read more</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- ── 6. Process ─────────────────────────────────────────────────────── -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <p class="section-label">How it works</p>
+        <h2>From Equation<br>to Your Screen</h2>
+      </div>
+    </div>
+    <div class="process-grid">
+      <div class="process-step">
+        <div class="process-number">01</div>
+        <h3>Find Your Design</h3>
+        <p>Explore mathematics rendered into striking visual forms, from chaotic attractors to harmonic geometry.</p>
+      </div>
+      <div class="process-step">
+        <div class="process-number">02</div>
+        <h3>Premium Quality</h3>
+        <p>Whether it's a soft cotton tee or a thick matte coloring book, we print using industry-leading on-demand technology.</p>
+      </div>
+      <div class="process-step">
+        <div class="process-number">03</div>
+        <h3>Global Shipping</h3>
+        <p>Your order is printed and shipped directly to your door, anywhere in the world.</p>
+      </div>
+      <div class="process-step">
+        <div class="process-number">04</div>
+        <h3>Wear the Math</h3>
+        <p>Enjoy museum-quality mathematical art in your everyday life, or dive into coloring it yourself.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/canvas-renderer.js?v=21"></script>
+<script src="/static/js/main.js"></script>
+{% endblock %}

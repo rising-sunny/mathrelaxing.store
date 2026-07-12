@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>MathRelaxing — eBay Console</title>
+  <style>
+    :root {
+      --ink: #171918; --muted: #69706b; --paper: #eef0ea; --panel: #fffdf7;
+      --line: #d8dacd; --accent: #0f6b57; --accent-dark: #0a4d3f;
+      --blue: #244a7a; --red: #a3263a; --gold: #9b6b19;
+      --shadow: 0 22px 70px rgba(23,25,24,.14);
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100vh; background:var(--paper); color:var(--ink);
+           font-family:Georgia,"Times New Roman",serif; }
+    button,input,select { font:inherit; }
+    .shell { width:min(1200px,calc(100% - 32px)); margin:0 auto; padding:32px 0 60px; }
+    .topbar { display:flex; justify-content:space-between; align-items:center;
+              gap:16px; padding-bottom:24px; border-bottom:1px solid var(--line); }
+    h1 { margin:0; font-size:clamp(1.8rem,5vw,3.2rem); line-height:1; }
+    h2 { font-size:1.1rem; font-weight:400; color:var(--muted); margin:4px 0 0; letter-spacing:.04em; }
+    .logout { font-size:.75rem; color:var(--muted); text-decoration:none; letter-spacing:.06em; text-transform:uppercase; }
+    .logout:hover { color:var(--red); }
+
+    /* Status banner */
+    .banner { padding:10px 16px; border-radius:6px; font-size:.88rem; margin-bottom:24px; }
+    .banner.ok  { background:#d4edda; color:#155724; }
+    .banner.err { background:#f8d7da; color:#721c24; }
+    .banner.info{ background:#d1ecf1; color:#0c5460; }
+
+    /* Toolbar */
+    .toolbar { display:flex; gap:10px; flex-wrap:wrap; margin:24px 0 16px; }
+    .btn { display:inline-flex; align-items:center; gap:6px; padding:8px 18px;
+           border:none; border-radius:5px; cursor:pointer; font-size:.85rem;
+           letter-spacing:.04em; font-weight:600; transition:background .15s; }
+    .btn-primary { background:var(--accent); color:#fff; }
+    .btn-primary:hover { background:var(--accent-dark); }
+    .btn-secondary { background:#e0e4de; color:var(--ink); }
+    .btn-secondary:hover { background:#cdd1cb; }
+    .btn-danger { background:var(--red); color:#fff; }
+    .btn-danger:hover { background:#871f31; }
+    .btn-sm { padding:5px 12px; font-size:.78rem; }
+    .btn:disabled { opacity:.45; cursor:not-allowed; }
+
+    /* Tabs */
+    .tabs { display:flex; gap:0; border-bottom:2px solid var(--line); margin-bottom:24px; }
+    .tab { padding:10px 22px; font-size:.85rem; letter-spacing:.05em; text-transform:uppercase;
+           cursor:pointer; border:none; background:transparent; color:var(--muted);
+           border-bottom:2px solid transparent; margin-bottom:-2px; transition:.15s; }
+    .tab.active { color:var(--accent); border-bottom-color:var(--accent); font-weight:600; }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
+
+    /* Table */
+    .tbl-wrap { overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; font-size:.85rem; }
+    th { text-align:left; padding:10px 12px; font-size:.72rem; text-transform:uppercase;
+         letter-spacing:.07em; color:var(--muted); border-bottom:1px solid var(--line); }
+    td { padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:middle; }
+    tr:hover td { background:#f5f7f3; }
+
+    .badge { display:inline-block; padding:2px 9px; border-radius:12px; font-size:.73rem;
+             font-weight:600; letter-spacing:.04em; text-transform:uppercase; }
+    .badge-published  { background:#d4edda; color:#155724; }
+    .badge-not_listed { background:#e2e3e5; color:#555; }
+    .badge-unpublished{ background:#fff3cd; color:#856404; }
+    .badge-error      { background:#f8d7da; color:#721c24; }
+    .badge-unknown    { background:#e2e3e5; color:#555; }
+
+    .type-tag { font-size:.7rem; color:var(--muted); background:#eee; padding:2px 7px;
+                border-radius:10px; }
+
+    /* Order cards */
+    .order-card { background:var(--panel); border:1px solid var(--line); border-radius:8px;
+                  padding:16px 20px; margin-bottom:12px; }
+    .order-header { display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
+                    margin-bottom:8px; }
+    .order-id { font-family:monospace; font-size:.8rem; color:var(--muted); }
+    .order-items { font-size:.83rem; margin-top:6px; }
+
+    /* Spinner */
+    .spin { display:inline-block; width:14px; height:14px; border:2px solid #fff;
+            border-top-color:transparent; border-radius:50%; animation:spin .7s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* Log */
+    #log { font-family:monospace; font-size:.78rem; background:#1a1d1b; color:#c8f5c0;
+           padding:14px 16px; border-radius:6px; max-height:260px; overflow-y:auto;
+           white-space:pre-wrap; margin-top:16px; display:none; }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="topbar">
+    <div>
+      <h1>eBay Console</h1>
+      <h2>MathRelaxing Store · Digital Listings</h2>
+    </div>
+    <a href="/admin/ebay/logout" class="logout">Log out</a>
+  </div>
+
+  <div id="banner" class="banner info" style="margin-top:20px;">Loading eBay status…</div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('listings')">Listings</button>
+    <button class="tab" onclick="showTab('orders')">Orders</button>
+  </div>
+
+  <!-- LISTINGS TAB -->
+  <div id="tab-listings" class="tab-panel active">
+    <div class="toolbar">
+      <button class="btn btn-primary" onclick="publishAll()">
+        <span>Publish All</span>
+      </button>
+      <button class="btn btn-secondary" onclick="loadListings()">
+        <span>Refresh</span>
+      </button>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Type</th>
+            <th>Price</th>
+            <th>eBay Status</th>
+            <th>Listing ID</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="listings-body">
+          <tr><td colspan="6" style="color:var(--muted);text-align:center;padding:32px;">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ORDERS TAB -->
+  <div id="tab-orders" class="tab-panel">
+    <div class="toolbar">
+      <button class="btn btn-primary" onclick="fulfillOrders()">Fulfill New Orders</button>
+      <button class="btn btn-secondary" onclick="loadOrders()">Refresh Orders</button>
+    </div>
+    <div id="orders-container">
+      <p style="color:var(--muted);">Click "Refresh Orders" to load.</p>
+    </div>
+  </div>
+
+  <div id="log"></div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['listings','orders'][i] === name));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  $(`tab-${name}`).classList.add('active');
+  if (name === 'orders') loadOrders();
+}
+
+function log(msg) {
+  const el = $('log');
+  el.style.display = 'block';
+  el.textContent += msg + '\n';
+  el.scrollTop = el.scrollHeight;
+}
+
+function banner(msg, type='info') {
+  const el = $('banner');
+  el.textContent = msg;
+  el.className = `banner ${type}`;
+}
+
+function badgeHtml(status) {
+  const cls = {
+    published: 'badge-published',
+    not_listed: 'badge-not_listed',
+    unpublished: 'badge-unpublished',
+    error: 'badge-error',
+  }[status] || 'badge-unknown';
+  return `<span class="badge ${cls}">${status.replace('_',' ')}</span>`;
+}
+
+let _products = [];
+
+async function loadListings() {
+  $('listings-body').innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px;">Loading…</td></tr>';
+  banner('Fetching eBay listing status…', 'info');
+  try {
+    const r = await fetch('/api/ebay/status');
+    if (!r.ok) throw new Error(await r.text());
+    const data = await r.json();
+    _products = data.products;
+    renderListings(data.products);
+    const published = data.products.filter(p => p.status === 'published').length;
+    banner(`${published} / ${data.products.length} products published on eBay`, published > 0 ? 'ok' : 'info');
+  } catch(e) {
+    banner('Error loading status: ' + e.message, 'err');
+    $('listings-body').innerHTML = `<tr><td colspan="6" style="color:var(--red);padding:24px;">${e.message}</td></tr>`;
+  }
+}
+
+function renderListings(products) {
+  $('listings-body').innerHTML = products.map(p => `
+    <tr id="row-${p.slug}">
+      <td><strong>${p.name}</strong><br><small style="color:var(--muted)">${p.slug}</small></td>
+      <td><span class="type-tag">${(p.product_type||'').replace(/_/g,' ')}</span></td>
+      <td>$${p.price_usd}</td>
+      <td>${badgeHtml(p.status)}${p.error ? `<br><small style="color:var(--red)">${p.error}</small>` : ''}</td>
+      <td><small style="font-family:monospace">${p.listing_id || '—'}</small></td>
+      <td>
+        ${p.status === 'published'
+          ? `<button class="btn btn-danger btn-sm" onclick="unpublish('${p.slug}')">Unpublish</button>`
+          : `<button class="btn btn-primary btn-sm" onclick="publish('${p.slug}')">Publish</button>`
+        }
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function publish(slug) {
+  const row = $(`row-${slug}`);
+  const btn = row.querySelector('button');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Publishing…';
+  log(`Publishing ${slug}…`);
+  try {
+    const r = await fetch(`/api/ebay/publish/${slug}`, { method: 'POST' });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.detail || JSON.stringify(data));
+    log(`✓ ${slug} → listing_id=${data.listing_id}`);
+    await loadListings();
+  } catch(e) {
+    log(`✗ ${slug}: ${e.message}`);
+    btn.disabled = false;
+    btn.textContent = 'Publish';
+    banner(`Error publishing ${slug}: ${e.message}`, 'err');
+  }
+}
+
+async function unpublish(slug) {
+  if (!confirm(`Unpublish "${slug}" from eBay?`)) return;
+  log(`Unpublishing ${slug}…`);
+  try {
+    const r = await fetch(`/api/ebay/unpublish/${slug}`, { method: 'POST' });
+    if (!r.ok) { const d = await r.json(); throw new Error(d.detail); }
+    log(`✓ ${slug} unpublished`);
+    await loadListings();
+  } catch(e) {
+    log(`✗ ${slug}: ${e.message}`);
+    banner(`Error: ${e.message}`, 'err');
+  }
+}
+
+async function publishAll() {
+  if (!confirm('Publish ALL products to eBay? This may take a few minutes.')) return;
+  banner('Publishing all products…', 'info');
+  log('=== Publish All ===');
+  try {
+    const r = await fetch('/api/ebay/publish-all', { method: 'POST' });
+    const data = await r.json();
+    let ok = 0, fail = 0;
+    for (const res of data.results) {
+      if (res.ok) { ok++; log(`✓ ${res.slug}`); }
+      else { fail++; log(`✗ ${res.slug}: ${res.error}`); }
+    }
+    banner(`Published ${ok} products. ${fail} failed.`, fail === 0 ? 'ok' : 'err');
+    await loadListings();
+  } catch(e) {
+    banner('Error: ' + e.message, 'err');
+  }
+}
+
+async function loadOrders() {
+  $('orders-container').innerHTML = '<p style="color:var(--muted);">Loading…</p>';
+  try {
+    const r = await fetch('/api/ebay/orders');
+    if (!r.ok) throw new Error(await r.text());
+    const data = await r.json();
+    if (!data.orders.length) {
+      $('orders-container').innerHTML = '<p style="color:var(--muted);">No orders found.</p>';
+      return;
+    }
+    $('orders-container').innerHTML = data.orders.map(o => `
+      <div class="order-card">
+        <div class="order-header">
+          <strong>${o.buyer?.username || 'Unknown buyer'}</strong>
+          <span class="order-id">${o.orderId}</span>
+          <span>${badgeHtml(o.orderFulfillmentStatus?.toLowerCase().replace('_',' ') || 'unknown')}</span>
+        </div>
+        <div class="order-items">
+          ${(o.lineItems||[]).map(i => `<div>• ${i.title} · $${i.lineItemCost?.value || '?'} · SKU: ${i.sku || '—'}</div>`).join('')}
+        </div>
+        <small style="color:var(--muted)">${o.creationDate ? new Date(o.creationDate).toLocaleString() : ''}</small>
+      </div>
+    `).join('');
+  } catch(e) {
+    $('orders-container').innerHTML = `<p style="color:var(--red);">${e.message}</p>`;
+  }
+}
+
+async function fulfillOrders() {
+  banner('Checking for unfulfilled orders…', 'info');
+  log('=== Fulfill New Orders ===');
+  try {
+    const r = await fetch('/api/ebay/fulfill-orders', { method: 'POST' });
+    const data = await r.json();
+    if (data.count === 0) {
+      banner('No new orders to fulfill.', 'info');
+      log('No new orders.');
+    } else {
+      banner(`Fulfilled ${data.count} order(s)!`, 'ok');
+      data.fulfilled.forEach(f => log(`✓ Order ${f.order_id} (${f.buyer}) — ${f.items} item(s)`));
+    }
+    loadOrders();
+  } catch(e) {
+    banner('Error: ' + e.message, 'err');
+  }
+}
+
+// Auto-load on start
+loadListings();
+</script>
+</body>
+</html>

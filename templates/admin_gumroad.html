@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>MathRelaxing — Gumroad Console</title>
+  <style>
+    :root {
+      --ink: #171918; --muted: #69706b; --paper: #eef0ea; --panel: #fffdf7;
+      --line: #d8dacd; --accent: #0f6b57; --accent-dark: #0a4d3f;
+      --blue: #244a7a; --red: #a3263a; --gold: #9b6b19;
+      --shadow: 0 22px 70px rgba(23,25,24,.14);
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100vh; background:var(--paper); color:var(--ink);
+           font-family:Georgia,"Times New Roman",serif; }
+    button,input,select { font:inherit; }
+    .shell { width:min(1200px,calc(100% - 32px)); margin:0 auto; padding:32px 0 60px; }
+    .topbar { display:flex; justify-content:space-between; align-items:center;
+              gap:16px; padding-bottom:24px; border-bottom:1px solid var(--line); }
+    h1 { margin:0; font-size:clamp(1.8rem,5vw,3.2rem); line-height:1; }
+    h2 { font-size:1.1rem; font-weight:400; color:var(--muted); margin:4px 0 0; letter-spacing:.04em; }
+    .logout { font-size:.75rem; color:var(--muted); text-decoration:none; letter-spacing:.06em; text-transform:uppercase; }
+    .logout:hover { color:var(--red); }
+
+    .banner { padding:10px 16px; border-radius:6px; font-size:.88rem; margin-bottom:24px; }
+    .banner.ok   { background:#d4edda; color:#155724; }
+    .banner.err  { background:#f8d7da; color:#721c24; }
+    .banner.info { background:#d1ecf1; color:#0c5460; }
+    .banner.warn { background:#fff3cd; color:#856404; }
+
+    .connect-card { background:var(--panel); border:1px solid var(--line); border-radius:10px;
+                    padding:28px 32px; max-width:520px; margin:32px auto; text-align:center; }
+    .connect-card h3 { margin:0 0 10px; font-size:1.3rem; }
+    .connect-card p  { color:var(--muted); font-size:.9rem; margin:0 0 20px; }
+
+    .toolbar { display:flex; gap:10px; flex-wrap:wrap; margin:24px 0 16px; }
+    .btn { display:inline-flex; align-items:center; gap:6px; padding:8px 18px;
+           border:none; border-radius:5px; cursor:pointer; font-size:.85rem;
+           letter-spacing:.04em; font-weight:600; transition:background .15s; text-decoration:none; }
+    .btn-primary   { background:var(--accent); color:#fff; }
+    .btn-primary:hover { background:var(--accent-dark); }
+    .btn-secondary { background:#e0e4de; color:var(--ink); }
+    .btn-secondary:hover { background:#cdd1cb; }
+    .btn-danger    { background:var(--red); color:#fff; }
+    .btn-danger:hover { background:#871f31; }
+    .btn-sm { padding:5px 12px; font-size:.78rem; }
+    .btn:disabled { opacity:.45; cursor:not-allowed; }
+
+    .tbl-wrap { overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; font-size:.85rem; }
+    th { text-align:left; padding:10px 12px; font-size:.72rem; text-transform:uppercase;
+         letter-spacing:.07em; color:var(--muted); border-bottom:1px solid var(--line); }
+    td { padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:middle; }
+    tr:hover td { background:#f5f7f3; }
+
+    .badge { display:inline-block; padding:2px 9px; border-radius:12px; font-size:.73rem;
+             font-weight:600; letter-spacing:.04em; text-transform:uppercase; }
+    .badge-published   { background:#d4edda; color:#155724; }
+    .badge-not_listed  { background:#e2e3e5; color:#555; }
+    .badge-unpublished { background:#fff3cd; color:#856404; }
+    .badge-error       { background:#f8d7da; color:#721c24; }
+    .badge-unknown     { background:#e2e3e5; color:#555; }
+
+    .type-tag { font-size:.7rem; color:var(--muted); background:#eee; padding:2px 7px;
+                border-radius:10px; }
+
+    .spin { display:inline-block; width:14px; height:14px; border:2px solid #fff;
+            border-top-color:transparent; border-radius:50%; animation:spin .7s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    #log { font-family:monospace; font-size:.78rem; background:#1a1d1b; color:#c8f5c0;
+           padding:14px 16px; border-radius:6px; max-height:260px; overflow-y:auto;
+           white-space:pre-wrap; margin-top:16px; display:none; }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="topbar">
+    <div>
+      <h1>Gumroad Console</h1>
+      <h2>MathRelaxing Store · Digital Listings</h2>
+    </div>
+    <a href="/admin/gumroad/logout" class="logout">Log out</a>
+  </div>
+
+  {% if not connected %}
+  <div class="connect-card" style="margin-top:32px;">
+    <h3>Connect Gumroad</h3>
+    <p>Authorize MathRelaxing to publish and manage your Gumroad products.</p>
+    <a href="/admin/gumroad/connect" class="btn btn-primary">Connect with Gumroad</a>
+  </div>
+  {% else %}
+
+  <div id="banner" class="banner info" style="margin-top:20px;">Loading Gumroad status…</div>
+
+  <div class="toolbar">
+    <button class="btn btn-primary" onclick="publishAll()">Publish All</button>
+    <button class="btn btn-secondary" onclick="loadListings()">Refresh</button>
+    <a href="/admin/gumroad/connect" class="btn btn-secondary">Re-authorize</a>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Type</th>
+          <th>Price</th>
+          <th>Gumroad Status</th>
+          <th>Sales</th>
+          <th>Gumroad URL</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="listings-body">
+        <tr><td colspan="7" style="color:var(--muted);text-align:center;padding:32px;">Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div id="log"></div>
+
+  <script>
+  const $ = id => document.getElementById(id);
+
+  function log(msg) {
+    const el = $('log');
+    el.style.display = 'block';
+    el.textContent += msg + '\n';
+    el.scrollTop = el.scrollHeight;
+  }
+
+  function banner(msg, type='info') {
+    const el = $('banner');
+    el.textContent = msg;
+    el.className = `banner ${type}`;
+  }
+
+  function badgeHtml(status) {
+    const cls = {
+      published:   'badge-published',
+      not_listed:  'badge-not_listed',
+      unpublished: 'badge-unpublished',
+      error:       'badge-error',
+    }[status] || 'badge-unknown';
+    return `<span class="badge ${cls}">${status.replace(/_/g,' ')}</span>`;
+  }
+
+  async function loadListings() {
+    $('listings-body').innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:32px;">Loading…</td></tr>';
+    banner('Fetching Gumroad listing status…', 'info');
+    try {
+      const r = await fetch('/api/gumroad/status');
+      if (!r.ok) throw new Error(await r.text());
+      const data = await r.json();
+      renderListings(data.products);
+      const published = data.products.filter(p => p.status === 'published').length;
+      banner(`${published} / ${data.products.length} products published on Gumroad`, published > 0 ? 'ok' : 'info');
+    } catch(e) {
+      banner('Error: ' + e.message, 'err');
+      $('listings-body').innerHTML = `<tr><td colspan="7" style="color:var(--red);padding:24px;">${e.message}</td></tr>`;
+    }
+  }
+
+  function renderListings(products) {
+    $('listings-body').innerHTML = products.map(p => `
+      <tr id="row-${p.slug}">
+        <td><strong>${p.name}</strong><br><small style="color:var(--muted)">${p.slug}</small></td>
+        <td><span class="type-tag">${(p.product_type||'').replace(/_/g,' ')}</span></td>
+        <td>$${p.price_usd}</td>
+        <td>${badgeHtml(p.status)}${p.error ? `<br><small style="color:var(--red)">${p.error}</small>` : ''}</td>
+        <td>${p.sales_count != null ? p.sales_count : '—'}</td>
+        <td>${p.gumroad_url ? `<a href="${p.gumroad_url}" target="_blank" style="color:var(--accent);font-size:.8rem;">View ↗</a>` : '—'}</td>
+        <td>
+          ${p.status === 'published'
+            ? `<button class="btn btn-danger btn-sm" onclick="unpublish('${p.slug}')">Unpublish</button>`
+            : `<button class="btn btn-primary btn-sm" onclick="publish('${p.slug}')">Publish</button>`
+          }
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  async function publish(slug) {
+    const row = $(`row-${slug}`);
+    const btn = row.querySelector('button');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin"></span> Publishing…';
+    log(`Publishing ${slug}…`);
+    try {
+      const r = await fetch(`/api/gumroad/publish/${slug}`, { method: 'POST' });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.detail || JSON.stringify(data));
+      log(`✓ ${slug} → gumroad_id=${data.gumroad_id}  ${data.gumroad_url}`);
+      await loadListings();
+    } catch(e) {
+      log(`✗ ${slug}: ${e.message}`);
+      btn.disabled = false;
+      btn.textContent = 'Publish';
+      banner(`Error publishing ${slug}: ${e.message}`, 'err');
+    }
+  }
+
+  async function unpublish(slug) {
+    if (!confirm(`Unpublish "${slug}" from Gumroad?`)) return;
+    log(`Unpublishing ${slug}…`);
+    try {
+      const r = await fetch(`/api/gumroad/unpublish/${slug}`, { method: 'POST' });
+      if (!r.ok) { const d = await r.json(); throw new Error(d.detail); }
+      log(`✓ ${slug} unpublished`);
+      await loadListings();
+    } catch(e) {
+      log(`✗ ${slug}: ${e.message}`);
+      banner(`Error: ${e.message}`, 'err');
+    }
+  }
+
+  async function publishAll() {
+    if (!confirm('Publish ALL products to Gumroad? This may take a minute.')) return;
+    banner('Publishing all products…', 'info');
+    log('=== Publish All ===');
+    try {
+      const r = await fetch('/api/gumroad/publish-all', { method: 'POST' });
+      const data = await r.json();
+      let ok = 0, fail = 0;
+      for (const res of data.results) {
+        if (res.ok) { ok++; log(`✓ ${res.slug}  ${res.gumroad_url || ''}`); }
+        else { fail++; log(`✗ ${res.slug}: ${res.error}`); }
+      }
+      banner(`Published ${ok} products. ${fail} failed.`, fail === 0 ? 'ok' : 'err');
+      await loadListings();
+    } catch(e) {
+      banner('Error: ' + e.message, 'err');
+    }
+  }
+
+  loadListings();
+  </script>
+  {% endif %}
+
+</div>
+</body>
+</html>

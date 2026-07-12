@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Mathematical Art Blog | MathRelaxing{% endblock %}
+{% block description %}Articles about mathematical art, generative systems and the equations behind our prints.{% endblock %}
+{% block og_title %}Blog — MathRelaxing{% endblock %}
+{% block og_desc %}Articles about mathematical art, generative systems, strange attractors and the equations behind our prints.{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <p class="section-label">Articles</p>
+    <h1>The Blog</h1>
+  </div>
+</div>
+
+{% if articles %}
+<section class="section-sm" style="padding-bottom:0;">
+  <div class="container">
+    <p class="section-label" style="margin-bottom:1rem;">Featured reads</p>
+    <div class="blog-grid">
+      {% for slug, info in articles.items() %}
+      <a href="/blog/{{ slug }}" class="blog-card" style="text-decoration:none; color:inherit; display:block;">
+        <img src="/api/render/preview?product={{ info[2] }}" alt="{{ info[0] }}" loading="lazy" style="width:100%; border-radius:4px; margin-bottom:1rem; aspect-ratio:4/5; object-fit:cover;">
+        <div class="blog-card-tag">{{ info[1] }}</div>
+        <h3>{{ info[0] }}</h3>
+        <span class="btn btn-sm btn-outline" style="margin-top:1.25rem;">Read the article →</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="section-sm">
+  <div class="container">
+    <div class="blog-grid">
+      {% set posts = [
+        (
+          'The Lorenz Attractor: Chaos in Three Equations',
+          'strange-attractors',
+          'In 1963, Edward Lorenz discovered that a simple set of three differential equations — modeling atmospheric convection — produced a trajectory that never repeats. The resulting butterfly-shaped attractor became the icon of chaos theory. Small changes in initial conditions produce wildly different trajectories, yet all of them trace the same strange shape.',
+          'Mathematics',
+          'lorenz-dream'
+        ),
+        (
+          'Fractal Flames: Scott Draves and the Art of IFS',
+          'fractal-flames',
+          'Fractal flames are a class of iterated function systems invented by Scott Draves in 1992. Unlike classical IFS, flames use nonlinear variation functions — sinusoidal, spherical, horseshoe, julia — combined with log-density rendering and gamma correction. The result is an organic, luminous aesthetic that looks like actual fire or nebulae.',
+          'Art',
+          'fractal-flame-aurora'
+        ),
+        (
+          'Gray-Scott Reaction Diffusion: Why Leopards Have Spots',
+          'reaction-diffusion',
+          'Alan Turing predicted in 1952 that chemical reactions could spontaneously produce spatial patterns from uniform initial conditions. The Gray-Scott model is one implementation of this idea — two virtual chemicals, U and V, diffuse and react at different rates. Change the feed and kill rates and you get spots, stripes, coral, fingerprints, and labyrinthine mazes.',
+          'Physics',
+          'gray-scott-coral'
+        ),
+        (
+          'Flow Fields: Following the Invisible Wind',
+          'flow-fields',
+          'A flow field assigns a direction to every point in space. Particles placed in that field follow the directions like leaves on a stream. When the underlying field comes from noise functions, cellular automata, or point vortices, particles trace paths of unexpected beauty — from turbulent eddies to smooth laminar currents.',
+          'Mathematics',
+          'flow-field-origin'
+        ),
+        (
+          'Julia Sets: The Boundary Between Order and Chaos',
+          'fractal-series',
+          'Pick a complex number c. Iterate z → z² + c starting from every point in the complex plane. Points that escape to infinity are colored by escape speed; points that stay bounded form the Julia set. The boundary between these regions is fractal — infinitely detailed at every scale. Changing c by even a tiny amount transforms the entire shape.',
+          'Mathematics',
+          'julia-dream'
+        ),
+        (
+          'Chladni Figures: The Geometry of Sound',
+          'chladni-figures',
+          'Ernst Chladni discovered in 1787 that sand sprinkled on a vibrating metal plate arranges itself into precise geometric patterns. The sand migrates to the nodal lines — places where the plate doesn\'t move. These patterns are solutions to the 2D wave equation, and their shapes depend entirely on the plate\'s vibrational frequency.',
+          'Physics',
+          'chladni-mandala'
+        ),
+        (
+          'De Jong Attractors: Four Numbers, Infinite Patterns',
+          'de-jong-attractors',
+          'The Peter de Jong map is defined by just four parameters: x_{n+1} = sin(a·y_n) - cos(b·x_n), y_{n+1} = sin(c·x_n) - cos(d·y_n). Iterate millions of points and accumulate their positions in a histogram. Different values of a, b, c, d produce wildly different shapes — from hairy knots to elegant spirals.',
+          'Mathematics',
+          'de-jong-vortex'
+        ),
+        (
+          'Möbius Transformations: Circles Into Circles',
+          'complex-plane-geometry',
+          'A Möbius transformation maps the complex plane via f(z) = (az+b)/(cz+d). These are the conformal maps that preserve angles and map circles to circles (or lines). When you apply them to a grid, straight lines become arcs; arcs become arcs with different curvatures. The result is the architecture of hyperbolic geometry made visible.',
+          'Mathematics',
+          'mobius-grid-1'
+        ),
+      ] %}
+      {% for title, collection, excerpt, tag, preview_product in posts %}
+      <div class="blog-card">
+        <img src="/api/render/preview?product={{ preview_product }}" alt="{{ title }}" loading="lazy" style="width:100%; border-radius:4px; margin-bottom:1rem; aspect-ratio:4/5; object-fit:cover;">
+        <div class="blog-card-tag">{{ tag }}</div>
+        <h3>{{ title }}</h3>
+        <p style="font-size:13px; margin-top:0.5rem;">{{ excerpt }}</p>
+        <a href="/collection/apparel" class="btn btn-sm btn-outline" style="margin-top:1.5rem;">
+          Shop Apparel →
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

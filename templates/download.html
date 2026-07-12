@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}Download - MathRelaxing{% endblock %}
+{% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <p class="section-label">Your purchase</p>
+    <h1>Download</h1>
+  </div>
+</div>
+
+<section class="section-sm">
+  <div class="container" style="max-width:680px;">
+    {% if purchase.status != 'paid' %}
+    <div style="text-align:center; padding:3rem 0;">
+      <h3 style="font-family:var(--font-display); font-weight:300; margin-bottom:1rem;">Payment pending</h3>
+      <p style="color:var(--muted);">Your download will be available once payment is confirmed.</p>
+      <p style="color:var(--muted); font-size:11px; margin-top:1rem;">Check your email for updates, or refresh this page in a few moments.</p>
+    </div>
+    {% elif purchase.download_count >= purchase.max_downloads %}
+    <div style="text-align:center; padding:3rem 0;">
+      <h3 style="font-family:var(--font-display); font-weight:300; margin-bottom:1rem;">Download limit reached</h3>
+      <p style="color:var(--muted);">You've used all {{ purchase.max_downloads }} downloads for this purchase.</p>
+      <p style="color:var(--muted); font-size:11px; margin-top:1rem;">Contact support if you need additional downloads.</p>
+    </div>
+    {% else %}
+    <div class="download-card" style="background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:2rem;">
+      <div style="display:flex; gap:1.5rem; align-items:flex-start; margin-bottom:2rem;">
+        <img
+          src="/api/render/preview?product={{ product.slug }}"
+          alt="{{ product.name }}"
+          width="120"
+          height="120"
+          style="width:120px; height:120px; object-fit:cover; border-radius:4px; flex-shrink:0;"
+        >
+        <div>
+          <h3 style="font-family:var(--font-display); font-weight:300; margin-bottom:0.5rem;">{{ product.name }}</h3>
+          <p style="font-size:11px; color:var(--muted);">{{ product.product_type | replace('_', ' ') | title }}</p>
+          <p style="font-size:11px; color:var(--muted); margin-top:0.25rem;">{{ product.file_size or 'ZIP download' }}</p>
+          <p style="font-size:11px; color:var(--accent); margin-top:0.5rem;">License: {{ product.license_type | title }} use</p>
+        </div>
+      </div>
+
+      <div style="border-top:1px solid var(--border); padding-top:1.5rem;">
+        <div id="file-list"></div>
+        <p style="font-size:11px; color:var(--muted); margin-top:1rem; text-align:center;">
+          Downloads remaining: {{ purchase.max_downloads - purchase.download_count }} of {{ purchase.max_downloads }}
+        </p>
+        <p id="download-expires" style="font-size:12px; color:var(--muted); margin-top:0.5rem; display:none;"></p>
+      </div>
+    </div>
+
+    <div style="margin-top:2rem; padding:1.25rem; background:rgba(200,169,110,0.05); border:1px solid var(--border); border-radius:4px;">
+      <h4 style="font-size:12px; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.75rem;">Important</h4>
+      <ul style="font-size:11px; color:var(--muted); line-height:1.8; padding-left:1rem;">
+        <li>Save this page URL — it's your only access to the download</li>
+        <li>Download link expires after {{ purchase.max_downloads }} uses</li>
+        <li>For personal use unless commercial license purchased</li>
+        <li>Do not redistribute the files</li>
+      </ul>
+    </div>
+
+    <p style="font-size:12px; color:var(--muted); margin-top:2rem; text-align:center;">
+      Lost your download link? <a href="/my-downloads" style="color:var(--accent);">Look up past purchases →</a>
+    </p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const listEl = document.getElementById('file-list');
+  if (!listEl) return;
+
+  try {
+    const resp = await fetch('/api/download/{{ token }}');
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.detail || 'Failed');
+
+    const files = data.files || [];
+    if (!files.length) {
+      listEl.innerHTML = '<p style="color:var(--muted); text-align:center;">No files available yet.</p>';
+      return;
+    }
+
+    let html = '';
+    for (const f of files) {
+      if (f.type === 'file') {
+        html += `<div style="margin-bottom:1.25rem; padding:1rem; background:var(--bg); border:1px solid var(--border); border-radius:6px;">`;
+        html += `<div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.85rem;">`;
+        html += `<span style="font-size:16px;">⬇</span>`;
+        html += `<div><div style="font-weight:500;">${f.title}</div>`;
+        if (f.size) html += `<div style="font-size:11px; color:var(--muted);">${f.size}</div>`;
+        html += `</div></div>`;
+        html += `<a href="${f.url}" class="btn btn-primary" style="font-size:13px; padding:0.55rem 1.1rem; text-decoration:none;">Download</a>`;
+        html += `</div>`;
+      } else if (f.type === 'video') {
+        html += `<div style="margin-bottom:1.25rem; padding:1rem; background:var(--bg); border:1px solid var(--border); border-radius:6px;">`;
+        html += `<div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.75rem;">`;
+        html += `<span style="font-size:16px;">▶</span>`;
+        html += `<div>`;
+        html += `<div style="font-weight:500;">${f.title}</div>`;
+        html += `<div style="font-size:11px; color:var(--muted);">Seamless loop · ${f.duration_secs || '?'}s · ${f.resolution || '4K'}</div>`;
+        html += `</div></div>`;
+        html += `<div style="display:flex; flex-wrap:wrap; gap:0.5rem;">`;
+        const fmtLabels = {
+          '1080p30': '1080p · 30fps',
+          '1080p60': '1080p · 60fps',
+          '4k30': '4K · 30fps',
+          '4k60': '4K · 60fps',
+        };
+        for (const [fmt, url] of Object.entries(f.formats)) {
+          const label = fmtLabels[fmt] || fmt;
+          html += `<a href="${url}" class="btn" style="font-size:11px; padding:0.4rem 0.8rem; text-decoration:none;">${label}</a>`;
+        }
+        html += `</div></div>`;
+      } else {
+        const ori = f.orientations || {};
+        html += `<div style="margin-bottom:1.25rem; padding:1rem; background:var(--bg); border:1px solid var(--border); border-radius:6px;">`;
+        html += `<div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.85rem;">`;
+        html += `<span style="font-size:16px;">🖼</span>`;
+        html += `<div style="font-weight:500;">${f.title}</div>`;
+        html += `</div>`;
+        html += `<div style="display:flex; flex-wrap:wrap; gap:0.5rem;">`;
+        const oriLabels = {
+          portrait:  'Portrait · 3200×4000',
+          landscape: 'Landscape · 4000×3200',
+          square:    'Square · 3200×3200',
+        };
+        for (const [key, url] of Object.entries(ori)) {
+          const label = oriLabels[key] || key;
+          html += `<a href="${url}" download class="btn" style="font-size:11px; padding:0.4rem 0.8rem; text-decoration:none;">${label}</a>`;
+        }
+        html += `</div></div>`;
+      }
+    }
+    listEl.innerHTML = html;
+
+    if (data.expires_at) {
+      const exp = new Date(data.expires_at);
+      const expEl = document.getElementById('download-expires');
+      if (expEl) {
+        expEl.textContent = 'Download link expires: ' + exp.toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
+        expEl.style.display = 'block';
+      }
+    }
+  } catch (err) {
+    listEl.innerHTML = `<p style="color:var(--muted); text-align:center;">Error loading files: ${err.message}</p>`;
+  }
+});
+</script>
+{% endblock %}
