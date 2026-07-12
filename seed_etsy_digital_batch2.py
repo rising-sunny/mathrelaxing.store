@@ -3,12 +3,27 @@ seed_etsy_digital_batch2.py — replicate a second batch of Etsy digital
 products onto the web store. Same idempotent upsert-by-slug pattern as
 seed_etsy_digital.py: run any time, safe to re-run.
 
+Each product's contents_json now lists several real sample items (interior
+pages / color variants / individual designs) so the bundle page's sample
+gallery shows real content with zoom, instead of a single generic entry.
+Matching static previews live at static/previews/<slug>_<index>.jpg (thumb)
+and static/previews/<slug>_<index>_clean.jpg (zoom), plus static/previews/
+<slug>_clean.jpg for the main hero zoom.
+
     python seed_etsy_digital_batch2.py
 """
 import json
 from sqlalchemy.orm import Session
 from database import SessionLocal
 from models.product import DigitalProduct
+
+
+def _pages(label, n):
+    return [
+        {"title": f"{label} {i}", "item_type": "image",
+         "description": "50-page coloring book — interior sample", "resolution": "8.5x11in"}
+        for i in range(1, n + 1)
+    ]
 
 
 def seed_digital_etsy_batch2():
@@ -24,9 +39,7 @@ def seed_digital_etsy_batch2():
             "equation_type": "voronoi",
             "description": "50 mandala and cell-tessellation designs built from Voronoi diagrams — the geometry behind bubbles, cracked earth, and biological tissue. Instant download digital PDF. Print at home or color digitally on your iPad.",
             "price_usd": 6.99,
-            "contents_json": json.dumps([
-                {"title": "Voronoi Gardens Digital Edition", "item_type": "pdf", "description": "50-page high-resolution coloring book", "resolution": "8.5x11in", "duration_secs": None}
-            ]),
+            "contents_json": json.dumps(_pages("Interior Sample", 5)),
             "cover_image": "/static/img/voronoi_cover.jpg",
             "thumbnail_url": "/static/img/voronoi_cover.jpg",
             "file_url": "/static/downloads/voronoi_gardens_digital.pdf",
@@ -41,9 +54,7 @@ def seed_digital_etsy_batch2():
             "equation_type": "islamic-star",
             "description": "50 geometric star and tessellation designs drawn from classical Islamic geometric construction. Instant download digital PDF. Print at home or color digitally.",
             "price_usd": 3.99,
-            "contents_json": json.dumps([
-                {"title": "Islamic Star Geometry Digital Edition", "item_type": "pdf", "description": "50-page high-resolution coloring book", "resolution": "8.5x11in", "duration_secs": None}
-            ]),
+            "contents_json": json.dumps(_pages("Interior Sample", 7)),
             "cover_image": "/static/img/islamic_geometry_cover.jpg",
             "thumbnail_url": "/static/img/islamic_geometry_cover.jpg",
             "file_url": "/static/downloads/islamic_geometry_digital.pdf",
@@ -58,9 +69,7 @@ def seed_digital_etsy_batch2():
             "equation_type": "celtic-knot",
             "description": "50 interlace and knotwork designs exploring the mathematics of Celtic weave patterns. Instant download digital PDF. Print at home or color digitally.",
             "price_usd": 3.99,
-            "contents_json": json.dumps([
-                {"title": "Celtic Knot Mathematics Digital Edition", "item_type": "pdf", "description": "50-page high-resolution coloring book", "resolution": "8.5x11in", "duration_secs": None}
-            ]),
+            "contents_json": json.dumps(_pages("Interior Sample", 7)),
             "cover_image": "/static/img/celtic_knot_cover.jpg",
             "thumbnail_url": "/static/img/celtic_knot_cover.jpg",
             "file_url": "/static/downloads/celtic_knot_digital.pdf",
@@ -75,9 +84,7 @@ def seed_digital_etsy_batch2():
             "equation_type": "superformula",
             "description": "50 radial spiral and mandala tiling designs built from parametric spiral mathematics. Instant download digital PDF. Print at home or color digitally.",
             "price_usd": 6.99,
-            "contents_json": json.dumps([
-                {"title": "Spiral Tilings Digital Edition", "item_type": "pdf", "description": "50-page high-resolution coloring book", "resolution": "8.5x11in", "duration_secs": None}
-            ]),
+            "contents_json": json.dumps(_pages("Interior Sample", 7)),
             "cover_image": "/static/img/spiral_tilings_cover.jpg",
             "thumbnail_url": "/static/img/spiral_tilings_cover.jpg",
             "file_url": "/static/downloads/spiral_tilings_digital.pdf",
@@ -92,9 +99,7 @@ def seed_digital_etsy_batch2():
             "equation_type": "neural-network",
             "description": "50 cybernetic and circuit-inspired designs exploring the geometry of artificial neural networks. Instant download digital PDF. Print at home or color digitally.",
             "price_usd": 3.99,
-            "contents_json": json.dumps([
-                {"title": "Neural Network Digital Edition", "item_type": "pdf", "description": "50-page high-resolution coloring book", "resolution": "8.5x11in", "duration_secs": None}
-            ]),
+            "contents_json": json.dumps(_pages("Interior Sample", 7)),
             "cover_image": "/static/img/neural_network_cover.jpg",
             "thumbnail_url": "/static/img/neural_network_cover.jpg",
             "file_url": "/static/downloads/neural_network_digital.pdf",
@@ -112,7 +117,14 @@ def seed_digital_etsy_batch2():
             "description": "8 minimalist navy & gold wall-art prints of iconic physics and calculus equations, set in authentic LaTeX typography. Includes vector PDF (any size) and 24x30in 300dpi JPG for each design. Instant download.",
             "price_usd": 7.99,
             "contents_json": json.dumps([
-                {"title": "Physics & Calculus Equations — Set of 8", "item_type": "zip", "description": "8 designs, vector PDF + 300dpi JPG each", "resolution": "24x30in @300dpi", "duration_secs": None}
+                {"title": "Newton's Second Law", "item_type": "image", "description": "24x30in print + vector PDF", "resolution": "300dpi"},
+                {"title": "Newton's Law of Gravitation", "item_type": "image", "description": "24x30in print + vector PDF", "resolution": "300dpi"},
+                {"title": "Ideal Gas Law", "item_type": "image", "description": "24x30in print + vector PDF", "resolution": "300dpi"},
+                {"title": "Planck-Einstein Relation", "item_type": "image", "description": "24x30in print + vector PDF", "resolution": "300dpi"},
+                {"title": "Basel Problem", "item_type": "image", "description": "24x30in print + vector PDF", "resolution": "300dpi"},
+                {"title": "Fundamental Theorem of Calculus", "item_type": "image", "description": "24x30in print + vector PDF", "resolution": "300dpi"},
+                {"title": "Heisenberg Uncertainty Principle", "item_type": "image", "description": "24x30in print + vector PDF", "resolution": "300dpi"},
+                {"title": "Taylor Series", "item_type": "image", "description": "24x30in print + vector PDF", "resolution": "300dpi"},
             ]),
             "cover_image": "/static/img/physics_calculus_equations_cover.jpg",
             "thumbnail_url": "/static/img/physics_calculus_equations_cover.jpg",
@@ -129,7 +141,8 @@ def seed_digital_etsy_batch2():
             "description": "A single large-format poster of 8 Chladni nodal figures — the vibration patterns of sound made visible on a resonant plate. High-resolution print file, instant download.",
             "price_usd": 9.99,
             "contents_json": json.dumps([
-                {"title": "Chladni Figures Poster", "item_type": "image", "description": "18x24in high-resolution print", "resolution": "6840x9120", "duration_secs": None}
+                {"title": "Sand Grain Detail — Square Plate", "item_type": "image", "description": "Close-up crop of the full poster", "resolution": "high-res"},
+                {"title": "Sand Grain Detail — Circular Plate", "item_type": "image", "description": "Close-up crop of the full poster", "resolution": "high-res"},
             ]),
             "cover_image": "/static/img/chladni_figures_poster_cover.jpg",
             "thumbnail_url": "/static/img/chladni_figures_poster_cover.jpg",
@@ -146,9 +159,9 @@ def seed_digital_etsy_batch2():
             "description": "Generative code art from the Rössler chaotic attractor, in 3 curated colorways (classic cyan, violet rose, amber gold). High-resolution print files, instant download.",
             "price_usd": 8.99,
             "contents_json": json.dumps([
-                {"title": "Rössler — Classic Cyan", "item_type": "image", "description": "High-resolution print", "resolution": "9000x12000"},
-                {"title": "Rössler — Violet Rose",  "item_type": "image", "description": "High-resolution print", "resolution": "9000x12000"},
-                {"title": "Rössler — Amber Gold",   "item_type": "image", "description": "High-resolution print", "resolution": "9000x12000"},
+                {"title": "Classic Cyan", "item_type": "image", "description": "High-resolution print", "resolution": "9000x12000"},
+                {"title": "Violet Rose",  "item_type": "image", "description": "High-resolution print", "resolution": "9000x12000"},
+                {"title": "Amber Gold",   "item_type": "image", "description": "High-resolution print", "resolution": "9000x12000"},
             ]),
             "cover_image": "/static/img/rossler_attractor_print_cover.jpg",
             "thumbnail_url": "/static/img/rossler_attractor_print_cover.jpg",
@@ -165,9 +178,9 @@ def seed_digital_etsy_batch2():
             "description": "Generative math art from a Victorian pendulum harmonograph, in 3 curated colorways (moonlit, rosegold, verdigris). High-resolution print files, instant download.",
             "price_usd": 8.99,
             "contents_json": json.dumps([
-                {"title": "Harmonograph — Moonlit",   "item_type": "image", "description": "High-resolution print", "resolution": "9000x12000"},
-                {"title": "Harmonograph — Rosegold",  "item_type": "image", "description": "High-resolution print", "resolution": "9000x12000"},
-                {"title": "Harmonograph — Verdigris", "item_type": "image", "description": "High-resolution print", "resolution": "9000x12000"},
+                {"title": "Moonlit",   "item_type": "image", "description": "High-resolution print", "resolution": "9000x12000"},
+                {"title": "Rosegold",  "item_type": "image", "description": "High-resolution print", "resolution": "9000x12000"},
+                {"title": "Verdigris", "item_type": "image", "description": "High-resolution print", "resolution": "9000x12000"},
             ]),
             "cover_image": "/static/img/harmonograph_print_cover.jpg",
             "thumbnail_url": "/static/img/harmonograph_print_cover.jpg",
@@ -184,9 +197,9 @@ def seed_digital_etsy_batch2():
             "description": "Generative code art tracing a curl-noise vector field, in 3 curated colorways (teal, copper, indigo). High-resolution print files, instant download.",
             "price_usd": 8.99,
             "contents_json": json.dumps([
-                {"title": "Vector Field — Teal",   "item_type": "image", "description": "High-resolution print", "resolution": "9000x12000"},
-                {"title": "Vector Field — Copper", "item_type": "image", "description": "High-resolution print", "resolution": "9000x12000"},
-                {"title": "Vector Field — Indigo", "item_type": "image", "description": "High-resolution print", "resolution": "9000x12000"},
+                {"title": "Teal",   "item_type": "image", "description": "High-resolution print", "resolution": "9000x12000"},
+                {"title": "Copper", "item_type": "image", "description": "High-resolution print", "resolution": "9000x12000"},
+                {"title": "Indigo", "item_type": "image", "description": "High-resolution print", "resolution": "9000x12000"},
             ]),
             "cover_image": "/static/img/vector_field_print_cover.jpg",
             "thumbnail_url": "/static/img/vector_field_print_cover.jpg",
@@ -205,7 +218,14 @@ def seed_digital_etsy_batch2():
             "description": "8 Procreate swatch packs (240 colors) sourced from fractal art — Mandelbrot and Julia set color gradients, ready to import. Instant download.",
             "price_usd": 1.99,
             "contents_json": json.dumps([
-                {"title": "Fractal Color Palettes — 8 Swatch Packs", "item_type": "zip", "description": "8 .swatches files for Procreate, 240 colors total", "resolution": None, "duration_secs": None}
+                {"title": "Ember Mandelbrot",   "item_type": "image", "description": "30-colour Procreate swatch pack", "resolution": None},
+                {"title": "Glacier Julia",      "item_type": "image", "description": "30-colour Procreate swatch pack", "resolution": None},
+                {"title": "Jade Julia",         "item_type": "image", "description": "30-colour Procreate swatch pack", "resolution": None},
+                {"title": "Amethyst Julia",     "item_type": "image", "description": "30-colour Procreate swatch pack", "resolution": None},
+                {"title": "Sunset Julia",       "item_type": "image", "description": "30-colour Procreate swatch pack", "resolution": None},
+                {"title": "Molten Ship",        "item_type": "image", "description": "30-colour Procreate swatch pack", "resolution": None},
+                {"title": "Peacock Mandelbrot", "item_type": "image", "description": "30-colour Procreate swatch pack", "resolution": None},
+                {"title": "Rose Gold Julia",    "item_type": "image", "description": "30-colour Procreate swatch pack", "resolution": None},
             ]),
             "cover_image": "/static/img/fractal_color_palettes_cover.jpg",
             "thumbnail_url": "/static/img/fractal_color_palettes_cover.jpg",
@@ -222,7 +242,14 @@ def seed_digital_etsy_batch2():
             "description": "8 Procreate swatch packs (240 colors) sourced from strange-attractor and vector-field art. Ready to import. Instant download.",
             "price_usd": 1.99,
             "contents_json": json.dumps([
-                {"title": "Chaos Theory Palettes — 8 Swatch Packs", "item_type": "zip", "description": "8 .swatches files for Procreate, 240 colors total", "resolution": None, "duration_secs": None}
+                {"title": "Voronoi Garden",      "item_type": "image", "description": "30-colour Procreate swatch pack", "resolution": None},
+                {"title": "Rossler Amber",       "item_type": "image", "description": "30-colour Procreate swatch pack", "resolution": None},
+                {"title": "Rossler Rose",        "item_type": "image", "description": "30-colour Procreate swatch pack", "resolution": None},
+                {"title": "Vector Field Teal",   "item_type": "image", "description": "30-colour Procreate swatch pack", "resolution": None},
+                {"title": "Vector Field Copper", "item_type": "image", "description": "30-colour Procreate swatch pack", "resolution": None},
+                {"title": "Vector Field Indigo", "item_type": "image", "description": "30-colour Procreate swatch pack", "resolution": None},
+                {"title": "De Jong Ice",         "item_type": "image", "description": "30-colour Procreate swatch pack", "resolution": None},
+                {"title": "Julia Jade",          "item_type": "image", "description": "30-colour Procreate swatch pack", "resolution": None},
             ]),
             "cover_image": "/static/img/chaos_theory_palettes_cover.jpg",
             "thumbnail_url": "/static/img/chaos_theory_palettes_cover.jpg",
