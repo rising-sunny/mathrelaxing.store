@@ -805,9 +805,85 @@ MR.flowfield = {
   },
 
   stop(canvas) {
-    if (canvas && canvas._ffAnimId) { 
-      cancelAnimationFrame(canvas._ffAnimId); 
-      canvas._ffAnimId = null; 
+    if (canvas && canvas._ffAnimId) {
+      cancelAnimationFrame(canvas._ffAnimId);
+      canvas._ffAnimId = null;
+    }
+  }
+};
+
+// ── Harmonograph weave ───────────────────────────────────────────────────────
+// A few damped harmonograph curves (the geometry of coupled pendulums) whose
+// phases drift so the rosette slowly breathes and reforms. Calm, lots of
+// negative space — the homepage hero.
+MR.harmonicweave = {
+  _draw(canvas, ctx, params, phase) {
+    const W = canvas.width, H = canvas.height;
+    const cs = params?.color_start?.value ?? '#c8a96e';
+    const ce = params?.color_end?.value   ?? '#7ecfb3';
+    const gold = MR.hexToRgb(cs), teal = MR.hexToRgb(ce);
+
+    MR.fillBackground(ctx, W, H, params);   // clear each frame → crisp thin lines
+
+    const cx = W / 2, cy = H / 2 + Math.min(W, H) * 0.02;
+    const A  = Math.min(W, H) * 0.34;
+    const grot = phase * 0.05, cg = Math.cos(grot), sg = Math.sin(grot);
+
+    const curves = [
+      { f: [2.01, 3.0, 3.0, 2.0],  col: gold, po: 0.0 },
+      { f: [3.0, 2.0, 2.0, 3.01],  col: teal, po: 1.9 },
+      { f: [4.0, 3.0, 2.0, 3.0],   col: gold, po: 3.6 },
+    ];
+
+    const prevOp = ctx.globalCompositeOperation;
+    ctx.globalCompositeOperation = 'lighter';   // overlaps glow where curves cross
+    ctx.lineWidth = 1.05;
+    ctx.lineJoin = 'round';
+
+    for (const c of curves) {
+      const p1 = phase + c.po, p2 = phase * 1.3 + c.po,
+            p3 = phase * 0.7 + c.po, p4 = phase * 1.1 + c.po;
+      ctx.beginPath();
+      for (let i = 0; i <= 1400; i++) {
+        const t = i * 0.05;
+        const e1 = Math.exp(-0.046 * t), e2 = Math.exp(-0.050 * t),
+              e3 = Math.exp(-0.048 * t), e4 = Math.exp(-0.053 * t);
+        const ox = A * (e1 * Math.sin(c.f[0] * t + p1) + e2 * Math.sin(c.f[1] * t + p2)) * 0.5;
+        const oy = A * (e3 * Math.sin(c.f[2] * t + p3) + e4 * Math.sin(c.f[3] * t + p4)) * 0.5;
+        const X = cx + (ox * cg - oy * sg), Y = cy + (ox * sg + oy * cg);
+        if (i === 0) ctx.moveTo(X, Y); else ctx.lineTo(X, Y);
+      }
+      ctx.strokeStyle = `rgba(${c.col[0]},${c.col[1]},${c.col[2]},0.5)`;
+      ctx.stroke();
+    }
+    ctx.globalCompositeOperation = prevOp;
+  },
+
+  render(canvas, params) {
+    this._draw(canvas, canvas.getContext('2d'), params, 6.0);
+  },
+
+  animate(canvas, params) {
+    if (canvas._hwAnimId) cancelAnimationFrame(canvas._hwAnimId);
+    const ctx = canvas.getContext('2d');
+    const speed = +(params?.speed?.value ?? 0.006);
+    // Honor reduced-motion: render a single static frame and stop.
+    const reduce = window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) { this._draw(canvas, ctx, params, 6.0); return; }
+    let phase = 0;
+    const tick = () => {
+      phase += speed;
+      this._draw(canvas, ctx, params, phase);
+      canvas._hwAnimId = requestAnimationFrame(tick);
+    };
+    tick();
+  },
+
+  stop(canvas) {
+    if (canvas && canvas._hwAnimId) {
+      cancelAnimationFrame(canvas._hwAnimId);
+      canvas._hwAnimId = null;
     }
   }
 };
@@ -839,6 +915,7 @@ MR.renderCanvas = function(canvas, eq, params) {
       case 'julia':        MR.julia.render(canvas, params); break;
       case 'mandelbrot':   MR.mandelbrot.render(canvas, params); break;
       case 'flowfield':    MR.flowfield.render(canvas, params); break;
+      case 'harmonicweave': MR.harmonicweave.render(canvas, params); break;
       default:
         ctx.fillStyle = MR.getBackground(params, '#1e1e1e');
         ctx.fillRect(0, 0, w, h);

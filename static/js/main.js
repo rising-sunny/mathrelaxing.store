@@ -2,23 +2,32 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
-  // ── Hero Lorenz animation ────────────────────────────────────────────────
+  // ── Hero harmonograph weave animation ────────────────────────────────────
   const heroCanvas = document.getElementById('hero-canvas');
   if (heroCanvas) {
     heroCanvas.classList.add('loading');
     heroCanvas.width  = window.innerWidth;
     heroCanvas.height = window.innerHeight;
+    // Restart on resize so the composition recenters to the new viewport.
+    let heroResizeTimer;
     window.addEventListener('resize', () => {
       heroCanvas.width  = window.innerWidth;
       heroCanvas.height = window.innerHeight;
+      clearTimeout(heroResizeTimer);
+      heroResizeTimer = setTimeout(() => {
+        MR.harmonicweave.animate(heroCanvas, {
+          color_start: { value: '#c8a96e' }, color_end: { value: '#7ecfb3' },
+          speed: { value: 0.006 },
+        });
+      }, 150);
     });
     // Remove loading class after first frame renders
     setTimeout(() => {
       heroCanvas.classList.remove('loading');
     }, 100);
-    MR.flowfield.animate(heroCanvas, {
-      noise_scale: { value: 6.0 }, step_size: { value: 0.003 }, n_particles: { value: 3500 },
+    MR.harmonicweave.animate(heroCanvas, {
       color_start: { value: '#c8a96e' }, color_end: { value: '#7ecfb3' },
+      speed: { value: 0.006 },
     });
   }
 
