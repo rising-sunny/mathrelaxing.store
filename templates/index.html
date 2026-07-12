@@ -246,28 +246,73 @@
   }
 </style>
 
-<!-- ── 4. Featured bundles ───────────────────────────────────────────── -->
+<!-- ── Digital Downloads (instant) ───────────────────────────────────── -->
+{% if digital_featured %}
+<section class="section" id="digital" style="background: var(--bg1);">
+  <div class="container">
+    <div class="section-header" style="display:flex; justify-content:space-between; align-items:flex-end; gap:1rem; flex-wrap:wrap;">
+      <div>
+        <p class="section-label">Instant Download</p>
+        <h2>Digital Downloads</h2>
+      </div>
+      <a href="/collection/digital-downloads" class="btn btn-sm btn-outline">View all →</a>
+    </div>
+    <div class="products-grid">
+      {% for p in digital_featured %}
+      <a href="/bundle/{{ p.slug }}" class="product-card">
+        <div class="product-card-image">
+          <img class="product-card-canvas"
+               src="/api/render/preview?v=22&product={{ p.slug }}"
+               alt="{{ p.name }} — mathematical digital download"
+               loading="lazy" decoding="async">
+        </div>
+        <div class="product-card-body">
+          <span class="delivery-badge digital">⚡ Instant download</span>
+          <div class="product-card-collection">{{ p.type_label }}</div>
+          <div class="product-card-name">{{ p.name }}</div>
+          <div class="product-card-footer">
+            <div class="product-price">
+              <span class="product-price-from">Bundle</span>
+              ${{ "%.2f" | format(p.price_usd) }}
+            </div>
+            <span class="btn btn-sm btn-outline">View →</span>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+<style>
+  .delivery-badge{display:inline-flex;align-items:center;gap:.3em;font-size:11px;font-weight:600;
+    letter-spacing:.02em;padding:.22em .6em;border-radius:999px;margin-bottom:.55rem;line-height:1;}
+  .delivery-badge.digital{background:rgba(78,201,176,.14);color:#4EC9B0;border:1px solid rgba(78,201,176,.35);}
+</style>
+{% endif %}
+
+<!-- ── 4. Featured apparel ───────────────────────────────────────────── -->
+{% if featured %}
 <section class="section" id="bundles" style="background: var(--bg2);">
   <div class="container">
-    <div class="section-header">
+    <div class="section-header" style="display:flex; justify-content:space-between; align-items:flex-end; gap:1rem; flex-wrap:wrap;">
       <div>
         <p class="section-label">Our Apparel</p>
         <h2>Featured Clothing</h2>
       </div>
+      <a href="/collection/apparel" class="btn btn-sm btn-outline">View all →</a>
     </div>
     <div class="products-grid">
       {% for p in featured %}
       <a href="/product/{{ p.slug }}" class="product-card">
         <div class="product-card-image">
-          {% set fmt = 'unisex_hoodie' if 'hoodie' in p.slug else 'unisex_tshirt' %}
           <img class="product-card-canvas"
-               src="/api/render/mockup?product={{ p.slug }}&format={{ fmt }}"
+               src="/api/render/mockup?product={{ p.slug }}&format={{ p.format }}"
                alt="{{ p.name }} — premium mathematical apparel"
                loading="lazy"
                decoding="async">
         </div>
         <div class="product-card-body">
-          <div class="product-card-collection">{{ p.collection | replace('-', ' ') | title }}</div>
+          <div class="product-card-collection">Apparel</div>
           <div class="product-card-name">{{ p.name }}</div>
           <div class="product-card-footer">
             <div class="product-price">
@@ -282,8 +327,10 @@
     </div>
   </div>
 </section>
+{% endif %}
 
 <!-- ── 5. Stationery & Accessories ─────────────────────────────── -->
+{% if notebooks %}
 <section class="section" style="background: var(--bg1);">
   <div class="container">
     <div class="section-header">
@@ -318,6 +365,7 @@
     </div>
   </div>
 </section>
+{% endif %}
 
 <!-- ── 6. About ───────────────────────────────────────────────────────── -->
 <section class="section">

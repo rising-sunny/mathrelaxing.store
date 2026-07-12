@@ -139,6 +139,65 @@ _PHYSICAL_LABELS = {
     "apparel":   ("T-Shirt", "Apparel"),
 }
 
+# --- Digital-downloads grouping ------------------------------------------------
+# Several distinct products share a product_type (esp. 'thematic_bundle' and
+# 'ipad_bundle'), so keying sections off product_type alone dumped unrelated
+# items together. These helpers split by slug so related products cluster into
+# coherent, intuitively-ordered sections. Shared by the collection page and the
+# homepage so both present the digital catalog the same way.
+_DIGITAL_GROUP_BASE = {
+    "digital_planner": "STEM Notebooks & Planners",
+    "digital_notebook": "STEM Notebooks & Planners",
+    "printable_pdf": "Printable Coloring PDFs",
+    "animation_pack": "4K Loop Animations",
+    "image_pack": "Image Bundles",
+    "creator_assets": "Creator Assets",
+}
+
+# Most-wanted-first display order for the digital sections.
+DIGITAL_SECTION_ORDER = [
+    "Printable Coloring PDFs",
+    "iPad Coloring Bundles · GoodNotes & Procreate",
+    "Interactive iPad Color-by-Number Apps",
+    "STEM Notebooks & Planners",
+    "Equation & Art Print Sets",
+    "Procreate Color Palettes",
+    "4K Loop Animations",
+    "Image Bundles",
+    "Creator Assets",
+    "Digital Downloads",
+]
+
+
+def digital_group(p) -> str:
+    """The section a digital product belongs to on /collection/digital-downloads."""
+    s = (p.slug or "").lower()
+    if p.product_type == "ipad_bundle":
+        if "interactive" in s or "svg" in s:
+            return "Interactive iPad Color-by-Number Apps"
+        return "iPad Coloring Bundles · GoodNotes & Procreate"
+    if p.product_type == "thematic_bundle":
+        if "procreate" in s or "palette" in s:
+            return "Procreate Color Palettes"
+        if any(k in s for k in ("print-set", "prints", "poster", "equation")):
+            return "Equation & Art Print Sets"
+        return "Digital Downloads"
+    return _DIGITAL_GROUP_BASE.get(p.product_type, "Digital Downloads")
+
+
+def digital_type_label(p) -> str:
+    """Card sub-label that reads like a product, not a code enum."""
+    s = (p.slug or "").lower()
+    if p.product_type == "ipad_bundle":
+        return "Interactive iPad App" if ("interactive" in s or "svg" in s) else "iPad Bundle"
+    if p.product_type == "thematic_bundle":
+        if "procreate" in s or "palette" in s:
+            return "Procreate Palette"
+        if any(k in s for k in ("print-set", "prints", "poster", "equation")):
+            return "Print Set"
+        return "Digital Bundle"
+    return p.product_type.replace("_", " ").title()
+
 
 # Unique long-form mathematical content per collection — used to enrich bundle
 # pages with non-duplicated, indexable text. Each entry is ~120-180 words. The
@@ -830,11 +889,43 @@ async def paid_landing(request: Request, db: Session = Depends(get_db)):
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request, db: Session = Depends(get_db)):
-    featured = db.query(DigitalProduct).filter(DigitalProduct.active == True).all()
+    # Apparel for the "Featured Clothing" strip. Previously this section was fed
+    # ALL active digital products and rendered each as a t-shirt mockup — coloring
+    # PDFs and iPad bundles shown as apparel. Feed it real apparel instead.
+    apparel_rows = (db.query(Product)
+                      .filter(Product.collection == "apparel", Product.active == True)
+                      .order_by(Product.id).limit(8).all())
+    _garment_fmt = {"hoodie": "unisex_hoodie", "aop_leggings": "aop_leggings",
+                    "aop_joggers": "aop_joggers", "aop_sweatshirt": "aop_sweatshirt"}
+    apparel = []
+    for p in apparel_rows:
+        garment = json.loads(p.params_json or "{}").get("garment", "tshirt")
+        apparel.append({"slug": p.slug, "name": p.name, "price_usd": p.price_usd,
+                        "format": _garment_fmt.get(garment, "unisex_tshirt")})
+    notebooks = (db.query(Product)
+                   .filter(Product.collection == "notebooks", Product.active == True)
+                   .order_by(Product.id).limit(4).all())
+
+    # A curated cross-section of the digital catalog, in the same intuitive order
+    # as the collection page (coloring PDFs first, then iPad, then tools), so the
+    # flagship instant-buy line actually has a correct presence on the homepage.
+    all_digital = db.query(DigitalProduct).filter(DigitalProduct.active == True).all()
+    _rank = {name: i for i, name in enumerate(DIGITAL_SECTION_ORDER)}
+    digital_featured = sorted(
+        all_digital, key=lambda p: (_rank.get(digital_group(p), 99), (p.name or "").lower())
+    )[:8]
+    digital_featured = [
+        {"slug": p.slug, "name": p.name, "price_usd": p.price_usd,
+         "type_label": digital_type_label(p)}
+        for p in digital_featured
+    ]
+
     collections_simple = {k: dict(v) if isinstance(v, dict) else v for k, v in COLLECTIONS.items()}
     return templates.TemplateResponse(
         "index.html",
-        {"request": request, "collections": collections_simple, "featured": featured},
+        {"request": request, "collections": collections_simple,
+         "featured": apparel, "notebooks": notebooks,
+         "digital_featured": digital_featured},
     )
 
 
@@ -843,7 +934,31 @@ async def collections_page(request: Request, db: Session = Depends(get_db)):
     # Only show collections that still have published products.
     visible = {slug: col for slug, col in COLLECTIONS.items()
                if _collection_active_count(db, slug) > 0}
-    return templates.TemplateResponse("collections.html", {"request": request, "all_collections": visible})
+
+    # De-duplicate collections that render under the same display name (e.g.
+    # coloring-book / coloring-books both show as "Coloring Books"), keeping the
+    # slug with more published products so the index never shows twin cards.
+    by_name = {}
+    for slug, col in visible.items():
+        name = col["name"]
+        if (name not in by_name
+                or _collection_active_count(db, slug) > _collection_active_count(db, by_name[name])):
+            by_name[name] = slug
+    deduped = {slug: visible[slug] for slug in by_name.values()}
+
+    # Intuitive browse order: flagship instant-buy + core brand lines first, then
+    # the mathematical-art print collections. Anything unlisted falls to the end.
+    index_order = [
+        "digital-downloads", "coloring-books", "coloring-book",
+        "apparel", "notebooks", "desk-mats",
+        "strange-attractors", "de-jong-attractors", "harmonic-geometry",
+        "complex-plane-geometry", "radial-symmetry", "fractal-series",
+        "fractal-flames", "flow-fields", "reaction-diffusion",
+        "turing-patterns", "voronoi-organics", "chladni-figures",
+    ]
+    rank = {s: i for i, s in enumerate(index_order)}
+    ordered = dict(sorted(deduped.items(), key=lambda kv: rank.get(kv[0], 999)))
+    return templates.TemplateResponse("collections.html", {"request": request, "all_collections": ordered})
 
 
 @app.get("/collection/{slug}", response_class=HTMLResponse)
@@ -864,59 +979,15 @@ async def collection_page(slug: str, request: Request, db: Session = Depends(get
     if not digital and not physical:
         raise HTTPException(status_code=404, detail="Collection not found")
 
-    DIGITAL_GROUPS = {
-        "digital_planner": "STEM Notebooks & Planners",
-        "digital_notebook": "STEM Notebooks & Planners",
-        "printable_pdf": "Printable Coloring PDFs",
-        "animation_pack": "4K Loop Animations",
-        "image_pack": "Image Bundles",
-        "creator_assets": "Creator Assets",
-    }
-
-    def _digital_group(p):
-        """Finer-grained section for the digital-downloads page. Several distinct
-        products share the same product_type (esp. 'thematic_bundle' and
-        'ipad_bundle'), so keying sections off product_type alone dumped unrelated
-        items — a physics print set next to Procreate palettes, GoodNotes PDF
-        bundles next to interactive Safari apps — into vague buckets. Split them
-        by slug so related products cluster and nothing lands in a generic
-        'Digital Downloads' catch-all."""
-        s = (p.slug or "").lower()
-        if p.product_type == "ipad_bundle":
-            if "interactive" in s or "svg" in s:
-                return "Interactive iPad Color-by-Number Apps"
-            return "iPad Coloring Bundles · GoodNotes & Procreate"
-        if p.product_type == "thematic_bundle":
-            if "procreate" in s or "palette" in s:
-                return "Procreate Color Palettes"
-            if any(k in s for k in ("print-set", "prints", "poster", "equation")):
-                return "Equation & Art Print Sets"
-            return "Digital Downloads"
-        return DIGITAL_GROUPS.get(p.product_type, "Digital Downloads")
-
-    def _type_label(p):
-        """Card sub-label that reads like a product, not a code enum
-        ('Thematic Bundle')."""
-        s = (p.slug or "").lower()
-        if p.product_type == "ipad_bundle":
-            return "Interactive iPad App" if ("interactive" in s or "svg" in s) else "iPad Bundle"
-        if p.product_type == "thematic_bundle":
-            if "procreate" in s or "palette" in s:
-                return "Procreate Palette"
-            if any(k in s for k in ("print-set", "prints", "poster", "equation")):
-                return "Print Set"
-            return "Digital Bundle"
-        return p.product_type.replace("_", " ").title()
-
     items = [
         {
             "slug": p.slug, "name": p.name, "price_usd": p.price_usd,
-            "type_label": _type_label(p) if slug == "digital-downloads" else p.product_type.replace("_", " ").title(),
+            "type_label": digital_type_label(p) if slug == "digital-downloads" else p.product_type.replace("_", " ").title(),
             "price_prefix": "Bundle",
             "url": f"/bundle/{p.slug}",
             "kind": "digital",
             "delivery": "Instant download",
-            "group": _digital_group(p) if slug == "digital-downloads" else "Digital Downloads",
+            "group": digital_group(p) if slug == "digital-downloads" else "Digital Downloads",
             "card_format": None,
         }
         for p in digital
@@ -946,20 +1017,8 @@ async def collection_page(slug: str, request: Request, db: Session = Depends(get
 
     # Group products by kind so visitors can tell digital downloads from physical
     # prints at a glance, in a stable display order.
-    section_order = [
-        # Digital-downloads page: lead with the core coloring products, then
-        # iPad, then tools/extras — most-wanted first, coherent clusters.
-        "Printable Coloring PDFs",
-        "iPad Coloring Bundles · GoodNotes & Procreate",
-        "Interactive iPad Color-by-Number Apps",
-        "STEM Notebooks & Planners",
-        "Equation & Art Print Sets",
-        "Procreate Color Palettes",
-        "4K Loop Animations",
-        "Image Bundles",
-        "Creator Assets",
-        "Digital Downloads",
-        # Physical collections keep their existing order.
+    # Digital sections most-wanted-first (shared constant), then physical.
+    section_order = DIGITAL_SECTION_ORDER + [
         "Art Prints", "Apparel", "Desk Mats", "Notebooks"
     ]
     groups = [
