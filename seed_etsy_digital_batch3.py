@@ -25,46 +25,13 @@ def seed_digital_etsy_batch3():
     db = SessionLocal()
 
     products = [
-        {
-            "slug": "fractal-flora-ipad-bundle",
-            "name": "Fractal Flora iPad Edition — Digital Coloring Bundle",
-            "product_type": "ipad_bundle",
-            "collection": "digital-downloads",
-            "equation_type": "superformula",
-            "description": "50 mathematical mandalas and floral geometries, ready to color on your iPad. Includes a GoodNotes/Notability PDF (tap-to-fill layers) and a full Procreate PNG set with a matching swatch palette. Instant download.",
-            "price_usd": 5.99,
-            "contents_json": json.dumps([
-                {"title": "GoodNotes / Notability PDF (50 designs)", "size": "2.4 MB"},
-                {"title": "Procreate PNG set (50 files, 2 parts)", "size": "17.4 MB"},
-                {"title": "Procreate .swatches palette", "size": None},
-                {"title": "How to use on iPad — guide PDF", "size": "1.9 MB"},
-            ]),
-            "cover_image": "/static/img/fractal-flora-ipad-bundle_cover.jpg",
-            "thumbnail_url": "/static/img/fractal-flora-ipad-bundle_cover.jpg",
-            "file_url": "/static/downloads/fractal-flora-ipad-bundle.zip",
-            "file_size": "19.9 MB",
-            "active": True,
-        },
-        {
-            "slug": "sacred-geometry-ipad-bundle",
-            "name": "Sacred Geometry iPad Edition — Color by Number Bundle",
-            "product_type": "ipad_bundle",
-            "collection": "digital-downloads",
-            "equation_type": "mobius-grid",
-            "description": "50 intricate sacred-geometry color-by-number designs for iPad. Includes a GoodNotes/Notability PDF and a full Procreate PNG set with a matching swatch palette. Instant download.",
-            "price_usd": 5.99,
-            "contents_json": json.dumps([
-                {"title": "GoodNotes / Notability PDF (50 designs)", "size": "1.9 MB"},
-                {"title": "Procreate PNG set (50 files, 2 parts)", "size": "31.8 MB"},
-                {"title": "Procreate .swatches palette", "size": None},
-                {"title": "How to use on iPad — guide PDF", "size": "1.9 MB"},
-            ]),
-            "cover_image": "/static/img/sacred-geometry-ipad-bundle_cover.jpg",
-            "thumbnail_url": "/static/img/sacred-geometry-ipad-bundle_cover.jpg",
-            "file_url": "/static/downloads/sacred-geometry-ipad-bundle.zip",
-            "file_size": "34.0 MB",
-            "active": True,
-        },
+        # NOTE: Fractal Flora and Sacred Geometry iPad bundles are deliberately
+        # NOT here — the site already had real, working equivalents under
+        # different slugs (fractal-flora-ipad-coloring, sacred-geometry-ipad-
+        # coloring, $10.99, same GoodNotes+Procreate content). Adding this
+        # batch's versions created duplicate cards on the collection page;
+        # see deactivate_batch3_duplicates.py for the cleanup of the two that
+        # had already been seeded live.
         {
             "slug": "celtic-knot-ipad-bundle",
             "name": "Celtic Knot iPad Edition — Digital Coloring Bundle",
@@ -193,7 +160,8 @@ def seed_digital_etsy_batch3():
             "thumbnail_url": "/static/img/cbn-3d-ipad_cover.jpg",
             "file_url": "/static/downloads/cbn-3d-ipad.zip",
             "file_size": "0.19 MB",
-            "active": True,
+            # Not published yet — flip to True + re-run this script when ready.
+            "active": False,
         },
     ]
 
