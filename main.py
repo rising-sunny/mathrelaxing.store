@@ -148,6 +148,7 @@ _PHYSICAL_LABELS = {
 _DIGITAL_GROUP_BASE = {
     "digital_planner": "STEM Notebooks & Planners",
     "digital_notebook": "STEM Notebooks & Planners",
+    "document_template": "Templates & Organizers",
     "printable_pdf": "Printable Coloring PDFs",
     "animation_pack": "4K Loop Animations",
     "image_pack": "Image Bundles",
@@ -161,6 +162,7 @@ DIGITAL_SECTION_ORDER = [
     "Interactive iPad Color-by-Number Apps",
     "STEM Notebooks & Planners",
     "Equation & Art Print Sets",
+    "Templates & Organizers",
     "Procreate Color Palettes",
     "4K Loop Animations",
     "Image Bundles",
@@ -176,6 +178,8 @@ def digital_group(p) -> str:
         if "interactive" in s or "svg" in s:
             return "Interactive iPad Color-by-Number Apps"
         return "iPad Coloring Bundles · GoodNotes & Procreate"
+    if p.product_type == "document_template":
+        return "Templates & Organizers"
     if p.product_type == "thematic_bundle":
         if "procreate" in s or "palette" in s:
             return "Procreate Color Palettes"
@@ -190,6 +194,14 @@ def digital_type_label(p) -> str:
     s = (p.slug or "").lower()
     if p.product_type == "ipad_bundle":
         return "Interactive iPad App" if ("interactive" in s or "svg" in s) else "iPad Bundle"
+    if p.product_type == "document_template":
+        if "resume" in s:
+            return "Resume Kit"
+        if "recommendation" in s or "lor" in s:
+            return "Letter Templates"
+        if "emergency" in s or "binder" in s:
+            return "Printable Binder"
+        return "Template Pack"
     if p.product_type == "thematic_bundle":
         if "procreate" in s or "palette" in s:
             return "Procreate Palette"
