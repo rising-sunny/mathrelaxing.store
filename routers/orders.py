@@ -103,7 +103,7 @@ async def create_physical_order(body: CreatePhysicalOrderRequest, db: Session = 
     db.refresh(order)
 
     from services import paypal
-    checkout_url = await paypal.create_order(
+    checkout_url, paypal_order_id = await paypal.create_order(
         order_id       = order.id,
         product        = product,
         amount_usd     = total,
@@ -111,6 +111,11 @@ async def create_physical_order(body: CreatePhysicalOrderRequest, db: Session = 
         customer_name  = body.customer_name,
         format_id      = fmt["id"],
     )
+    # Persist PayPal order id ASAP so the webhook can match even if the
+    # browser never returns from PayPal.
+    if paypal_order_id:
+        order.paypal_order_id = paypal_order_id
+        db.commit()
     return {"checkout_url": checkout_url, "order_id": order.id}
 
 
@@ -214,11 +219,16 @@ async def create_purchase(request: Request, body: CreatePurchaseRequest, db: Ses
             db.commit()
 
     display_name = item_name if is_single else product.name
-    checkout_url = await paypal_svc.create_digital_order(
+    checkout_url, paypal_order_id = await paypal_svc.create_digital_order(
         purchase_id=purchase.id,
         product_name=display_name,
         amount_usd=final_price,
     )
+    # Store PayPal order id before the buyer leaves the site so the
+    # PAYMENT.CAPTURE.COMPLETED webhook can fulfill without the return page.
+    if paypal_order_id:
+        purchase.paypal_order_id = paypal_order_id
+        db.commit()
     return {"checkout_url": checkout_url, "purchase_id": purchase.id}
 
 

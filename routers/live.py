@@ -653,11 +653,22 @@ async def live_track_me(request: Request):
 # ── Historical analytics ──────────────────────────────────────────────────
 
 def _history_payload(db: Session, days: int) -> dict:
+    """Build history payload for the last `days` calendar days (UTC), including today.
+
+    Previously the daily chart used a rolling window of `days*24h` but only
+    emitted `days` date buckets starting at start.date(), which dropped *today*
+    whenever `now` was past midnight. Totals and daily series are now aligned
+    on UTC calendar days: [today-(days-1), today] inclusive.
+    """
     now = datetime.utcnow()
     end = now
-    start = end - timedelta(days=days)
-    prev_start = start - timedelta(days=days)
+    end_date = now.date()
+    start_date = end_date - timedelta(days=days - 1)
+    # Midnight UTC of the first day in the range
+    start = datetime(start_date.year, start_date.month, start_date.day)
+    # Previous period: the `days` calendar days immediately before start
     prev_end = start
+    prev_start = start - timedelta(days=days)
 
     def _totals(t0, t1):
         pv = db.query(func.count(LiveEvent.id)).filter(
@@ -679,7 +690,7 @@ def _history_payload(db: Session, days: int) -> dict:
     current = _totals(start, end)
     previous = _totals(prev_start, prev_end)
 
-    # Daily series (one row per UTC date in the range)
+    # Daily series (one row per UTC date in the range, including today)
     raw_daily = db.query(
         func.date(LiveEvent.ts).label("d"),
         func.sum(case((LiveEvent.event_type == "pageview", 1), else_=0)).label("pv"),
@@ -703,11 +714,9 @@ def _history_payload(db: Session, days: int) -> dict:
     purchase_by_day = {str(r.d): (r.pur, float(r.rev)) for r in raw_purchase}
 
     daily = []
-    cursor = (start.replace(hour=0, minute=0, second=0, microsecond=0)
-              if days > 1 else start)
-    # Build inclusive range of dates as strings
+    # Inclusive UTC calendar dates: start_date .. end_date (today)
     for i in range(days):
-        d = (start + timedelta(days=i)).date()
+        d = start_date + timedelta(days=i)
         dstr = d.isoformat()
         row = by_day.get(dstr)
         pur, rev = purchase_by_day.get(dstr, (0, 0.0))

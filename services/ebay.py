@@ -25,6 +25,12 @@ CURRENCY       = "USD"
 # eBay category: "Everything Else > Information Products > Digital Goods"
 DIGITAL_CATEGORY_ID = "360"   # Art > Art Prints (confirmed leaf, 33 aspects)
 
+# New / limited seller accounts cannot list large quantities. Keep each
+# digital SKU at 1 unit so we don't burn the account selling-limit quota
+# (e.g. quantity=50 total) across many listings. After a sale, fulfill +
+# optionally restock to 1 again.
+LISTING_QUANTITY = int(os.getenv("EBAY_LISTING_QUANTITY", "1"))
+
 SCOPES = " ".join([
     "https://api.ebay.com/oauth/api_scope/sell.inventory",
     "https://api.ebay.com/oauth/api_scope/sell.fulfillment",
@@ -248,6 +254,32 @@ All files are delivered digitally — no physical item ships.</p>
 </div>"""
 
 
+def _listing_image_url(product) -> str:
+    """Prefer real static covers over the generic render preview endpoint."""
+    from pathlib import Path
+
+    root = Path("/var/www/mathrelaxing.store")
+    for rel in (
+        f"static/bonanza/{product.slug}.jpg",
+        f"static/previews/{product.slug}.jpg",
+        f"static/img/{product.slug}_cover.jpg",
+    ):
+        if (root / rel).is_file():
+            return f"https://mathrelaxing.store/{rel}"
+    for attr in ("cover_image", "thumbnail_url"):
+        val = (getattr(product, attr, None) or "").split("?", 1)[0]
+        if val.startswith("/static/") and (root / val.lstrip("/")).is_file():
+            return f"https://mathrelaxing.store{val}"
+        if val.startswith("https://mathrelaxing.store/"):
+            return val
+    return f"https://mathrelaxing.store/api/render/preview?product={product.slug}"
+
+
+def _safe_title(product) -> str:
+    title = f"{product.name} — Digital Download | Math Art"
+    return title[:80]
+
+
 async def upsert_inventory_item(product, policies: dict) -> None:
     sku = f"mr-{product.slug}"
     ptype = getattr(product, "product_type", "image_pack") or "image_pack"
@@ -255,24 +287,23 @@ async def upsert_inventory_item(product, policies: dict) -> None:
     condition = "NEW"
     aspects = {
         "Format": ["Digital Download"],
-        "File Type": ["JPG/MP4"],
+        "File Type": ["JPG/MP4"] if is_loop else ["PDF/ZIP/JPG"],
         "Subject": ["Mathematical Art", "Abstract"],
         "Style": ["Abstract", "Digital Art"],
     }
+    qty = max(1, min(LISTING_QUANTITY, 3))  # hard cap 3 even if env is higher
 
     await _put(f"/sell/inventory/v1/inventory_item/{sku}", {
         "product": {
-            "title": f"{product.name} — Digital Download | Math Art",
+            "title": _safe_title(product),
             "description": _product_description(product),
             "aspects": aspects,
-            "imageUrls": [
-                f"https://mathrelaxing.store/api/render/preview?product={product.slug}"
-            ],
+            "imageUrls": [_listing_image_url(product)],
         },
         "condition": condition,
         "availability": {
             "shipToLocationAvailability": {
-                "quantity": 10,
+                "quantity": qty,
             }
         },
     })
@@ -281,11 +312,12 @@ async def upsert_inventory_item(product, policies: dict) -> None:
 async def create_offer(product, policies: dict) -> str:
     sku = f"mr-{product.slug}"
     price_str = f"{product.price_usd:.2f}"
+    qty = max(1, min(LISTING_QUANTITY, 3))
     body = {
         "sku": sku,
         "marketplaceId": MARKETPLACE_ID,
         "format": "FIXED_PRICE",
-        "availableQuantity": 10,
+        "availableQuantity": qty,
         "categoryId": DIGITAL_CATEGORY_ID,
         "listingDescription": _product_description(product),
         "listingPolicies": {
@@ -296,7 +328,7 @@ async def create_offer(product, policies: dict) -> str:
         "pricingSummary": {
             "price": {"value": price_str, "currency": CURRENCY},
         },
-        "merchantLocationKey": "default_location",
+        "merchantLocationKey": os.getenv("EBAY_MERCHANT_LOCATION_KEY", "default_location"),
         "includeCatalogProductDetails": False,
     }
     r = await _post("/sell/inventory/v1/offer", body)

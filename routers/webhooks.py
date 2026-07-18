@@ -97,7 +97,11 @@ async def _handle_lowpoly_order_paid(lemon_order_id: str, custom: dict, db: Sess
     await email.send_lowpoly_download_email(job)
 
 
-# ── Legacy Webhooks (kept for existing orders, no longer active flow) ─────
+# ── PayPal webhooks ─────────────────────────────────────────────────────────
+# Primary capture still happens on /checkout/return (browser). This webhook is
+# the safety net when the buyer pays but never lands back on the return URL
+# (tab closed, mobile app, network drop). Handles digital Purchase, physical
+# Order, and LowPolyJob.
 
 @router.post("/webhooks/paypal")
 async def paypal_webhook(request: Request, db: Session = Depends(get_db)):
@@ -119,40 +123,102 @@ async def paypal_webhook(request: Request, db: Session = Depends(get_db)):
     return {"status": "ok"}
 
 
-async def _handle_capture_completed(payload: dict, db: Session):
-    resource = payload.get("resource", {})
-    supplementary = resource.get("supplementary_data", {})
-    related_ids = supplementary.get("related_ids", {})
-    paypal_order_id = related_ids.get("order_id", "")
+def _paypal_order_id_from_capture(resource: dict) -> str:
+    related = (resource.get("supplementary_data") or {}).get("related_ids") or {}
+    return (
+        related.get("order_id")
+        or resource.get("supplementary_data", {}).get("related_ids", {}).get("order_id")
+        or ""
+    )
 
+
+def _custom_id_from_capture(resource: dict) -> str:
+    # Orders v2 may surface purchase_unit custom_id on the capture resource.
+    return (
+        resource.get("custom_id")
+        or resource.get("invoice_id")
+        or resource.get("purchase_unit_reference_id")
+        or ""
+    )
+
+
+async def _resolve_refs_from_paypal_order(paypal_order_id: str) -> tuple[str, str]:
+    """Return (custom_id, reference_id) from the PayPal order resource."""
     if not paypal_order_id:
-        paypal_order_id = resource.get("id", "")
+        return "", ""
+    try:
+        from services import paypal
+        data = await paypal.get_order(paypal_order_id)
+        units = data.get("purchase_units") or []
+        if not units:
+            return "", ""
+        unit = units[0] or {}
+        return str(unit.get("custom_id") or ""), str(unit.get("reference_id") or "")
+    except Exception:
+        return "", ""
 
-    if not paypal_order_id:
+
+def _parse_kind_id(custom_id: str, reference_id: str) -> tuple[str | None, int | None]:
+    """Map PayPal custom_id/reference_id → ('purchase'|'order'|'lowpoly', id)."""
+    cid = (custom_id or "").strip()
+    if ":" in cid:
+        kind, _, raw = cid.partition(":")
+        kind = kind.lower().strip()
+        try:
+            return kind, int(raw)
+        except (TypeError, ValueError):
+            pass
+    if reference_id:
+        try:
+            return None, int(str(reference_id).strip())
+        except (TypeError, ValueError):
+            pass
+    return None, None
+
+
+async def _fulfill_digital_purchase(purchase: Purchase, paypal_order_id: str, db: Session, payer: dict | None = None):
+    """Mark a digital Purchase paid and send email/telegram. Idempotent."""
+    if purchase.status == "paid":
+        if paypal_order_id and not purchase.paypal_order_id:
+            purchase.paypal_order_id = paypal_order_id
+            db.commit()
         return
 
-    order = db.query(Order).filter(Order.paypal_order_id == paypal_order_id).first()
+    purchase.status = "paid"
+    if paypal_order_id:
+        purchase.paypal_order_id = paypal_order_id
 
-    if not order:
-        order_ref = (
-            resource.get("purchase_unit_reference_id")
-            or (payload.get("resource", {}).get("supplementary_data") or {})
-            .get("related_ids", {})
-            .get("order_id")
-        )
-        if order_ref:
-            try:
-                order = db.query(Order).filter(Order.id == int(order_ref)).first()
-            except (ValueError, TypeError):
-                pass
+    payer = payer or {}
+    if not purchase.customer_email or not purchase.customer_name:
+        payer_email = (payer.get("email_address") or "").strip().lower()
+        name_obj = payer.get("name") or {}
+        payer_name = " ".join(
+            filter(None, [name_obj.get("given_name"), name_obj.get("surname")])
+        ).strip()
+        if payer_email and not purchase.customer_email:
+            purchase.customer_email = payer_email
+        if payer_name and not purchase.customer_name:
+            purchase.customer_name = payer_name
 
-    if not order:
+    db.commit()
+
+    product = db.query(DigitalProduct).filter(DigitalProduct.id == purchase.product_id).first()
+    country = ((payer.get("address") or {}).get("country_code")) if payer else None
+    if purchase.customer_email and product:
+        await email.send_digital_purchase_email(purchase, product)
+    if product:
+        await telegram.notify_new_digital_purchase(purchase, product, country=country)
+
+
+async def _fulfill_physical_order(order: Order, paypal_order_id: str, db: Session):
+    """Mark a physical Order paid, issue certificate, notify. Idempotent."""
+    if order.status in {"paid", "processing", "printed", "shipped", "fulfillment_failed"}:
+        if paypal_order_id and not order.paypal_order_id:
+            order.paypal_order_id = paypal_order_id
+            db.commit()
         return
 
-    if order.status == "paid":
-        return
-
-    if not order.paypal_order_id:
+    if paypal_order_id:
         order.paypal_order_id = paypal_order_id
     order.status = "paid"
     db.commit()
@@ -167,14 +233,92 @@ async def _handle_capture_completed(payload: dict, db: Session):
     db.add(cert)
     db.commit()
 
-    params = json.loads(order.params_json)
+    params = json.loads(order.params_json or "{}")
     await email.send_order_confirmation(order, edition)
     await telegram.notify_new_order(order, params, edition)
 
 
+async def _fulfill_lowpoly_job(job, paypal_order_id: str, db: Session):
+    """Mark LowPolyJob paid and email files. Idempotent."""
+    if job.status == "paid":
+        return
+    if paypal_order_id and not job.lemon_order_id:
+        job.lemon_order_id = paypal_order_id
+    job.status = "paid"
+    db.commit()
+    await email.send_lowpoly_download_email(job)
+    await telegram.notify_new_lowpoly_purchase(job)
+
+
+async def _handle_capture_completed(payload: dict, db: Session):
+    resource = payload.get("resource", {}) or {}
+    paypal_order_id = _paypal_order_id_from_capture(resource)
+    custom_id = _custom_id_from_capture(resource)
+    reference_id = ""
+
+    # Prefer explicit custom_id; otherwise resolve from the PayPal order.
+    if not custom_id or ":" not in custom_id:
+        cid2, ref2 = await _resolve_refs_from_paypal_order(paypal_order_id)
+        if cid2:
+            custom_id = cid2
+        if ref2:
+            reference_id = ref2
+
+    kind, ref_int = _parse_kind_id(custom_id, reference_id or custom_id)
+
+    # 1) Match by stored paypal_order_id (set at checkout creation)
+    purchase = None
+    order = None
+    lowpoly = None
+    if paypal_order_id:
+        purchase = db.query(Purchase).filter(Purchase.paypal_order_id == paypal_order_id).first()
+        order = db.query(Order).filter(Order.paypal_order_id == paypal_order_id).first()
+        from models.product import LowPolyJob
+        lowpoly = db.query(LowPolyJob).filter(LowPolyJob.lemon_order_id == paypal_order_id).first()
+
+    # 2) Match by kind:id / bare reference_id
+    if not purchase and not order and not lowpoly and ref_int is not None:
+        if kind == "purchase" or kind is None:
+            purchase = db.query(Purchase).filter(Purchase.id == ref_int).first()
+            # Only accept bare-id match for still-pending rows to avoid
+            # clobbering an unrelated paid record when tables share int space.
+            if purchase and purchase.status not in (None, "pending", "failed") and kind is None:
+                purchase = None
+        if not purchase and (kind == "order" or kind is None):
+            order = db.query(Order).filter(Order.id == ref_int).first()
+            if order and order.status not in (None, "pending", "failed") and kind is None:
+                order = None
+        if not purchase and not order and (kind == "lowpoly" or kind is None):
+            from models.product import LowPolyJob
+            lowpoly = db.query(LowPolyJob).filter(LowPolyJob.id == ref_int).first()
+            if lowpoly and lowpoly.status not in (None, "pending") and kind is None:
+                lowpoly = None
+
+    if purchase:
+        # Capture payload has no payer block; optional GET for email fill-in.
+        payer = {}
+        if not purchase.customer_email and paypal_order_id:
+            try:
+                from services import paypal
+                odata = await paypal.get_order(paypal_order_id)
+                payer = odata.get("payer") or {}
+            except Exception:
+                payer = {}
+        await _fulfill_digital_purchase(purchase, paypal_order_id, db, payer=payer)
+        return
+
+    if order:
+        await _fulfill_physical_order(order, paypal_order_id, db)
+        return
+
+    if lowpoly:
+        await _fulfill_lowpoly_job(lowpoly, paypal_order_id, db)
+        return
+
+
 async def _handle_capture_denied(payload: dict, db: Session):
-    resource = payload.get("resource", {})
-    paypal_order_id = resource.get("id", "")
+    resource = payload.get("resource", {}) or {}
+    paypal_order_id = _paypal_order_id_from_capture(resource) or resource.get("id", "")
     if not paypal_order_id:
         return
 
@@ -182,6 +326,17 @@ async def _handle_capture_denied(payload: dict, db: Session):
     if order and order.status == "pending":
         order.status = "failed"
         db.commit()
+
+    purchase = db.query(Purchase).filter(Purchase.paypal_order_id == paypal_order_id).first()
+    if purchase and purchase.status == "pending":
+        purchase.status = "failed"
+        db.commit()
+
+    from models.product import LowPolyJob
+    job = db.query(LowPolyJob).filter(LowPolyJob.lemon_order_id == paypal_order_id).first()
+    if job and job.status == "pending":
+        # leave as pending so buyer can retry; no status field for "failed"
+        pass
 
 
 @router.post("/webhooks/printful")

@@ -485,13 +485,18 @@ async def checkout_lowpoly_upload(
     db.refresh(job)
 
     try:
-        approval_url = await paypal_service.create_lowpoly_order(
+        approval_url, paypal_order_id = await paypal_service.create_lowpoly_order(
             job_id=job.id,
             token=token,
             amount_usd=PRICE_USD,
         )
     except Exception as e:
         raise HTTPException(500, f"Could not create payment: {e}")
+
+    # Reuse lemon_order_id column as payment-provider reference for webhook matching.
+    if paypal_order_id:
+        job.lemon_order_id = paypal_order_id
+        db.commit()
 
     return {
         "checkout_url": approval_url,
@@ -599,13 +604,17 @@ async def checkout_lowpoly(req: LowPolyCheckoutRequest, db: Session = Depends(ge
     db.refresh(job)
 
     try:
-        approval_url = await paypal_service.create_lowpoly_order(
+        approval_url, paypal_order_id = await paypal_service.create_lowpoly_order(
             job_id=job.id,
             token=token,
             amount_usd=PRICE_USD,
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Could not create payment: {e}")
+
+    if paypal_order_id:
+        job.lemon_order_id = paypal_order_id
+        db.commit()
 
     return {
         "checkout_url": approval_url,
@@ -689,13 +698,17 @@ async def checkout_lowpoly_pack(req: LowPolyPackCheckoutRequest, db: Session = D
     db.refresh(job)
 
     try:
-        approval_url = await paypal_service.create_lowpoly_order(
+        approval_url, paypal_order_id = await paypal_service.create_lowpoly_order(
             job_id=job.id,
             token=token,
             amount_usd=PACK_PRICE_USD,
         )
     except Exception as e:
         raise HTTPException(500, f"Could not create payment: {e}")
+
+    if paypal_order_id:
+        job.lemon_order_id = paypal_order_id
+        db.commit()
 
     return {
         "checkout_url": approval_url,
