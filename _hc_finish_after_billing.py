@@ -1,4 +1,4 @@
-﻿"""
+"""
 _hc_finish_after_billing.py - finish the Happy Chemicals campaign (ALL PAUSED, no spend).
 
 Campaign 120249688582940256 and ad set 120249688589040256 already exist (PAUSED).
