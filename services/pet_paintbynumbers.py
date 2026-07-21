@@ -91,11 +91,14 @@ def _cell_mm(long_px, cells_long):
 
 def build_bundle(image_bytes, out_dir, num_colors=DEFAULT_NUM_COLORS,
                  base_cells_long=DEFAULT_CELLS_LONG, font_path=None,
-                 min_cell_mm=MIN_CELL_MM):
+                 min_cell_mm=MIN_CELL_MM, max_long_px=None):
     """Render the paint-by-numbers bundle and return the path to the ZIP.
 
     For every included print size, writes a numbered sheet and a color
     reference (both 300 DPI PNG), plus HOW-TO-PRINT.txt, then zips them.
+
+    max_long_px caps the largest page (by long edge). Use it on memory-limited
+    hosts to skip the giant sizes (e.g. A1) whose in-memory PNGs are huge.
     """
     os.makedirs(out_dir, exist_ok=True)
     font_path = _resolve_font(font_path)
@@ -105,6 +108,8 @@ def build_bundle(image_bytes, out_dir, num_colors=DEFAULT_NUM_COLORS,
     made = []
     for name, pw, ph in _pages_for(orient):
         long_px = max(pw, ph)
+        if max_long_px and long_px > max_long_px:
+            continue  # too large to render safely on this host
         if _cell_mm(long_px, base_cells_long) < min_cell_mm:
             continue  # squares would be too small to paint at this size
         side = max(8, round((long_px - 2 * _MARGIN) / base_cells_long))

@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>MathRelaxing Pet Studio</title>
+  <style>
+    :root {
+      --ink: #161616; --muted: #69706b; --paper: #eef0ea; --panel: #fffdf7;
+      --line: #d8dacd; --accent: #0f6b57; --blue: #244a7a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      min-height: 100vh; margin: 0; padding: 32px 20px;
+      background:
+        radial-gradient(circle at 18% 12%, rgba(15, 107, 87, 0.12), transparent 34%),
+        linear-gradient(140deg, rgba(36, 74, 122, 0.10), transparent 42%), var(--paper);
+      color: var(--ink); font-family: Georgia, "Times New Roman", serif;
+    }
+    .wrap { width: min(680px, 100%); margin: 0 auto; }
+    .eyebrow { margin: 0 0 8px; color: var(--accent);
+      font: 700 12px/1.2 ui-monospace, Consolas, monospace; text-transform: uppercase; }
+    h1 { margin: 0 0 6px; font-size: 40px; line-height: 0.98; }
+    .sub { color: var(--muted); line-height: 1.5; margin: 0 0 22px; }
+    .card {
+      background: rgba(255, 253, 247, 0.94); border: 1px solid var(--line);
+      border-radius: 12px; box-shadow: 0 20px 60px rgba(22, 28, 24, 0.12);
+      padding: 24px; margin-bottom: 20px;
+    }
+    form { display: grid; gap: 16px; }
+    label { display: grid; gap: 7px; color: var(--muted); font-size: 13px; }
+    input, select {
+      width: 100%; border: 1px solid var(--line); background: #fffefa; color: var(--ink);
+      border-radius: 8px; padding: 12px; font: inherit; outline: none;
+    }
+    input:focus, select:focus { border-color: rgba(36, 74, 122, 0.62);
+      box-shadow: 0 0 0 3px rgba(36, 74, 122, 0.12); }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    button { min-height: 46px; border: 0; border-radius: 8px; background: var(--accent);
+      color: white; font: inherit; cursor: pointer; }
+    button:disabled { opacity: .6; cursor: progress; }
+    .hint { color: var(--muted); font-size: 12.5px; line-height: 1.5;
+      border-left: 3px solid var(--line); padding: 2px 0 2px 12px; margin: 0; }
+    .link-box { display: flex; gap: 8px; margin: 8px 0 4px; }
+    .link-box input { font: 13px ui-monospace, Consolas, monospace; }
+    .copy { min-height: 0; padding: 0 16px; white-space: nowrap; background: var(--blue); }
+    .ok { color: var(--accent); font-weight: 700; }
+    .pill { display: inline-block; background: rgba(15,107,87,.10); color: var(--accent);
+      border-radius: 999px; padding: 3px 10px; font-size: 12px; margin: 2px 4px 2px 0; }
+    .top { display: flex; justify-content: space-between; align-items: baseline; }
+    a.logout { color: var(--muted); font-size: 12px; text-decoration: none; }
+    .spin { display: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <p class="eyebrow">MathRelaxing internal tool</p>
+      <a class="logout" href="/admin/pet/logout">Sign out</a>
+    </div>
+    <h1>Pet Studio</h1>
+    <p class="sub">Upload the buyer's pet photo. You'll get a private download link with the
+      full multi-size paint-by-numbers bundle to paste into the Etsy message.</p>
+
+    {% if result %}
+    <div class="card">
+      <p class="ok">✓ Bundle ready — {{ result.filename }}</p>
+      <p class="hint" style="margin-bottom:12px">Detected orientation: <b>{{ result.orientation }}</b> ·
+        {{ result.sizes|length }} sizes · {{ result.kb }} KB</p>
+      <div>{% for s in result.sizes %}<span class="pill">{{ s }}</span>{% endfor %}</div>
+      <p class="hint" style="margin-top:14px">Private download link (paste this into your Etsy reply):</p>
+      <div class="link-box">
+        <input id="dl" value="{{ result.link }}" readonly onclick="this.select()">
+        <button type="button" class="copy" onclick="navigator.clipboard.writeText(document.getElementById('dl').value)">Copy</button>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="card">
+      <form method="post" action="/admin/pet/generate" enctype="multipart/form-data"
+            onsubmit="this.querySelector('button').disabled=true;this.querySelector('button').textContent='Rendering… (this can take a minute)';">
+        <label>Pet photo
+          <input type="file" name="photo" accept="image/*" required>
+        </label>
+        <div class="row">
+          <label>Colors
+            <select name="colors">
+              <option value="12">12 — simple</option>
+              <option value="16" selected>16 — recommended</option>
+              <option value="20">20 — detailed</option>
+            </select>
+          </label>
+          <label>Grid density (squares on long edge)
+            <select name="density">
+              <option value="70">70 — bigger squares</option>
+              <option value="85" selected>85 — recommended</option>
+              <option value="100">100 — finer detail</option>
+            </select>
+          </label>
+        </div>
+        <p class="hint">Best results with a clear, well-lit photo where the pet clearly stands
+          out from the background. Landscape, portrait and square photos are all handled
+          automatically. Sizes render up to A2 / 24×18&quot; here (the same design scales to
+          bigger paper).</p>
+        <button type="submit">Generate bundle</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

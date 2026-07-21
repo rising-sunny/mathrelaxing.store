@@ -32,6 +32,7 @@ from routers import live as live_router
 from routers.coupons import router as coupons_router
 from seed import get_seed_products
 from routers import admin as admin_router
+from routers import pet_admin as pet_admin_router
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -850,6 +851,7 @@ app.include_router(gumroad_router.router)
 app.include_router(bonanza_router.router)
 app.include_router(live_router.router)
 app.include_router(admin_router.router)
+app.include_router(pet_admin_router.router)
 
 
 # ── Error handlers ───────────────────────────────────────────────────────────
