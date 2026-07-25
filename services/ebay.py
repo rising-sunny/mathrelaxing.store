@@ -18,18 +18,28 @@ REFRESH_TOKEN = os.getenv("EBAY_REFRESH_TOKEN", "")
 API_BASE      = "https://api.ebay.com"
 TOKEN_FILE    = "/var/www/mathrelaxing.store/.ebay_token.json"
 FULFILLED_FILE = "/var/www/mathrelaxing.store/.ebay_fulfilled.json"
+PUBLIC_BASE   = os.getenv("PUBLIC_BASE_URL", "https://mathrelaxing.store").rstrip("/")
+STORE_ROOT    = os.getenv("STORE_ROOT", "/var/www/mathrelaxing.store")
 
 MARKETPLACE_ID = "EBAY_US"
 CURRENCY       = "USD"
 
-# eBay category: "Everything Else > Information Products > Digital Goods"
-DIGITAL_CATEGORY_ID = "360"   # Art > Art Prints (confirmed leaf, 33 aspects)
+# eBay category: Art > Art Prints (leaf; works for digital wall-art packs)
+DIGITAL_CATEGORY_ID = "360"
 
-# New / limited seller accounts cannot list large quantities. Keep each
-# digital SKU at 1 unit so we don't burn the account selling-limit quota
-# (e.g. quantity=50 total) across many listings. After a sale, fulfill +
-# optionally restock to 1 again.
-LISTING_QUANTITY = int(os.getenv("EBAY_LISTING_QUANTITY", "1"))
+# eBay selling-limit quantity is SHARED across the whole account (e.g. 70).
+# Always keep per-SKU qty at 1 so we can list many digital products without
+# burning the quota. Do NOT raise this without checking
+# GET /sell/account/v1/privilege → sellingLimit.quantity first.
+# After a sale, restock carefully (still 1) only if headroom remains.
+LISTING_QUANTITY = max(1, min(int(os.getenv("EBAY_LISTING_QUANTITY", "1")), 1))
+
+# US managed-payments FVF for most categories (no eBay Store discount assumed).
+# Final value fee is a % of the total sale + a flat per-order fee.
+# Ref: ebay.com/help selling fees — most categories 13.6% + $0.30 (≤$10) / $0.40 (>$10).
+FEE_RATE = float(os.getenv("EBAY_FEE_RATE", "0.136"))
+ORDER_FEE_LOW = float(os.getenv("EBAY_ORDER_FEE_LOW", "0.30"))
+ORDER_FEE_HIGH = float(os.getenv("EBAY_ORDER_FEE_HIGH", "0.40"))
 
 SCOPES = " ".join([
     "https://api.ebay.com/oauth/api_scope/sell.inventory",
@@ -254,25 +264,115 @@ All files are delivered digitally — no physical item ships.</p>
 </div>"""
 
 
-def _listing_image_url(product) -> str:
-    """Prefer real static covers over the generic render preview endpoint."""
+def price_for_product(product) -> float:
+    """
+    Gross up DigitalProduct.price_usd so that after eBay final-value fee
+    (+ per-order fee) we still net approximately the catalog price.
+
+        list ≈ (base + order_fee) / (1 - fee_rate)
+    """
+    import math
+
+    base = float(getattr(product, "price_usd", 0) or 0)
+    if base <= 0:
+        return 0.0
+    rate = min(max(FEE_RATE, 0.0), 0.95)
+    p = (base + ORDER_FEE_LOW) / (1.0 - rate)
+    p = math.ceil(p * 100 - 1e-9) / 100
+    order_fee = ORDER_FEE_LOW if p <= 10 else ORDER_FEE_HIGH
+    if order_fee != ORDER_FEE_LOW:
+        p = (base + order_fee) / (1.0 - rate)
+        p = math.ceil(p * 100 - 1e-9) / 100
+    # Prefer a clean .99 retail ending when we're within ~20¢ of one
+    if p < 10:
+        dollars = int(p)
+        candidate = dollars + 0.99
+        if candidate >= p and candidate - p <= 0.20:
+            p = candidate
+        elif candidate < p:
+            candidate = dollars + 1.99
+            if candidate - p <= 0.20:
+                p = candidate
+    return round(p, 2)
+
+
+def net_after_fees(list_price: float) -> float:
+    of = ORDER_FEE_LOW if list_price <= 10 else ORDER_FEE_HIGH
+    return round(float(list_price) - float(list_price) * FEE_RATE - of, 2)
+
+
+def _listing_image_urls(product) -> list[str]:
+    """
+    Collect multiple gallery images for eBay (hero + cover + per-design previews).
+    eBay inventory accepts several imageUrls; more previews convert better than a single tile.
+    """
     from pathlib import Path
 
-    root = Path("/var/www/mathrelaxing.store")
+    root = Path(STORE_ROOT)
+    urls: list[str] = []
+    seen: set[str] = set()
+
+    def add(url: str) -> None:
+        if url and url not in seen:
+            seen.add(url)
+            urls.append(url)
+
+    def add_file(path: Path) -> None:
+        if path.is_file() and path.stat().st_size > 2000:
+            rel = path.relative_to(root).as_posix()
+            add(f"{PUBLIC_BASE}/{rel}")
+
+    # Heroes / composites first
     for rel in (
         f"static/bonanza/{product.slug}.jpg",
         f"static/previews/{product.slug}.jpg",
         f"static/img/{product.slug}_cover.jpg",
+        f"static/previews/{product.slug}_clean.jpg",
     ):
-        if (root / rel).is_file():
-            return f"https://mathrelaxing.store/{rel}"
+        add_file(root / rel)
+
     for attr in ("cover_image", "thumbnail_url"):
         val = (getattr(product, attr, None) or "").split("?", 1)[0]
-        if val.startswith("/static/") and (root / val.lstrip("/")).is_file():
-            return f"https://mathrelaxing.store{val}"
-        if val.startswith("https://mathrelaxing.store/"):
-            return val
-    return f"https://mathrelaxing.store/api/render/preview?product={product.slug}"
+        if val.startswith("/static/"):
+            add_file(root / val.lstrip("/"))
+        elif val.startswith(PUBLIC_BASE):
+            add(val)
+
+    # Numbered page previews: static/previews/{slug}_0.jpg, _0_clean.jpg, _1.jpg, …
+    prev_dir = root / "static" / "previews"
+    if prev_dir.is_dir():
+        numbered: dict[str, Path] = {}
+        for p in sorted(prev_dir.glob(f"{product.slug}_*")):
+            if p.suffix.lower() not in (".jpg", ".jpeg", ".png"):
+                continue
+            stem = p.stem
+            if stem in (product.slug, f"{product.slug}_clean"):
+                continue
+            key = stem.replace("_clean", "")
+            # prefer *_clean variants
+            if key not in numbered or "_clean" in stem:
+                numbered[key] = p
+        for key in sorted(numbered.keys()):
+            add_file(numbered[key])
+            if len(urls) >= 12:
+                break
+
+    # Extracted / rendered gallery (static/ebay/{slug}/)
+    gallery = root / "static" / "ebay" / product.slug
+    if gallery.is_dir():
+        for p in sorted(gallery.glob("*.jpg")) + sorted(gallery.glob("*.png")):
+            add_file(p)
+            if len(urls) >= 12:
+                break
+
+    if not urls:
+        add(f"{PUBLIC_BASE}/api/render/preview?product={product.slug}")
+    return urls[:12]
+
+
+def _listing_image_url(product) -> str:
+    """Back-compat single image (first gallery URL)."""
+    return _listing_image_urls(product)[0]
 
 
 def _safe_title(product) -> str:
@@ -291,14 +391,15 @@ async def upsert_inventory_item(product, policies: dict) -> None:
         "Subject": ["Mathematical Art", "Abstract"],
         "Style": ["Abstract", "Digital Art"],
     }
-    qty = max(1, min(LISTING_QUANTITY, 3))  # hard cap 3 even if env is higher
+    qty = _sku_quantity()  # always 1 under selling-limit protection
+    images = _listing_image_urls(product)
 
     await _put(f"/sell/inventory/v1/inventory_item/{sku}", {
         "product": {
             "title": _safe_title(product),
             "description": _product_description(product),
             "aspects": aspects,
-            "imageUrls": [_listing_image_url(product)],
+            "imageUrls": images,
         },
         "condition": condition,
         "availability": {
@@ -309,10 +410,31 @@ async def upsert_inventory_item(product, policies: dict) -> None:
     })
 
 
+def _sku_quantity() -> int:
+    """Per-SKU available quantity — hard-capped at 1 for selling-limit safety."""
+    return 1
+
+
+async def get_selling_limits() -> dict:
+    """Account-level selling limits (quantity + GMV)."""
+    try:
+        priv = await _get("/sell/account/v1/privilege")
+        lim = priv.get("sellingLimit") or {}
+        amt = lim.get("amount") or {}
+        return {
+            "max_quantity": lim.get("quantity"),
+            "max_amount": amt.get("value"),
+            "currency": amt.get("currency"),
+            "registration_completed": priv.get("sellerRegistrationCompleted"),
+        }
+    except Exception as e:
+        return {"error": str(e)[:200]}
+
+
 async def create_offer(product, policies: dict) -> str:
     sku = f"mr-{product.slug}"
-    price_str = f"{product.price_usd:.2f}"
-    qty = max(1, min(LISTING_QUANTITY, 3))
+    price_str = f"{price_for_product(product):.2f}"
+    qty = _sku_quantity()
     body = {
         "sku": sku,
         "marketplaceId": MARKETPLACE_ID,
@@ -358,19 +480,54 @@ async def publish_product(product) -> dict:
     await upsert_inventory_item(product, policies)
 
     sku = f"mr-{product.slug}"
+    list_price = price_for_product(product)
+    price_str = f"{list_price:.2f}"
+    qty = _sku_quantity()
     offers = await get_offers_for_sku(sku)
 
     if offers:
         offer_id = offers[0]["offerId"]
         listing_id = offers[0].get("listingId") or offers[0].get("listing", {}).get("listingId")
         status = offers[0].get("status", "")
+        # Keep price/qty/policies in sync with catalog (fee-aware list price)
+        try:
+            await _put(
+                f"/sell/inventory/v1/offer/{offer_id}",
+                {
+                    "availableQuantity": qty,
+                    "categoryId": DIGITAL_CATEGORY_ID,
+                    "listingDescription": _product_description(product),
+                    "listingPolicies": {
+                        "fulfillmentPolicyId": policies["fulfillment_policy_id"],
+                        "paymentPolicyId": policies["payment_policy_id"],
+                        "returnPolicyId": policies["return_policy_id"],
+                    },
+                    "pricingSummary": {
+                        "price": {"value": price_str, "currency": CURRENCY},
+                    },
+                    "merchantLocationKey": os.getenv(
+                        "EBAY_MERCHANT_LOCATION_KEY", "default_location"
+                    ),
+                    "marketplaceId": MARKETPLACE_ID,
+                    "format": "FIXED_PRICE",
+                },
+            )
+        except Exception as e:
+            print(f"[ebay] offer update warn for {sku}: {e}", flush=True)
         if status != "PUBLISHED":
             listing_id = await publish_offer(offer_id)
     else:
         offer_id = await create_offer(product, policies)
         listing_id = await publish_offer(offer_id)
 
-    return {"offer_id": offer_id, "listing_id": listing_id}
+    return {
+        "offer_id": offer_id,
+        "listing_id": listing_id,
+        "list_price": list_price,
+        "base_price": float(getattr(product, "price_usd", 0) or 0),
+        "est_net": net_after_fees(list_price),
+        "images": len(_listing_image_urls(product)),
+    }
 
 
 async def unpublish_product(product) -> None:
