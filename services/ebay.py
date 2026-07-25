@@ -14,6 +14,10 @@ import httpx
 CLIENT_ID     = os.getenv("EBAY_CLIENT_ID", "")
 CLIENT_SECRET = os.getenv("EBAY_CLIENT_SECRET", "")
 REFRESH_TOKEN = os.getenv("EBAY_REFRESH_TOKEN", "")
+# Seller account (GetUser): UserID=mathrelaxing, Email=sunsetedstore@gmail.com
+# Payouts: eBay Managed Payments → Payoneer (NOT a listing-level PayPal email).
+# Payoneer account # is set in Seller Hub; optional note for ops only:
+PAYONEER_ACCOUNT = os.getenv("EBAY_PAYONEER_ACCOUNT", "68021829")
 
 API_BASE      = "https://api.ebay.com"
 TOKEN_FILE    = "/var/www/mathrelaxing.store/.ebay_token.json"
@@ -204,14 +208,15 @@ async def get_or_create_policies() -> dict[str, str]:
         payment_id = None
 
     if not payment_id:
+        # Managed Payments: empty paymentMethods; eBay collects and pays out
+        # to the seller's linked method (this account: Payoneer).
+        # Do NOT put PAYPAL_EMAIL / Payoneer # here — payout is account-level.
         r = await _post("/sell/account/v1/payment_policy", {
-            "name": "Immediate Payment",
+            "name": "eBay Managed Payments",
             "marketplaceId": MARKETPLACE_ID,
             "categoryTypes": [{"name": "ALL_EXCLUDING_MOTORS_VEHICLES"}],
             "immediatePay": True,
-            "paymentMethods": [{"paymentMethodType": "PAYPAL",
-                                "recipientAccountReference": {"referenceType": "PAYPAL_EMAIL",
-                                                               "referenceId": "orders@mathrelaxing.store"}}],
+            "paymentMethods": [],
         })
         payment_id = r.get("paymentPolicyId")
 
