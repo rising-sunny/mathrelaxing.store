@@ -11,10 +11,13 @@ Strategy:
 Pins are tracked in the PinterestPin table, reusing its columns:
   product_slug = str(listing_id), product_type = "etsy", variant_idx = 0.
 """
+import asyncio
 import logging
 import os
 import random
-from datetime import datetime, timedelta
+import time
+from collections import Counter
+from datetime import date, datetime, timedelta
 from typing import Optional
 
 import httpx
@@ -338,3 +341,166 @@ async def run_auto_pin_cycle() -> dict:
     finally:
         db.close()
     return summary
+
+
+# ---------------------------------------------------------------------------
+# Analytics
+# ---------------------------------------------------------------------------
+_ANALYTICS_TTL = 600  # 10-minute server-side cache
+_analytics_cache: dict = {"ts": 0.0, "days": None, "data": None}
+
+
+def _extract_summary_metrics(body: dict) -> dict:
+    """Pull the summary-metrics dict out of a Pinterest pin-analytics payload,
+    tolerating the shapes the API returns ({"all": {"summary_metrics": {...}}})."""
+    if not isinstance(body, dict):
+        return {}
+    node = body.get("all") if isinstance(body.get("all"), dict) else body
+    for key in ("summary_metrics", "lifetime_metrics"):
+        sm = node.get(key)
+        if isinstance(sm, dict) and sm:
+            return sm
+    return {k: v for k, v in node.items() if isinstance(v, (int, float))}
+
+
+async def _fetch_pin_analytics(pin_id: str, access_token: str,
+                               start: str, end: str) -> tuple[Optional[dict], int]:
+    api_base = os.getenv("PINTEREST_API_BASE", "https://api.pinterest.com/v5")
+    params = {
+        "start_date": start,
+        "end_date": end,
+        "metric_types": "IMPRESSION,SAVE,PIN_CLICK,OUTBOUND_CLICK",
+        "app_types": "ALL",
+    }
+    async with httpx.AsyncClient(timeout=30) as client:
+        r = await client.get(
+            f"{api_base}/pins/{pin_id}/analytics",
+            headers={"Authorization": f"Bearer {access_token}"},
+            params=params,
+        )
+    if r.status_code != 200:
+        return None, r.status_code
+    return (r.json() if r.content else {}), 200
+
+
+def _agg_rows(mapping: dict, key_name: str) -> list[dict]:
+    rows = []
+    for k, c in mapping.items():
+        rows.append({
+            key_name: k,
+            "pins": c["pins"],
+            "impressions": c["impressions"],
+            "saves": c["saves"],
+            "pin_clicks": c["pin_clicks"],
+            "outbound_clicks": c["outbound_clicks"],
+        })
+    rows.sort(key=lambda r: (r["outbound_clicks"], r["impressions"]), reverse=True)
+    return rows
+
+
+async def collect_all_pin_analytics(days: int = 30) -> dict:
+    """Aggregate Pinterest analytics for every active pin we created, over the
+    last `days`. Cached server-side for 10 min. Response shape matches
+    templates/admin_pinterest_analytics.html."""
+    now = time.time()
+    cache = _analytics_cache
+    if (cache["data"] is not None and cache["days"] == days
+            and now - cache["ts"] < _ANALYTICS_TTL):
+        return cache["data"]
+
+    from routers.pinterest import _access_token as _pin_access_token, _read_token as _pin_read_token
+    if not _pin_read_token():
+        return {"error": "Pinterest not connected", "totals": {}, "per_pin": []}
+    try:
+        token = await _pin_access_token()
+    except Exception as exc:
+        return {"error": f"token: {exc}", "totals": {}, "per_pin": []}
+
+    end_d = date.today()
+    start_d = end_d - timedelta(days=max(1, min(days, 90)))
+    start_s, end_s = start_d.isoformat(), end_d.isoformat()
+
+    db = SessionLocal()
+    try:
+        pins = (
+            db.query(PinterestPin)
+            .filter(
+                PinterestPin.status == "active",
+                PinterestPin.pin_id.isnot(None),
+                PinterestPin.pin_id != "",
+            )
+            .order_by(PinterestPin.created_at.desc())
+            .limit(300)
+            .all()
+        )
+        per_pin: list[dict] = []
+        by_product: dict[str, Counter] = {}
+        by_variant: dict[int, Counter] = {}
+        totals = Counter()
+        fetched = 0
+
+        for p in pins:
+            body, code = await _fetch_pin_analytics(p.pin_id, token, start_s, end_s)
+            ok = code == 200
+            sm = _extract_summary_metrics(body) if ok else {}
+            if ok:
+                fetched += 1
+
+            imp = int(sm.get("IMPRESSION", 0) or 0)
+            sav = int(sm.get("SAVE", 0) or 0)
+            clk = int(sm.get("PIN_CLICK", 0) or 0)
+            out = int(sm.get("OUTBOUND_CLICK", 0) or 0)
+
+            totals["impressions"] += imp
+            totals["saves"] += sav
+            totals["pin_clicks"] += clk
+            totals["outbound_clicks"] += out
+
+            prod = by_product.setdefault(p.product_slug or "?", Counter())
+            prod["pins"] += 1
+            prod["impressions"] += imp
+            prod["saves"] += sav
+            prod["pin_clicks"] += clk
+            prod["outbound_clicks"] += out
+
+            vidx = int(p.variant_idx or 0)
+            var = by_variant.setdefault(vidx, Counter())
+            var["pins"] += 1
+            var["impressions"] += imp
+            var["saves"] += sav
+            var["pin_clicks"] += clk
+            var["outbound_clicks"] += out
+
+            per_pin.append({
+                "pin_id": p.pin_id,
+                "product_slug": p.product_slug,
+                "variant_idx": vidx,
+                "impressions": imp,
+                "saves": sav,
+                "pin_clicks": clk,
+                "outbound_clicks": out,
+                "created_at": (p.created_at.isoformat() + "Z") if p.created_at else None,
+                "fetched": ok,
+            })
+            await asyncio.sleep(0.15)  # gentle throttle
+
+        data = {
+            "days": days,
+            "start": start_s,
+            "end": end_s,
+            "total_pins": len(pins),
+            "fetched_pins": fetched,
+            "totals": {
+                "impressions": totals["impressions"],
+                "saves": totals["saves"],
+                "pin_clicks": totals["pin_clicks"],
+                "outbound_clicks": totals["outbound_clicks"],
+            },
+            "by_variant": _agg_rows(by_variant, "variant_idx"),
+            "by_product": _agg_rows(by_product, "product_slug"),
+            "per_pin": per_pin,
+        }
+        cache.update({"ts": now, "days": days, "data": data})
+        return data
+    finally:
+        db.close()
