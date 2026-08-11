@@ -223,6 +223,52 @@ def _pick_image_url(images: list[dict]) -> Optional[str]:
     return None
 
 
+async def count_active_listings() -> int:
+    """Number of active listings in the shop (one cheap request)."""
+    headers = await _headers()
+    shop_id = await get_shop_id()
+    async with httpx.AsyncClient(timeout=30) as client:
+        r = await client.get(
+            f"{API_BASE}/shops/{shop_id}/listings/active",
+            headers=headers,
+            params={"limit": 1},
+        )
+    if r.status_code >= 400:
+        raise RuntimeError(f"Etsy active listings HTTP {r.status_code}: {r.text[:300]}")
+    return int((r.json() or {}).get("count") or 0)
+
+
+async def image_url_for_variant(listing: dict, variant: int = 0) -> Optional[str]:
+    """Image URL for a listing, rotating through its gallery by `variant` so
+    repeated pins of the same listing don't reuse the same photo."""
+    images = listing.get("images") or []
+    if not images:
+        lid = listing.get("listing_id")
+        if not lid:
+            return None
+        try:
+            images = await get_listing_images(lid)
+        except Exception as exc:
+            logger.warning("etsy image fetch failed for listing %s: %s", lid, exc)
+            return None
+    if not images:
+        return None
+    return _pick_image_url([images[variant % len(images)]])
+
+
+async def fetch_image_bytes(url: str) -> Optional[bytes]:
+    """Download a listing image. Returns None on any failure."""
+    try:
+        async with httpx.AsyncClient(timeout=45, follow_redirects=True) as client:
+            r = await client.get(url)
+        if r.status_code >= 400 or not r.content:
+            return None
+        return r.content
+    except Exception as exc:
+        logger.warning("etsy image download failed (%s): %s", url[:80], exc)
+        return None
+
+
 async def primary_image_url(listing: dict) -> Optional[str]:
     """Best image URL for a listing. Uses images embedded via includes=Images
     when present, otherwise fetches them."""

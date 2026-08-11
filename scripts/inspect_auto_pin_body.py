@@ -26,13 +26,19 @@ async def main(n: int = 5) -> None:
     listings = await etsy_client.list_active_listings(limit_total=n)
     print(f"shop_id={shop_id}  active_listings_fetched={len(listings)}\n")
     for listing in listings[:n]:
-        body = await _build_pin_body(listing, "BOARD_ID_PLACEHOLDER")
+        built = await _build_pin_body(listing, "BOARD_ID_PLACEHOLDER")
         print("---", listing.get("listing_id"), "|", (listing.get("title") or "")[:60])
-        if not body:
+        if not built:
             print("  (skipped: no image)")
             continue
+        body, source_url = built
+        media = body["media_source"]
+        kind = media["source_type"]
+        detail = (f"rendered 2:3, {len(media['data']) * 3 // 4 // 1024} KB"
+                  if kind == "image_base64" else "raw etsy image")
         print("  title:      ", body["title"])
-        print("  image:      ", body["media_source"]["url"])
+        print("  media:      ", f"{kind} ({detail})")
+        print("  source img: ", source_url)
         print("  link:       ", body["link"])
         print("  description:", body["description"][:180].replace("\n", " "))
 

@@ -354,6 +354,69 @@ def render_pin(*, product_slug: str, name: str, price_usd: float,
     return data
 
 
+def render_etsy_pin(*, listing_id: str, image_bytes: bytes, title: str,
+                    label: str = "Digital Download", variant: int = 0) -> Optional[bytes]:
+    """Render a 2:3 pin from an Etsy listing image. Returns JPEG bytes, or None
+    if the source image cannot be decoded.
+
+    Etsy listing images are square or 4:5; Pinterest favours 1000x1500, so the
+    listing image is letterboxed into a branded vertical canvas instead of being
+    pinned raw. `variant` rotates colour/layout so re-pins of the same listing
+    do not look identical."""
+    variant = max(0, min(variant, len(VARIANTS) - 1))
+    v = VARIANTS[variant]
+
+    cache_path = os.path.join(CACHE_DIR, f"etsy-{listing_id}__v{variant}.jpg")
+    if os.path.exists(cache_path):
+        with open(cache_path, "rb") as fh:
+            return fh.read()
+
+    try:
+        src = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    except Exception:
+        return None
+
+    canvas = Image.new("RGB", (PIN_W, PIN_H), v["bg"])
+    draw = ImageDraw.Draw(canvas)
+
+    if v["layout"] == "framed":
+        pad, inner_top, inner_h = 70, 190, 920
+        canvas.paste(_fit_image(src, PIN_W - 2 * pad, inner_h, v["bg"]), (pad, inner_top))
+        draw.rectangle((pad - 6, inner_top - 6, PIN_W - pad + 6, inner_top + inner_h + 6),
+                       outline=v["accent"], width=4)
+        f_kicker, f_title, f_cta = _font(30), _font(52, bold=True), _font(32, bold=True)
+        bbox = draw.textbbox((0, 0), "MATHRELAXING", font=f_kicker)
+        draw.text(((PIN_W - (bbox[2] - bbox[0])) // 2, 60), "MATHRELAXING",
+                  font=f_kicker, fill=v["accent"])
+        y = inner_top + inner_h + 50
+        y = _draw_centered(draw, title, f_title, y, v["ink"], PIN_W - 100)
+        y += 20
+        _draw_centered(draw, f"{label}  ·  on Etsy", f_cta, y, v["subtle"], PIN_W - 100)
+
+    else:  # classic / magazine share one clean vertical composition
+        img_top, img_h = 90, 960
+        canvas.paste(_fit_image(src, PIN_W - 120, img_h, v["bg"]), (60, img_top))
+        f_kicker, f_title, f_cta = _font(30), _font(56, bold=True), _font(34, bold=True)
+        y = img_top + img_h + 55
+        y = _draw_centered(draw, label.upper(), f_kicker, y, v["subtle"], PIN_W - 120)
+        y += 16
+        y = _draw_centered(draw, title, f_title, y, v["ink"], PIN_W - 120)
+        y += 22
+        # Plain ASCII only — the font falls back to PIL's default when DejaVu is
+        # missing, and a glyph like "→" would render as tofu on the pin.
+        _draw_centered(draw, "Shop on Etsy", f_cta, y, v["accent"], PIN_W - 120)
+
+    buf = io.BytesIO()
+    canvas.save(buf, format="JPEG", quality=88, optimize=True)
+    data = buf.getvalue()
+    try:
+        with open(cache_path, "wb") as fh:
+            fh.write(data)
+    except Exception:
+        pass
+    return data
+
+
 def invalidate_cache(product_slug: Optional[str] = None) -> int:
     """Remove cached pin images. If slug given, only that product's pins."""
     n = 0

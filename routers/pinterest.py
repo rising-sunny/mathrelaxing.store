@@ -551,16 +551,23 @@ async def pinterest_auto_pin_status(_: None = Depends(_require_admin_session), d
         "products_covered": db.query(func.count(func.distinct(PinterestPin.product_slug))).filter(
             PinterestPin.status == "active").scalar() or 0,
     }
-    total_products = db.query(func.count(DigitalProduct.id)).filter(DigitalProduct.active == True).scalar() or 0
-    totals["total_products"] = total_products
+    # Coverage is measured against the Etsy shop — that is what the job pins.
+    # (It used to count on-site DigitalProduct rows, which made the ratio meaningless.)
+    from services import etsy_client, pinterest_jobs
+    try:
+        totals["total_listings"] = await etsy_client.count_active_listings()
+    except Exception as exc:
+        totals["total_listings"] = None
+        totals["total_listings_error"] = str(exc)[:200]
 
     recent = db.query(PinterestPin).order_by(PinterestPin.created_at.desc()).limit(20).all()
     return {
         "totals": totals,
         "config": {
-            "pins_per_cycle": int(os.getenv("PINTEREST_PINS_PER_CYCLE", "3")),
-            "cycle_hours": int(os.getenv("PINTEREST_CYCLE_HOURS", "4")),
-            "repin_cooldown_days": int(os.getenv("PINTEREST_REPIN_COOLDOWN_DAYS", "14")),
+            "pins_per_cycle": pinterest_jobs.MAX_PINS_PER_CYCLE,
+            "cycle_hours": pinterest_jobs.PIN_CYCLE_INTERVAL_HOURS,
+            "repin_cooldown_days": pinterest_jobs.REPIN_COOLDOWN_DAYS,
+            "render_pins": pinterest_jobs.RENDER_PINS,
             "default_board_id": os.getenv("PINTEREST_DEFAULT_BOARD_ID", "") or None,
         },
         "recent": [{

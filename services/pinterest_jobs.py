@@ -12,9 +12,11 @@ Pins are tracked in the PinterestPin table, reusing its columns:
   product_slug = str(listing_id), product_type = "etsy", variant_idx = 0.
 """
 import asyncio
+import base64
 import logging
 import os
 import random
+import re
 import time
 from collections import Counter
 from datetime import date, datetime, timedelta
@@ -25,19 +27,30 @@ import httpx
 from database import SessionLocal
 from models.pinterest_pin import PinterestPin
 from models.pinterest_board import PinterestBoard
-from services import etsy_client
+from services import etsy_client, pinterest_renderer
 
 logger = logging.getLogger("pinterest_jobs")
 
-MAX_PINS_PER_CYCLE = int(os.getenv("PINTEREST_PINS_PER_CYCLE", "3"))
-REPIN_COOLDOWN_DAYS = int(os.getenv("PINTEREST_REPIN_COOLDOWN_DAYS", "14"))
-PIN_CYCLE_INTERVAL_HOURS = int(os.getenv("PINTEREST_CYCLE_HOURS", "4"))
+MAX_PINS_PER_CYCLE = int(os.getenv("PINTEREST_PINS_PER_CYCLE", "2"))
+REPIN_COOLDOWN_DAYS = int(os.getenv("PINTEREST_REPIN_COOLDOWN_DAYS", "21"))
+PIN_CYCLE_INTERVAL_HOURS = int(os.getenv("PINTEREST_CYCLE_HOURS", "8"))
 DEFAULT_BOARD_ID = os.getenv("PINTEREST_DEFAULT_BOARD_ID", "")
 ETSY_BOARD_NAME = os.getenv("PINTEREST_ETSY_BOARD_NAME", "MathRelaxing on Etsy")
 MAX_ETSY_LISTINGS = int(os.getenv("PINTEREST_ETSY_MAX_LISTINGS", "250"))
+# Compose a 2:3 pin from the listing image instead of pinning it raw.
+RENDER_PINS = os.getenv("PINTEREST_RENDER_PINS", "1") != "0"
 
 ETSY_PRODUCT_TYPE = "etsy"
-PIN_CTA = "Shop the full collection on Etsy."
+PIN_CTA = "Instant digital download — print at home. Shop the full collection on Etsy."
+
+# Etsy titles are keyword-stuffed for Etsy search ("Physics Wall Art | Maxwell
+# Equations Print | ... (Digital Download)"); these segments carry no meaning
+# as a Pin title and are dropped when picking one.
+_GENERIC_TITLE_SEGMENTS = {
+    "digital download", "instant download", "printable wall art", "printable art",
+    "wall art", "math wall art", "physics wall art", "science wall art",
+    "stem wall art", "digital print", "printable",
+}
 
 
 # ---------------------------------------------------------------------------
@@ -87,29 +100,108 @@ def _select_candidates(db, listings: list[dict], *, limit: int) -> list[dict]:
     return [s[2] for s in scored[:limit]]
 
 
-async def _build_pin_body(listing: dict, board_id: str) -> Optional[dict]:
-    image_url = await etsy_client.primary_image_url(listing)
+def pin_title(listing: dict) -> str:
+    """A readable Pin title from the Etsy SEO title.
+
+    "Physics Wall Art | Maxwell Equations Electromagnetism Print | Light Wave
+    Physics STEM Art (Digital Download)"  ->  "Maxwell Equations Electromagnetism Print"
+    """
+    raw = (listing.get("title") or "").strip()
+    raw = re.sub(r"\([^)]*\)", "", raw)  # drop "(Digital Download)" tails
+    segments = [s.strip(" -–—·") for s in raw.split("|")]
+    # Drop the broad category segments ("Physics Wall Art", "Digital Download");
+    # the first thing left is the subject, which is what a human scrolling
+    # Pinterest actually responds to.
+    segments = [s for s in segments if s and s.lower() not in _GENERIC_TITLE_SEGMENTS]
+    if not segments:
+        return "MathRelaxing Art"
+    return segments[0][:97].rstrip(" ,-") or "MathRelaxing Art"
+
+
+def pin_description(listing: dict, title: str, variant: int = 0) -> str:
+    """Pinterest-native description: hook, keywords, CTA.
+
+    Deliberately NOT the Etsy description — that one opens with shop boilerplate
+    ("Instant download — ...") and its "What you get" bullets read as noise here.
+    The hook rotates with `variant` so sibling listings (which share tags) don't
+    produce word-for-word identical pins.
+    """
+    hooks = [
+        f"{title} — printable wall art for a maths, physics or study space.",
+        f"{title}. Real mathematics, drawn from the equations — no AI, no clip art.",
+        f"{title} — gallery-quality print you can download today and frame tonight.",
+    ]
+    tags = [t.strip() for t in (listing.get("tags") or []) if t and t.strip()]
+
+    lid = _listing_id(listing)
+    offset = int(lid) if lid.isdigit() else 0
+    parts = [hooks[(offset + variant) % len(hooks)]]
+    if tags:
+        parts.append(", ".join(tags[:6]) + ".")
+    parts.append(PIN_CTA)
+    return "\n\n".join(parts)[:495]
+
+
+def _next_variant(db, listing_id: str) -> int:
+    """Rotate the visual variant per listing so a re-pin never reproduces the
+    previous pin's image or layout (Pinterest deprioritises exact duplicates)."""
+    seen = (
+        db.query(PinterestPin)
+        .filter(
+            PinterestPin.product_slug == listing_id,
+            PinterestPin.product_type == ETSY_PRODUCT_TYPE,
+        )
+        .count()
+    )
+    return seen % len(pinterest_renderer.VARIANTS)
+
+
+async def _pin_media(listing: dict, variant: int) -> Optional[tuple[dict, str]]:
+    """Media block for the pin plus the source image URL (kept for our own
+    records). Renders a 2:3 composition when possible, falling back to the raw
+    Etsy image URL."""
+    image_url = await etsy_client.image_url_for_variant(listing, variant)
     if not image_url:
         return None
 
-    title = (listing.get("title") or "").strip()[:100] or "MathRelaxing Art"
+    if RENDER_PINS:
+        raw = await etsy_client.fetch_image_bytes(image_url)
+        if raw:
+            jpeg = pinterest_renderer.render_etsy_pin(
+                listing_id=_listing_id(listing),
+                image_bytes=raw,
+                title=pin_title(listing),
+                variant=variant,
+            )
+            if jpeg:
+                return {
+                    "source_type": "image_base64",
+                    "content_type": "image/jpeg",
+                    "data": base64.b64encode(jpeg).decode("ascii"),
+                }, image_url
+        logger.warning("pin render failed for listing %s; using raw etsy image",
+                       _listing_id(listing))
 
-    description = (listing.get("description") or "").strip()
-    if len(description) > 440:
-        description = description[:437].rstrip() + "..."
-    description = (f"{description}\n\n{PIN_CTA}" if description else PIN_CTA)[:495]
+    return {"source_type": "image_url", "url": image_url, "is_standard": True}, image_url
 
-    return {
+
+async def _build_pin_body(listing: dict, board_id: str,
+                          variant: int = 0) -> Optional[tuple[dict, str]]:
+    """Pin body ready for the API, plus the source image URL."""
+    media = await _pin_media(listing, variant)
+    if not media:
+        return None
+    media_source, source_url = media
+
+    title = pin_title(listing)
+    body = {
         "board_id": board_id,
         "title": title,
-        "description": description,
+        "description": pin_description(listing, title, variant),
         "link": _listing_link(listing),
-        "media_source": {
-            "source_type": "image_url",
-            "url": image_url,
-            "is_standard": True,
-        },
+        "media_source": media_source,
     }
+    return body, source_url
 
 
 # ---------------------------------------------------------------------------
@@ -307,18 +399,20 @@ async def run_auto_pin_cycle() -> dict:
 
         for listing in candidates:
             lid = _listing_id(listing)
-            body = await _build_pin_body(listing, board_id)
-            if not body:
+            variant = _next_variant(db, lid)
+            built = await _build_pin_body(listing, board_id, variant)
+            if not built:
                 summary["failed"] += 1
                 logger.warning("no image for etsy listing %s; skipped", lid)
                 continue
+            body, source_url = built
 
             record = PinterestPin(
                 product_slug=lid,
                 product_type=ETSY_PRODUCT_TYPE,
-                variant_idx=0,
+                variant_idx=variant,
                 board_id=board_id,
-                image_url=body["media_source"]["url"],
+                image_url=source_url,
                 title=body["title"],
                 description=body["description"],
                 link_url=body["link"],
